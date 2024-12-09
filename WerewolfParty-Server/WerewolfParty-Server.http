@@ -1,0 +1,6 @@
+@WerewolfParty_Server_HostAddress = http://localhost:5049
+
+GET {{WerewolfParty_Server_HostAddress}}/weatherforecast/
+Accept: application/json
+
+###

@@ -1,0 +1,6 @@
+﻿services:
+  werewolfparty-server:
+    image: werewolfparty-server
+    build:
+      context: .
+      dockerfile: WerewolfParty-Server/Dockerfile
