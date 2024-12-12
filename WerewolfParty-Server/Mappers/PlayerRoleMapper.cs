@@ -4,7 +4,7 @@ using WerewolfParty_Server.Entities;
 
 namespace WerewolfParty_Server.Mappers;
 
-public class PlayerRoleMapper: Profile
+public class PlayerRoleMapper : Profile
 {
     public PlayerRoleMapper()
     {

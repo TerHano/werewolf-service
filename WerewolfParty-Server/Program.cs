@@ -11,6 +11,7 @@ using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Exceptions;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Mappers;
+using WerewolfParty_Server.Models.Request;
 using WerewolfParty_Server.Repository;
 using WerewolfParty_Server.Repository.Interface;
 using WerewolfParty_Server.Service;
@@ -23,16 +24,16 @@ public abstract class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
-        
+
         builder.Services.AddCors(options =>
         {
             options.AddPolicy(name: "WerewolfServerPolicy",
-                policy  =>
+                policy =>
                 {
                     //policy.AllowAnyMethod();
                     //policy.AllowAnyOrigin();
                     policy.AllowAnyHeader();
-                    policy.WithOrigins("http://localhost:3000");
+                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173");
                     policy.AllowCredentials();
                 });
         });
@@ -44,29 +45,25 @@ public abstract class Program
 
         // builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("BloggingContext")));
 
-        builder.Services.AddScoped<IRoomRepository, RoomRepository>();
-        builder.Services.AddScoped<IPlayerRoomRepository, PlayerRoomRepository>();
-        builder.Services.AddScoped<IRoleSettingsRepository, RoleSettingsRepository>();
+        builder.Services.AddScoped<RoomRepository>();
+        builder.Services.AddScoped<PlayerRoomRepository>();
+        builder.Services.AddScoped<RoleSettingsRepository>();
 
         builder.Services.AddScoped<JwtService>();
         builder.Services.AddScoped<RoomService>();
-        builder.Services.AddSignalR((options) =>
-        {
-            options.EnableDetailedErrors = true;
-        });
+        builder.Services.AddSignalR((options) => { options.EnableDetailedErrors = true; });
         builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
         //Mappers
         builder.Services.AddAutoMapper(typeof(PlayerMapper));
         builder.Services.AddAutoMapper(typeof(PlayerRoleMapper));
-        
+
         //Validators
         builder.Services.AddScoped<IValidator<PlayerDTO>, PlayerDTOValidator>();
-        builder.Services.AddScoped<IValidator<RoleSettingsEntity>, RoleSettingsValidator>();
+        builder.Services.AddScoped<IValidator<UpdateRoleSettingsRequest>, RoleSettingsRequestValidator>();
 
 
         builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
-
 
 
         builder.Services.AddAuthorization();
@@ -127,7 +124,6 @@ public abstract class Program
                 }
             };
         });
-        
 
 
         var app = builder.Build();
@@ -147,7 +143,7 @@ public abstract class Program
 
         app.RegisterRoomEndpoints();
         app.RegisterPlayerEndpoints();
-        
+
         app.UseExceptionHandler(_ => { });
 
         app.UseCors("WerewolfServerPolicy");

@@ -8,6 +8,6 @@ public interface IRoomRepository
     public bool DoesRoomExist(string roomId);
     public RoomEntity GetRoom(string roomId);
     public void CreateRoom(RoomEntity roomEntity);
-    
+
     public void UpdateRoom(RoomEntity roomEntity);
 }

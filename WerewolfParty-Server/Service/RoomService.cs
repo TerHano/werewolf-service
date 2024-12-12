@@ -4,20 +4,28 @@ using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
 using WerewolfParty_Server.Extensions;
-using WerewolfParty_Server.Mappers;
-using WerewolfParty_Server.Repository.Interface;
+using WerewolfParty_Server.Models.Request;
+using WerewolfParty_Server.Repository;
 
 namespace WerewolfParty_Server.Service;
 
-public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository playerRoomRepository, IRoleSettingsRepository roleSettingsRepository, IMapper mapper)
+public class RoomService(
+    RoomRepository roomRepository,
+    PlayerRoomRepository playerRoomRepository,
+    RoleSettingsRepository roleSettingsRepository,
+    IMapper mapper)
 {
-    
     private readonly string allowedRoomIdCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
     private readonly int roomIdLength = 5;
 
     public List<RoomEntity> GetAllRooms()
     {
         return roomRepository.GetAllRooms();
+    }
+
+    public RoomEntity GetRoom(string roomId)
+    {
+        return roomRepository.GetRoom(roomId);
     }
 
     public PlayerDTO GetPlayerInRoom(string roomId, Guid playerId)
@@ -27,18 +35,24 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
         return mapper.Map<PlayerDTO>(player);
     }
 
+    public bool isPlayerInRoom(string roomId, Guid playerId)
+    {
+        var sanitizedRoomId = roomId.ToUpper();
+        return playerRoomRepository.IsPlayerInRoom(playerId, sanitizedRoomId);
+    }
+
     public RoleSettingsEntity GetRoleSettingsForRoom(string roomId)
     {
         var sanitizedRoomId = roomId.ToUpper();
-        return roleSettingsRepository.GetRoomSettings(sanitizedRoomId);
+        return roleSettingsRepository.GetRoomSettingsByRoomId(sanitizedRoomId);
     }
-    
-    public RoleSettingsEntity UpdateRoleSettingsForRoom(string roomId, RoleSettingsEntity roleSettingsEntity)
+
+    public RoleSettingsEntity UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        var oldRoleSettings = roleSettingsRepository.GetRoomSettings(sanitizedRoomId);
-        oldRoleSettings.Werewolves = roleSettingsEntity.Werewolves;
-        oldRoleSettings.SelectedRoles = roleSettingsEntity.SelectedRoles;
+        var sanitizedRoomId = updateRoleSettingsRequest.RoomId.ToUpper();
+        var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.RoleSettingsId);
+        oldRoleSettings.Werewolves = updateRoleSettingsRequest.Werewolves;
+        oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         return roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
     }
 
@@ -63,7 +77,7 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
             CurrentModerator = playerGuid
         };
         roomRepository.CreateRoom(newRoom);
-        
+
         //Set Default Role Settings For Room
         var DefaultRoleSettings = new RoleSettingsEntity()
         {
@@ -72,7 +86,7 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
             SelectedRoles = [RoleName.Doctor, RoleName.Seer, RoleName.Witch]
         };
         roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
-        
+
         return newRoomId;
     }
 
@@ -91,6 +105,7 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
             return;
         var playerAdded = playerRoomRepository.AddPlayerToRoom(sanitizedRoomId, playerId, player);
     }
+
     public PlayerDTO GetModeratorForRoom(string roomId)
     {
         var room = roomRepository.GetRoom(roomId);
@@ -104,10 +119,11 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
         {
             throw new Exception("Issue getting moderator");
         }
-        
+
         var moderatorDetails = playerRoomRepository.GetPlayerInRoom(roomId, mod.Value);
         return mapper.Map<PlayerDTO>(moderatorDetails);
     }
+
     public void UpdateModeratorForRoom(string roomId, Guid newModeratorplayerId)
     {
         var room = roomRepository.GetRoom(roomId);
@@ -130,7 +146,7 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
             throw new PlayerNotFoundException($"Player with id {playerId} does not exist");
         }
 
-        player.Name = addUpdatePlayerDetails.Name;
+        player.NickName = addUpdatePlayerDetails.NickName;
         player.AvatarIndex = addUpdatePlayerDetails.AvatarIndex;
         var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerGuid, addUpdatePlayerDetails);
         return mapper.Map<PlayerDTO>(updatedPlayer);
@@ -153,10 +169,10 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
     {
         var sanitizedRoomId = roomId.ToUpper();
         var playersInRoom = playerRoomRepository.GetPlayersInRoom(sanitizedRoomId);
-        var roomSettings = roleSettingsRepository.GetRoomSettings(sanitizedRoomId);
-        
+        var roomSettings = roleSettingsRepository.GetRoomSettingsByRoomId(sanitizedRoomId);
+
         var roleCards = roomSettings.SelectedRoles;
-        for (int i = 0; i < (int) roomSettings.Werewolves; i++)
+        for (int i = 0; i < (int)roomSettings.Werewolves; i++)
         {
             roleCards.Add(RoleName.WereWolf);
         }
@@ -174,9 +190,11 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
                 player.AssignedRole = shuffledRoles[i];
             }
         }
+
         var assignedRoles = playerRoomRepository.UpdateGroupOfPlayersInRoom(playersInRoom);
 
-        return mapper.Map<List<PlayerRoleDTO>>(assignedRoles);;
+        return mapper.Map<List<PlayerRoleDTO>>(assignedRoles);
+        ;
     }
 
     private string GenerateRoomId()
@@ -197,8 +215,4 @@ public class RoomService(IRoomRepository roomRepository, IPlayerRoomRepository p
 
         return generatedRoomId;
     }
-
-
-
 }
-    

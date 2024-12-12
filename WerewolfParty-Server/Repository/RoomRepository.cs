@@ -30,6 +30,7 @@ public class RoomRepository(RoomDbContext context) : IRoomRepository
         {
             throw new RoomNotFoundException("RoomId does not exist");
         }
+
         return room;
     }
 

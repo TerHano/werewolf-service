@@ -1,6 +1,7 @@
 using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
+using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Service;
 
@@ -13,20 +14,21 @@ public static class PlayerEndpoint
         app.MapPost("/api/player/get-id", (HttpContext httpContext, JwtService jwtService) =>
         {
             var playerId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var token = playerId != null ? jwtService.RefreshToken( Guid.Parse(playerId)) : jwtService.GenerateToken();
+            var token = playerId != null ? jwtService.RefreshToken(Guid.Parse(playerId)) : jwtService.GenerateToken();
             return TypedResults.Ok(new APIResponse<string>()
             {
                 Success = true,
                 Data = token
             });
         });
-        
-        app.MapPost("/api/player/{roomId}/update-player", (string roomId, AddUpdatePlayerDetailsDTO playerDTO, IHubContext<EventsHub, IClientEventsHub> hubContext ,HttpContext httpContext, RoomService roomService)=>
+
+        app.MapPost("/api/player/{roomId}/update-player", (string roomId, AddUpdatePlayerDetailsDTO playerDTO,
+            IHubContext<EventsHub, IClientEventsHub> hubContext, HttpContext httpContext, RoomService roomService) =>
         {
-            var playerGuid = Util.GetPlayerGuidFromHttpContext(httpContext);
+            var playerGuid = httpContext.User.GetPlayerId();
             var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(roomId, playerGuid, playerDTO);
             string sanitizedRoomId = roomId.ToUpper();
-            hubContext.Clients.Group(sanitizedRoomId).PlayerNameUpdated(updatedPlayer);
+            hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true

@@ -7,7 +7,8 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogger<PlayerRoomRepository> logger) : IPlayerRoomRepository
+public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogger<PlayerRoomRepository> logger)
+    : IPlayerRoomRepository
 {
     public PlayerRoomEntity GetPlayerInRoom(string roomId, Guid playerId)
     {
@@ -17,7 +18,7 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
         {
             throw new PlayerNotFoundException("Player not found");
         }
-        
+
         return player;
     }
 
@@ -32,7 +33,7 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
         {
             PlayerGuid = playerId,
             RoomId = roomId,
-            Name = player.Name,
+            NickName = player.NickName,
             AvatarIndex = player.AvatarIndex,
             Status = PlayerStatus.Active
         };
@@ -40,14 +41,14 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
         playerRoomDbContext.SaveChanges();
         return newPlayer.Entity;
     }
-    
+
     public PlayerRoomEntity UpdatePlayerInRoom(PlayerRoomEntity player)
     {
         var updatedPlayer = playerRoomDbContext.PlayerRooms.Update(player);
         playerRoomDbContext.SaveChanges();
         return updatedPlayer.Entity;
     }
-    
+
     public List<PlayerRoomEntity> UpdateGroupOfPlayersInRoom(List<PlayerRoomEntity> players)
     {
         List<PlayerRoomEntity> updatedGroupOfPlayers = new List<PlayerRoomEntity>();
@@ -56,20 +57,22 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
             var updatedPlayer = playerRoomDbContext.PlayerRooms.Update(player);
             updatedGroupOfPlayers.Add(updatedPlayer.Entity);
         }
+
         playerRoomDbContext.SaveChanges();
         return updatedGroupOfPlayers;
     }
 
     public bool IsPlayerInRoom(Guid playerId, string roomId)
     {
-        return playerRoomDbContext.PlayerRooms.Any(playerRoom => playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
+        return playerRoomDbContext.PlayerRooms.Any(playerRoom =>
+            playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
     }
 
     public PlayerRoomEntity UpdatePlayerInRoom(string roomId, Guid playerId, AddUpdatePlayerDetailsDTO playerDto)
     {
         var playerToUpdate = GetPlayerInRoom(roomId, playerId);
         if (playerToUpdate == null) throw new NullReferenceException("Player does not exist");
-        playerToUpdate.Name = playerDto.Name;
+        playerToUpdate.NickName = playerDto.NickName;
         playerToUpdate.AvatarIndex = playerDto.AvatarIndex;
         var updatedPlayer = playerRoomDbContext.Update(playerToUpdate);
         playerRoomDbContext.SaveChanges();
@@ -78,7 +81,7 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
 
     public void RemovePlayerFromRoom(string roomId, Guid playerId)
     {
-        var playerToRemove =  playerRoomDbContext.PlayerRooms.FirstOrDefault(playerRoom =>
+        var playerToRemove = playerRoomDbContext.PlayerRooms.FirstOrDefault(playerRoom =>
             playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
         if (playerToRemove == null)
         {

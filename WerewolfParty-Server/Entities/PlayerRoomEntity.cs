@@ -9,7 +9,7 @@ public class PlayerRoomEntity
     public string RoomId { get; set; }
     public RoomEntity Room { get; set; }
 
-    public string Name { get; set; }
+    public string NickName { get; set; }
     public int AvatarIndex { get; set; }
     public PlayerStatus Status { get; set; }
     public RoleName? AssignedRole { get; set; }
