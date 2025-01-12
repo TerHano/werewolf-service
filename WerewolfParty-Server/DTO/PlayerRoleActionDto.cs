@@ -2,9 +2,8 @@ using WerewolfParty_Server.Enum;
 
 namespace WerewolfParty_Server.DTO;
 
-public class PlayerRoleDTO
+public class PlayerRoleActionDto: PlayerDTO
 {
-    public Guid Id { get; set; }
-    public string Nickname { get; set; }
     public RoleName Role { get; set; }
+    public List<RoleActionDto> Actions { get; set; }
 }

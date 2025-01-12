@@ -23,7 +23,7 @@ public class RoleSettingsRepository(RoleSettingsDbContext context) : IRoleSettin
 
     public RoleSettingsEntity GetRoomSettingsByRoomId(string roomId)
     {
-        var roomSettings = context.RoleSettings.FirstOrDefault(r => r.RoomId == roomId);
+        var roomSettings = context.RoleSettings.FirstOrDefault(r => r.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase));
         if (roomSettings is null)
         {
             throw new Exception("Room settings not found");

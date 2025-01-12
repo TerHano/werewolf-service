@@ -7,13 +7,12 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogger<PlayerRoomRepository> logger)
-    : IPlayerRoomRepository
+public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoomRepository> logger)
 {
     public PlayerRoomEntity GetPlayerInRoom(string roomId, Guid playerId)
     {
-        var player = playerRoomDbContext.PlayerRooms.FirstOrDefault(playerRoom =>
-            playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
+        var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
+            playerRoom.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase) && playerRoom.PlayerGuid == playerId);
         if (player == null)
         {
             throw new PlayerNotFoundException("Player not found");
@@ -24,28 +23,33 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
 
     public List<PlayerRoomEntity> GetPlayersInRoom(string roomId)
     {
-        return playerRoomDbContext.PlayerRooms.Where(playerRoom => playerRoom.RoomId == roomId).ToList();
+        return context.PlayerRooms.Where(playerRoom => playerRoom.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase)).ToList();
+    }
+    
+    public List<PlayerRoomEntity> GetPlayersInRoomWithoutModerator(string roomId, Guid moderatorId)
+    {
+        return context.PlayerRooms.Where(playerRoom => playerRoom.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase) && !playerRoom.PlayerGuid.Equals(moderatorId)).ToList();
     }
 
-    public PlayerRoomEntity AddPlayerToRoom(string roomId, Guid playerId, AddUpdatePlayerDetailsDTO player)
+    public PlayerRoomEntity AddPlayerToRoom(string roomId, Guid playerId, AddEditPlayerDetailsDTO player)
     {
         var newPlayerRoom = new PlayerRoomEntity
         {
             PlayerGuid = playerId,
-            RoomId = roomId,
+            RoomId = roomId.ToUpper(),
             NickName = player.NickName,
             AvatarIndex = player.AvatarIndex,
             Status = PlayerStatus.Active
         };
-        var newPlayer = playerRoomDbContext.PlayerRooms.Add(newPlayerRoom);
-        playerRoomDbContext.SaveChanges();
+        var newPlayer = context.PlayerRooms.Add(newPlayerRoom);
+        context.SaveChanges();
         return newPlayer.Entity;
     }
 
     public PlayerRoomEntity UpdatePlayerInRoom(PlayerRoomEntity player)
     {
-        var updatedPlayer = playerRoomDbContext.PlayerRooms.Update(player);
-        playerRoomDbContext.SaveChanges();
+        var updatedPlayer = context.PlayerRooms.Update(player);
+        context.SaveChanges();
         return updatedPlayer.Entity;
     }
 
@@ -54,42 +58,51 @@ public class PlayerRoomRepository(PlayerRoomDbContext playerRoomDbContext, ILogg
         List<PlayerRoomEntity> updatedGroupOfPlayers = new List<PlayerRoomEntity>();
         foreach (var player in players)
         {
-            var updatedPlayer = playerRoomDbContext.PlayerRooms.Update(player);
+            var updatedPlayer = context.PlayerRooms.Update(player);
             updatedGroupOfPlayers.Add(updatedPlayer.Entity);
         }
 
-        playerRoomDbContext.SaveChanges();
+        context.SaveChanges();
         return updatedGroupOfPlayers;
     }
 
     public bool IsPlayerInRoom(Guid playerId, string roomId)
     {
-        return playerRoomDbContext.PlayerRooms.Any(playerRoom =>
-            playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
+        return context.PlayerRooms.Any(playerRoom =>
+            playerRoom.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase) && playerRoom.PlayerGuid.Equals(playerId));
     }
 
-    public PlayerRoomEntity UpdatePlayerInRoom(string roomId, Guid playerId, AddUpdatePlayerDetailsDTO playerDto)
+    public PlayerRoomEntity UpdatePlayerInRoom(string roomId, Guid playerId, PlayerRoomEntity player)
     {
-        var playerToUpdate = GetPlayerInRoom(roomId, playerId);
-        if (playerToUpdate == null) throw new NullReferenceException("Player does not exist");
-        playerToUpdate.NickName = playerDto.NickName;
-        playerToUpdate.AvatarIndex = playerDto.AvatarIndex;
-        var updatedPlayer = playerRoomDbContext.Update(playerToUpdate);
-        playerRoomDbContext.SaveChanges();
+        var updatedPlayer = context.Update(player);
+        context.SaveChanges();
         return updatedPlayer.Entity;
     }
 
     public void RemovePlayerFromRoom(string roomId, Guid playerId)
     {
-        var playerToRemove = playerRoomDbContext.PlayerRooms.FirstOrDefault(playerRoom =>
-            playerRoom.RoomId == roomId && playerRoom.PlayerGuid == playerId);
+        var playerToRemove = context.PlayerRooms.FirstOrDefault(playerRoom =>
+            playerRoom.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase) && playerRoom.PlayerGuid.Equals(playerId));
         if (playerToRemove == null)
         {
             logger.Log(LogLevel.Warning, "Player is not present in room");
         }
         else
         {
-            playerRoomDbContext.PlayerRooms.Remove(playerToRemove);
+            context.PlayerRooms.Remove(playerToRemove);
+            context.SaveChanges();
         }
+    }
+
+    public void UpdatePlayerIsAliveStatus(List<Guid> playerIds, bool isAlive)
+    {
+        foreach (var playerId in playerIds)
+        {
+            var player = context.PlayerRooms.FirstOrDefault((player) => player.PlayerGuid == playerId);
+            if (player == null) continue;
+            player.isAlive = isAlive;
+            context.Update(player);
+        }
+        context.SaveChanges();
     }
 }

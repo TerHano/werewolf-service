@@ -13,17 +13,32 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         Console.WriteLine("Client Connected");
         await base.OnConnectedAsync();
     }
+    
+    // public override async Task OnDisconnectedAsync(Exception? exception)
+    // {
+    //     Console.WriteLine("Client Disconnected");
+    //     Console.WriteLine(GetPlayerId());
+    //     await base.OnDisconnectedAsync(exception);
+    // }
 
-    public async Task<SocketResponse> JoinRoom(string roomId, AddUpdatePlayerDetailsDTO player)
+    public async Task<SocketResponse> JoinRoom(string roomId, AddEditPlayerDetailsDTO? player = null)
     {
         var playerGuid = GetPlayerId();
         if (string.IsNullOrEmpty(roomId)) return new SocketResponse(false, "Room ID is required");
         var sanitizedRoomId = roomId.ToUpper();
         var doesRoomExist = roomService.DoesRoomExist(sanitizedRoomId);
         if (!doesRoomExist) return new SocketResponse(false, "Room does not exist");
+        var isPlayerAlreadyInRoom = roomService.isPlayerInRoom(sanitizedRoomId, playerGuid);
+        if (!isPlayerAlreadyInRoom)
+        {        
+            if (player == null)
+            {
+                throw new Exception("Player details are required for new player");
+            }
+            roomService.AddPlayerToRoom(sanitizedRoomId, playerGuid, player);
+        }
         await Groups.AddToGroupAsync(Context.ConnectionId, sanitizedRoomId);
-        roomService.AddPlayerToRoom(sanitizedRoomId, playerGuid, player);
-        await Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
+        await Clients.OthersInGroup(sanitizedRoomId).PlayersInLobbyUpdated();
         return new SocketResponse(true);
     }
 
@@ -33,8 +48,7 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         {
             throw new HubException("No player found");
         }
-
-        var playerIdStr = Context.User.FindFirst(ClaimTypes.NameIdentifier).Value;
+        var playerIdStr = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (playerIdStr == null)
         {
             throw new HubException("No player found");

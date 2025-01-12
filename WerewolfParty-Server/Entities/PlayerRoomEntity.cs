@@ -13,4 +13,5 @@ public class PlayerRoomEntity
     public int AvatarIndex { get; set; }
     public PlayerStatus Status { get; set; }
     public RoleName? AssignedRole { get; set; }
+    public bool isAlive { get; set; }
 }

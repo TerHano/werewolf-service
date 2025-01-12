@@ -14,6 +14,7 @@ using WerewolfParty_Server.Mappers;
 using WerewolfParty_Server.Models.Request;
 using WerewolfParty_Server.Repository;
 using WerewolfParty_Server.Repository.Interface;
+using WerewolfParty_Server.Role;
 using WerewolfParty_Server.Service;
 using WerewolfParty_Server.Validator;
 
@@ -30,7 +31,7 @@ public abstract class Program
             options.AddPolicy(name: "WerewolfServerPolicy",
                 policy =>
                 {
-                    //policy.AllowAnyMethod();
+                    policy.AllowAnyMethod();
                     //policy.AllowAnyOrigin();
                     policy.AllowAnyHeader();
                     policy.WithOrigins("http://localhost:3000", "http://localhost:5173");
@@ -42,15 +43,20 @@ public abstract class Program
         builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseInMemoryDatabase("RoomDb"));
         builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
         builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
+        builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
 
         // builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("BloggingContext")));
 
         builder.Services.AddScoped<RoomRepository>();
         builder.Services.AddScoped<PlayerRoomRepository>();
         builder.Services.AddScoped<RoleSettingsRepository>();
+        builder.Services.AddScoped<RoomGameActionRepository>();
+
 
         builder.Services.AddScoped<JwtService>();
         builder.Services.AddScoped<RoomService>();
+        builder.Services.AddScoped<GameService>();
+        builder.Services.AddScoped<RoleFactory>();
         builder.Services.AddSignalR((options) => { options.EnableDetailedErrors = true; });
         builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
 
@@ -74,6 +80,13 @@ public abstract class Program
 
         //Auth
         var privateKeyValue = builder.Configuration.GetValue<string>("Auth:PrivateKey");
+        var authIssuerValue = builder.Configuration.GetValue<string>("Auth:Issuer");
+        var authAudienceValue = builder.Configuration.GetValue<string>("Auth:Audience");
+        if (string.IsNullOrEmpty(privateKeyValue) || string.IsNullOrEmpty(authIssuerValue) ||
+            string.IsNullOrEmpty(authAudienceValue))
+        {
+            throw new Exception("Auth public key and/or private key are missing.");
+        }
         builder.Services.AddAuthentication(options =>
         {
             // Identity made Cookie authentication the default.
@@ -100,12 +113,12 @@ public abstract class Program
             // the query string to transmit the access token.
             options.TokenValidationParameters = new TokenValidationParameters
             {
-                ValidateIssuer = false,
-                ValidateAudience = false,
-                ValidateLifetime = true,
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = false,
                 ValidateIssuerSigningKey = true,
-                ValidIssuer = "localhost",
-                ValidAudience = "localhost",
+                ValidIssuer = authIssuerValue,
+                ValidAudience = authAudienceValue,
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(privateKeyValue))
             };
             options.Events = new JwtBearerEvents
@@ -113,7 +126,6 @@ public abstract class Program
                 OnMessageReceived = context =>
                 {
                     var accessToken = context.Request.Query["access_token"];
-
                     // If the request is for our hub...
                     var path = context.HttpContext.Request.Path;
                     if (!string.IsNullOrEmpty(accessToken) &&
@@ -136,7 +148,7 @@ public abstract class Program
         }
 
         //TODO: Enable later
-        // app.UseHttpsRedirection();
+        //app.UseHttpsRedirection();
 
         app.UseAuthentication();
         app.UseAuthorization();

@@ -7,7 +7,7 @@ namespace WerewolfParty_Server.Service;
 
 public class JwtService(IConfiguration config)
 {
-    public string GenerateToken()
+    public string GenerateToken(Guid? playerId = null)
     {
         var handler = new JwtSecurityTokenHandler();
         var privateKeyValue = config.GetValue<string>("Auth:PrivateKey");
@@ -22,28 +22,9 @@ public class JwtService(IConfiguration config)
         {
             SigningCredentials = credentials,
             Expires = DateTime.UtcNow.AddDays(1),
-            Subject = GenerateClaims()
-        };
-        var token = handler.CreateToken(tokenDescriptor);
-        return handler.WriteToken(token);
-    }
-
-    public string RefreshToken(Guid playerId)
-    {
-        var handler = new JwtSecurityTokenHandler();
-        var privateKeyValue = config.GetValue<string>("Auth:PrivateKey");
-        if (string.IsNullOrEmpty(privateKeyValue)) throw new ApplicationException("JWT:Private key is empty");
-        var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKeyValue);
-
-        var credentials = new SigningCredentials(
-            new SymmetricSecurityKey(encodedPrivateKey),
-            SecurityAlgorithms.HmacSha256);
-
-        var tokenDescriptor = new SecurityTokenDescriptor
-        {
-            SigningCredentials = credentials,
-            Expires = DateTime.UtcNow.AddDays(1),
-            Subject = GenerateClaims(playerId)
+            Subject = GenerateClaims(playerId),
+            Issuer = config.GetValue<string>("Auth:Issuer"),
+            Audience = config.GetValue<string>("Auth:Audience"),
         };
         var token = handler.CreateToken(tokenDescriptor);
         return handler.WriteToken(token);

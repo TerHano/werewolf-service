@@ -7,7 +7,9 @@ namespace WerewolfParty_Server.Hubs;
 public interface IClientEventsHub
 {
     Task GameState(GameState gameState);
-    Task PlayerNameUpdated(PlayerDTO player);
     Task PlayersInLobbyUpdated();
-    Task ModeratorUpdated();
+    Task ModeratorUpdated(Guid newModeratorId);
+    Task RoomRoleSettingsUpdated();
+
+    Task PlayerKicked(Guid kickedPlayerId);
 }

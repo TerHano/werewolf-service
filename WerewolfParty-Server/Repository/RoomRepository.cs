@@ -18,14 +18,21 @@ public class RoomRepository(RoomDbContext context) : IRoomRepository
         context.SaveChanges();
     }
 
+    public Guid GetModeratorForRoom(string roomId)
+    {
+        var room = GetRoom(roomId);
+        return room.CurrentModerator;
+
+    }
+
     public bool DoesRoomExist(string roomId)
     {
-        return context.Rooms.Any((room) => room.Id == roomId);
+        return context.Rooms.Any((room) => room.Id.Equals(roomId, StringComparison.CurrentCultureIgnoreCase));
     }
 
     public RoomEntity GetRoom(string roomId)
     {
-        var room = context.Rooms.FirstOrDefault(room => room.Id == roomId);
+        var room = context.Rooms.FirstOrDefault(room => room.Id.Equals(roomId, StringComparison.CurrentCultureIgnoreCase));
         if (room == null)
         {
             throw new RoomNotFoundException("RoomId does not exist");
@@ -37,5 +44,6 @@ public class RoomRepository(RoomDbContext context) : IRoomRepository
     public void UpdateRoom(RoomEntity roomEntity)
     {
         context.Rooms.Update(roomEntity);
+        context.SaveChanges();
     }
 }

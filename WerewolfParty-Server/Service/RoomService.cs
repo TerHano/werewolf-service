@@ -15,8 +15,8 @@ public class RoomService(
     RoleSettingsRepository roleSettingsRepository,
     IMapper mapper)
 {
-    private readonly string allowedRoomIdCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
-    private readonly int roomIdLength = 5;
+    private const string allowedRoomIdCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
+    private const int roomIdLength = 5;
 
     public List<RoomEntity> GetAllRooms()
     {
@@ -30,27 +30,23 @@ public class RoomService(
 
     public PlayerDTO GetPlayerInRoom(string roomId, Guid playerId)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        var player = playerRoomRepository.GetPlayerInRoom(sanitizedRoomId, playerId);
+        var player = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
         return mapper.Map<PlayerDTO>(player);
     }
 
     public bool isPlayerInRoom(string roomId, Guid playerId)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        return playerRoomRepository.IsPlayerInRoom(playerId, sanitizedRoomId);
+        return playerRoomRepository.IsPlayerInRoom(playerId, roomId);
     }
 
     public RoleSettingsEntity GetRoleSettingsForRoom(string roomId)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        return roleSettingsRepository.GetRoomSettingsByRoomId(sanitizedRoomId);
+        return roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
     }
 
     public RoleSettingsEntity UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
-        var sanitizedRoomId = updateRoleSettingsRequest.RoomId.ToUpper();
-        var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.RoleSettingsId);
+        var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
         oldRoleSettings.Werewolves = updateRoleSettingsRequest.Werewolves;
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         return roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
@@ -59,10 +55,9 @@ public class RoomService(
 
     public List<PlayerDTO> GetAllPlayersInRoom(string roomId, bool includeModerator = true)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        var players = playerRoomRepository.GetPlayersInRoom(sanitizedRoomId);
+        var players = playerRoomRepository.GetPlayersInRoom(roomId);
         if (includeModerator) return mapper.Map<List<PlayerDTO>>(players);
-        var room = roomRepository.GetRoom(sanitizedRoomId);
+        var room = roomRepository.GetRoom(roomId);
         players.RemoveAll((player) => player.PlayerGuid == room.CurrentModerator);
         return mapper.Map<List<PlayerDTO>>(players);
     }
@@ -83,7 +78,7 @@ public class RoomService(
         {
             RoomId = newRoomId,
             Werewolves = NumberOfWerewolves.One,
-            SelectedRoles = [RoleName.Doctor, RoleName.Seer, RoleName.Witch]
+            SelectedRoles = [RoleName.Doctor, RoleName.Detective, RoleName.Witch]
         };
         roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
 
@@ -92,18 +87,16 @@ public class RoomService(
 
     public bool DoesRoomExist(string roomId)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        return roomRepository.DoesRoomExist(sanitizedRoomId);
+        return roomRepository.DoesRoomExist(roomId);
     }
 
-    public void AddPlayerToRoom(string roomId, Guid playerId, AddUpdatePlayerDetailsDTO player)
+    public void AddPlayerToRoom(string roomId, Guid playerId, AddEditPlayerDetailsDTO player)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, sanitizedRoomId);
+        var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, roomId);
         if (isPlayerAlreadyInRoom)
             //Do nothing, player already connected
             return;
-        var playerAdded = playerRoomRepository.AddPlayerToRoom(sanitizedRoomId, playerId, player);
+        var playerAdded = playerRoomRepository.AddPlayerToRoom(roomId, playerId, player);
     }
 
     public PlayerDTO GetModeratorForRoom(string roomId)
@@ -115,12 +108,9 @@ public class RoomService(
         }
 
         var mod = room.CurrentModerator;
-        if (!mod.HasValue)
-        {
-            throw new Exception("Issue getting moderator");
-        }
 
-        var moderatorDetails = playerRoomRepository.GetPlayerInRoom(roomId, mod.Value);
+
+        var moderatorDetails = playerRoomRepository.GetPlayerInRoom(roomId, mod);
         return mapper.Map<PlayerDTO>(moderatorDetails);
     }
 
@@ -137,25 +127,31 @@ public class RoomService(
     }
 
     public PlayerDTO UpdatePlayerDetailsForRoom(string roomId, Guid playerId,
-        AddUpdatePlayerDetailsDTO addUpdatePlayerDetails)
+        AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        var player = playerRoomRepository.GetPlayerInRoom(sanitizedRoomId, playerId);
+        var player = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
         if (player == null)
         {
             throw new PlayerNotFoundException($"Player with id {playerId} does not exist");
         }
-
-        player.NickName = addUpdatePlayerDetails.NickName;
-        player.AvatarIndex = addUpdatePlayerDetails.AvatarIndex;
-        var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerGuid, addUpdatePlayerDetails);
+        player.NickName = addEditPlayerDetails.NickName;
+        player.AvatarIndex = addEditPlayerDetails.AvatarIndex;
+        var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerGuid, player);
         return mapper.Map<PlayerDTO>(updatedPlayer);
     }
 
     public void RemovePlayerFromRoom(string roomId, Guid playerId)
     {
-        var sanitizedRoomId = roomId.ToUpper();
-        playerRoomRepository.RemovePlayerFromRoom(sanitizedRoomId, playerId);
+        playerRoomRepository.RemovePlayerFromRoom(roomId, playerId);
+        //Replace Mod if player was mod
+        var room = roomRepository.GetRoom(roomId);
+        var otherPlayers = playerRoomRepository.GetPlayersInRoom(roomId);
+        var newModerator = otherPlayers.FirstOrDefault()?.PlayerGuid;
+        if (room.CurrentModerator == playerId)
+        {
+            room.CurrentModerator = newModerator ?? playerId;
+        }
+        roomRepository.UpdateRoom(room);
     }
 
     public void UpdateRoomGameState(string roomId, GameState gameState)
@@ -163,38 +159,6 @@ public class RoomService(
         var room = roomRepository.GetRoom(roomId);
         room.GameState = gameState;
         roomRepository.UpdateRoom(room);
-    }
-
-    public List<PlayerRoleDTO> ShuffleAndAssignRoles(string roomId)
-    {
-        var sanitizedRoomId = roomId.ToUpper();
-        var playersInRoom = playerRoomRepository.GetPlayersInRoom(sanitizedRoomId);
-        var roomSettings = roleSettingsRepository.GetRoomSettingsByRoomId(sanitizedRoomId);
-
-        var roleCards = roomSettings.SelectedRoles;
-        for (int i = 0; i < (int)roomSettings.Werewolves; i++)
-        {
-            roleCards.Add(RoleName.WereWolf);
-        }
-
-        var shuffledRoles = roleCards.Shuffle();
-        for (int i = 0; i < playersInRoom.Count; i++)
-        {
-            var player = playersInRoom[i];
-            if (i > roleCards.Count - 1)
-            {
-                player.AssignedRole = RoleName.Villager;
-            }
-            else
-            {
-                player.AssignedRole = shuffledRoles[i];
-            }
-        }
-
-        var assignedRoles = playerRoomRepository.UpdateGroupOfPlayersInRoom(playersInRoom);
-
-        return mapper.Map<List<PlayerRoleDTO>>(assignedRoles);
-        ;
     }
 
     private string GenerateRoomId()

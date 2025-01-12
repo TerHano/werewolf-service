@@ -2,6 +2,6 @@ namespace WerewolfParty_Server.Enum;
 
 public enum GameState
 {
-    Lobby,
-    CardsDealt
+    Lobby = 0,
+    CardsDealt = 1
 }

@@ -6,8 +6,10 @@ namespace WerewolfParty_Server.Entities;
 public class RoomEntity
 {
     [MaxLength(10)] public required string Id { get; init; }
-    public Guid? CurrentModerator { get; set; }
+    public Guid CurrentModerator { get; set; }
     public GameState GameState { get; set; }
 
     public ICollection<PlayerRoomEntity>? PlayersInRooms { get; set; }
+    
+    public int CurrentNight { get; set; }
 }

@@ -13,8 +13,16 @@ public static class PlayerEndpoint
     {
         app.MapPost("/api/player/get-id", (HttpContext httpContext, JwtService jwtService) =>
         {
-            var playerId = httpContext.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var token = playerId != null ? jwtService.RefreshToken(Guid.Parse(playerId)) : jwtService.GenerateToken();
+            var token = "";
+            try
+            {
+                var playerId = httpContext.User.GetPlayerId();
+                token = jwtService.GenerateToken(playerId);
+            }
+            catch (Exception ex)
+            {
+                token = jwtService.GenerateToken();
+            }
             return TypedResults.Ok(new APIResponse<string>()
             {
                 Success = true,
@@ -22,7 +30,7 @@ public static class PlayerEndpoint
             });
         });
 
-        app.MapPost("/api/player/{roomId}/update-player", (string roomId, AddUpdatePlayerDetailsDTO playerDTO,
+        app.MapPost("/api/player/{roomId}/update-player", (string roomId, AddEditPlayerDetailsDTO playerDTO,
             IHubContext<EventsHub, IClientEventsHub> hubContext, HttpContext httpContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
@@ -32,6 +40,18 @@ public static class PlayerEndpoint
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true
+            });
+        }).RequireAuthorization();
+        
+        app.MapGet("/api/player/{roomId}/player", (string roomId,
+             HttpContext httpContext, RoomService roomService) =>
+        {
+            var playerGuid = httpContext.User.GetPlayerId();
+            var currentPlayer = roomService.GetPlayerInRoom(roomId, playerGuid);
+            return TypedResults.Ok(new APIResponse<PlayerDTO>()
+            {
+                Success = true,
+                Data = currentPlayer
             });
         }).RequireAuthorization();
     }
