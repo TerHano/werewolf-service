@@ -13,7 +13,7 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         Console.WriteLine("Client Connected");
         await base.OnConnectedAsync();
     }
-    
+
     // public override async Task OnDisconnectedAsync(Exception? exception)
     // {
     //     Console.WriteLine("Client Disconnected");
@@ -30,13 +30,15 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         if (!doesRoomExist) return new SocketResponse(false, "Room does not exist");
         var isPlayerAlreadyInRoom = roomService.isPlayerInRoom(sanitizedRoomId, playerGuid);
         if (!isPlayerAlreadyInRoom)
-        {        
+        {
             if (player == null)
             {
                 throw new Exception("Player details are required for new player");
             }
+
             roomService.AddPlayerToRoom(sanitizedRoomId, playerGuid, player);
         }
+
         await Groups.AddToGroupAsync(Context.ConnectionId, sanitizedRoomId);
         await Clients.OthersInGroup(sanitizedRoomId).PlayersInLobbyUpdated();
         return new SocketResponse(true);
@@ -48,6 +50,7 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         {
             throw new HubException("No player found");
         }
+
         var playerIdStr = Context.User.FindFirst(ClaimTypes.NameIdentifier)?.Value;
         if (playerIdStr == null)
         {

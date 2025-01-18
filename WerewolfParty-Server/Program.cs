@@ -40,12 +40,18 @@ public abstract class Program
         });
 
         // Add services to the container.
-        builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseInMemoryDatabase("RoomDb"));
-        builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
-        builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
-        builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
+        //builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseInMemoryDatabase("RoomDb"));
+        //builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
+        //builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
+        //builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
 
-        // builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("BloggingContext")));
+
+         builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+         builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+         builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+//         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString(conntectionString)));
 
         builder.Services.AddScoped<RoomRepository>();
         builder.Services.AddScoped<PlayerRoomRepository>();
@@ -63,6 +69,7 @@ public abstract class Program
         //Mappers
         builder.Services.AddAutoMapper(typeof(PlayerMapper));
         builder.Services.AddAutoMapper(typeof(PlayerRoleMapper));
+        builder.Services.AddAutoMapper(typeof(PlayerQueuedActionMapper));
 
         //Validators
         builder.Services.AddScoped<IValidator<PlayerDTO>, PlayerDTOValidator>();
@@ -87,6 +94,7 @@ public abstract class Program
         {
             throw new Exception("Auth public key and/or private key are missing.");
         }
+
         builder.Services.AddAuthentication(options =>
         {
             // Identity made Cookie authentication the default.
@@ -155,6 +163,7 @@ public abstract class Program
 
         app.RegisterRoomEndpoints();
         app.RegisterPlayerEndpoints();
+        app.RegisterGameEndpoints();
 
         app.UseExceptionHandler(_ => { });
 

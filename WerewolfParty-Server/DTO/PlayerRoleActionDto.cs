@@ -2,8 +2,10 @@ using WerewolfParty_Server.Enum;
 
 namespace WerewolfParty_Server.DTO;
 
-public class PlayerRoleActionDto: PlayerDTO
+public class PlayerRoleActionDto : PlayerDTO
 {
-    public RoleName Role { get; set; }
-    public List<RoleActionDto> Actions { get; set; }
+    public required RoleName Role { get; set; }
+    public required List<RoleActionDto> Actions { get; set; }
+    
+    public required bool isAlive { get; set; }
 }

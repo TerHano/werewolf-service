@@ -18,11 +18,13 @@ public class RoleFactory
                 return new Drunk();
             case RoleName.Witch:
                 return new Witch();
+            case RoleName.Vigilante:
+                return new Vigilante();
             case RoleName.Villager:
                 return new Villager();
             case RoleName.Cursed:
                 return new Cursed();
-            
+
             default:
                 throw new Exception($"Role {roleName} not found");
         }

@@ -6,12 +6,12 @@ namespace WerewolfParty_Server.Role;
 
 public class Werewolf() : Role()
 {
-    public override List<RoleActionDto> GetActions(List<RoomGameActionEntity> actions, Guid playerId)
+    public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
         var killAction = new RoleActionDto()
         {
             Label = "Kill Player",
-            Type = ActionType.Kill,
+            Type = ActionType.WerewolfKill,
             Enabled = true,
         };
         return [killAction];

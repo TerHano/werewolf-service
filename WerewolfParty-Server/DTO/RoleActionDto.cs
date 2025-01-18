@@ -8,5 +8,4 @@ public class RoleActionDto
     public ActionType Type { get; set; }
     public bool Enabled { get; set; }
     public string? DisabledReason { get; set; }
-    
 }

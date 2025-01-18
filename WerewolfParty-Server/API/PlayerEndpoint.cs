@@ -23,6 +23,7 @@ public static class PlayerEndpoint
             {
                 token = jwtService.GenerateToken();
             }
+
             return TypedResults.Ok(new APIResponse<string>()
             {
                 Success = true,
@@ -42,9 +43,9 @@ public static class PlayerEndpoint
                 Success = true
             });
         }).RequireAuthorization();
-        
+
         app.MapGet("/api/player/{roomId}/player", (string roomId,
-             HttpContext httpContext, RoomService roomService) =>
+            HttpContext httpContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
             var currentPlayer = roomService.GetPlayerInRoom(roomId, playerGuid);

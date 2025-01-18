@@ -185,17 +185,15 @@ public static class RoomEndpoint
                     Data = room
                 });
             }).RequireAuthorization();
-        
+
         app.MapGet("/api/room/{roomId}/game-state", (HttpContext httpContext, GameService gameService, string roomId) =>
         {
-           var state = gameService.GetGameState(roomId);
+            var state = gameService.GetGameState(roomId);
             return TypedResults.Ok(new APIResponse<GameState>()
             {
                 Success = true,
                 Data = state
             });
         }).RequireAuthorization();
-        
-
     }
 }

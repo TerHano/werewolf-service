@@ -1,3 +1,4 @@
+using Microsoft.EntityFrameworkCore;
 using WerewolfParty_Server.DbContext;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Repository.Interface;
@@ -23,7 +24,9 @@ public class RoleSettingsRepository(RoleSettingsDbContext context) : IRoleSettin
 
     public RoleSettingsEntity GetRoomSettingsByRoomId(string roomId)
     {
-        var roomSettings = context.RoleSettings.FirstOrDefault(r => r.RoomId.Equals(roomId, StringComparison.CurrentCultureIgnoreCase));
+        var roomSettings =
+            context.RoleSettings.FirstOrDefault(r =>
+                EF.Functions.ILike(r.RoomId,roomId));
         if (roomSettings is null)
         {
             throw new Exception("Room settings not found");

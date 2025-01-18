@@ -6,14 +6,20 @@ namespace WerewolfParty_Server.Role;
 
 public class Doctor() : Role()
 {
-    public override List<RoleActionDto> GetActions(List<RoomGameActionEntity> actions, Guid playerId)
+    public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
+
         var healAction = new RoleActionDto()
         {
             Label = "Heal Player",
             Type = ActionType.Revive,
             Enabled = true,
         };
+        if (actionCheckDto.CurrentPlayer.isAlive == false)
+        {
+            healAction.Enabled = false;
+            healAction.DisabledReason = "Player is dead";
+        }
         return [healAction];
     }
 }

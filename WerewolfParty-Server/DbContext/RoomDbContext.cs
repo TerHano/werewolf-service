@@ -7,12 +7,12 @@ public class RoomDbContext(DbContextOptions<RoomDbContext> options) : Microsoft.
 {
     public DbSet<RoomEntity> Rooms { get; set; }
 
-    protected override void OnModelCreating(ModelBuilder modelBuilder)
-    {
-        modelBuilder.Entity<RoomEntity>()
-            .HasMany(r => r.PlayersInRooms)
-            .WithOne(r => r.Room)
-            .HasForeignKey(e => e.RoomId)
-            .HasPrincipalKey(e => e.Id);
-    }
+    // protected override void OnModelCreating(ModelBuilder modelBuilder)
+    // {
+    //     modelBuilder.Entity<RoomEntity>()
+    //         .HasMany(r => r.PlayersInRooms)
+    //         .WithOne(r => r.Room)
+    //         .HasForeignKey(e => e.RoomId)
+    //         .HasPrincipalKey(e => e.Id);
+    // }
 }

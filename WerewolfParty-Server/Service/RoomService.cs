@@ -3,7 +3,6 @@ using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
-using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Models.Request;
 using WerewolfParty_Server.Repository;
 
@@ -69,7 +68,9 @@ public class RoomService(
         {
             Id = newRoomId,
             GameState = GameState.Lobby,
-            CurrentModerator = playerGuid
+            CurrentModerator = playerGuid,
+            CurrentNight = 0,
+            isDay = false
         };
         roomRepository.CreateRoom(newRoom);
 
@@ -134,6 +135,7 @@ public class RoomService(
         {
             throw new PlayerNotFoundException($"Player with id {playerId} does not exist");
         }
+
         player.NickName = addEditPlayerDetails.NickName;
         player.AvatarIndex = addEditPlayerDetails.AvatarIndex;
         var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerGuid, player);
@@ -151,6 +153,7 @@ public class RoomService(
         {
             room.CurrentModerator = newModerator ?? playerId;
         }
+
         roomRepository.UpdateRoom(room);
     }
 
