@@ -56,8 +56,18 @@ public static class RoomEndpoint
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
             string roomId = roomIdRequest.RoomId.ToUpper();
+            var gameState = gameService.GetGameState(roomId);
             gameService.StartGame(roomId);
-            hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
+            if (gameState == GameState.CardsDealt)
+            {
+                //We're restarting game
+                hubContext.Clients.Group(roomId).GameRestart();
+            }
+            else
+            {
+                hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
+            }
+
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,

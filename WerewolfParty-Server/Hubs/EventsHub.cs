@@ -21,26 +21,26 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
     //     await base.OnDisconnectedAsync(exception);
     // }
 
-    public async Task<SocketResponse> JoinRoom(string roomId, AddEditPlayerDetailsDTO? player = null)
+    public async Task<SocketResponse> JoinRoom(AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
+        var roomId = addEditPlayerDetails.RoomId;
         var playerGuid = GetPlayerId();
         if (string.IsNullOrEmpty(roomId)) return new SocketResponse(false, "Room ID is required");
-        var sanitizedRoomId = roomId.ToUpper();
-        var doesRoomExist = roomService.DoesRoomExist(sanitizedRoomId);
+        var doesRoomExist = roomService.DoesRoomExist(roomId);
         if (!doesRoomExist) return new SocketResponse(false, "Room does not exist");
-        var isPlayerAlreadyInRoom = roomService.isPlayerInRoom(sanitizedRoomId, playerGuid);
+        var isPlayerAlreadyInRoom = roomService.isPlayerInRoom(roomId, playerGuid);
         if (!isPlayerAlreadyInRoom)
         {
-            if (player == null)
+            if (addEditPlayerDetails.NickName == null)
             {
                 throw new Exception("Player details are required for new player");
             }
 
-            roomService.AddPlayerToRoom(sanitizedRoomId, playerGuid, player);
+            roomService.AddPlayerToRoom(playerGuid, addEditPlayerDetails);
         }
 
-        await Groups.AddToGroupAsync(Context.ConnectionId, sanitizedRoomId);
-        await Clients.OthersInGroup(sanitizedRoomId).PlayersInLobbyUpdated();
+        await Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToUpper());
+        await Clients.OthersInGroup(roomId.ToUpper()).PlayersInLobbyUpdated();
         return new SocketResponse(true);
     }
 

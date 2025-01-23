@@ -31,11 +31,12 @@ public static class PlayerEndpoint
             });
         });
 
-        app.MapPost("/api/player/{roomId}/update-player", (string roomId, AddEditPlayerDetailsDTO playerDTO,
+        app.MapPost("/api/player/update-player", (AddEditPlayerDetailsDTO addEditPlayerDetails,
             IHubContext<EventsHub, IClientEventsHub> hubContext, HttpContext httpContext, RoomService roomService) =>
         {
+            var roomId = addEditPlayerDetails.RoomId;
             var playerGuid = httpContext.User.GetPlayerId();
-            var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(roomId, playerGuid, playerDTO);
+            var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(playerGuid, addEditPlayerDetails);
             string sanitizedRoomId = roomId.ToUpper();
             hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
             return TypedResults.Ok(new APIResponse()

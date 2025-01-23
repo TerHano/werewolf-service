@@ -8,9 +8,10 @@ public class PlayerRoleMapper : Profile
 {
     public PlayerRoleMapper()
     {
-        CreateMap<PlayerRoomEntity, PlayerRoleDTO>()
-            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.PlayerGuid))
-            .ForMember(dest => dest.Nickname, opt => opt.MapFrom(src => src.NickName))
-            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.AssignedRole));
+        CreateMap<PlayerRoleEntity, PlayerRoleDTO>()
+            .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.PlayerRoom.PlayerId))
+            .ForMember(dest => dest.Nickname, opt => opt.MapFrom(src => src.PlayerRoom.NickName))
+            .ForMember(dest => dest.Role, opt => opt.MapFrom(src => src.Role));
+
     }
 }

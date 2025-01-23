@@ -14,7 +14,7 @@ public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoo
     {
         var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            playerRoom.PlayerGuid == playerId);
+            playerRoom.PlayerId == playerId);
         if (player == null)
         {
             throw new PlayerNotFoundException("Player not found");
@@ -33,26 +33,18 @@ public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoo
     {
         return context.PlayerRooms.Where(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            !playerRoom.PlayerGuid.Equals(moderatorId)).ToList();
+            !playerRoom.PlayerId.Equals(moderatorId)).ToList();
     }
 
-    public List<PlayerRoomEntity> GetPlayersInRoomWithARole(string roomId)
-    {
-        return context.PlayerRooms.Where(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            playerRoom.AssignedRole != null).ToList();
-    }
-
-    public PlayerRoomEntity AddPlayerToRoom(string roomId, Guid playerId, AddEditPlayerDetailsDTO player)
+    public PlayerRoomEntity AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var newPlayerRoom = new PlayerRoomEntity
         {
-            PlayerGuid = playerId,
-            RoomId = roomId.ToUpper(),
-            NickName = player.NickName,
-            AvatarIndex = player.AvatarIndex,
+            PlayerId = playerId,
+            RoomId = addEditPlayerDetails.RoomId.ToUpper(),
+            NickName = addEditPlayerDetails.NickName!,
+            AvatarIndex = addEditPlayerDetails.AvatarIndex.GetValueOrDefault(0),
             Status = PlayerStatus.Active,
-            isAlive = true,
         };
         var newPlayer = context.PlayerRooms.Add(newPlayerRoom);
         context.SaveChanges();
@@ -83,7 +75,7 @@ public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoo
     {
         return context.PlayerRooms.Any(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            playerRoom.PlayerGuid.Equals(playerId));
+            playerRoom.PlayerId.Equals(playerId));
     }
 
     public PlayerRoomEntity UpdatePlayerInRoom(string roomId, Guid playerId, PlayerRoomEntity player)
@@ -95,30 +87,19 @@ public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoo
 
     public void RemovePlayerFromRoom(string roomId, Guid playerId)
     {
-        var playerToRemove = context.PlayerRooms.FirstOrDefault(playerRoom =>
+        var playerToRemove = context.PlayerRooms.Include((p)=>p.PlayerRole).FirstOrDefault(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            playerRoom.PlayerGuid.Equals(playerId));
+            playerRoom.PlayerId.Equals(playerId));
         if (playerToRemove == null)
         {
             logger.Log(LogLevel.Warning, "Player is not present in room");
         }
         else
         {
+            //Remove dependent data
+            playerToRemove.PlayerRole = null;
             context.PlayerRooms.Remove(playerToRemove);
             context.SaveChanges();
         }
-    }
-
-    public void UpdatePlayerIsAliveStatus(List<Guid> playerIds, bool isAlive)
-    {
-        foreach (var playerId in playerIds)
-        {
-            var player = context.PlayerRooms.FirstOrDefault((player) => player.PlayerGuid == playerId);
-            if (player == null) continue;
-            player.isAlive = isAlive;
-            context.Update(player);
-        }
-
-        context.SaveChanges();
     }
 }

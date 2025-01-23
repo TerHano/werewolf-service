@@ -11,6 +11,7 @@ namespace WerewolfParty_Server.Service;
 public class GameService(
     RoomGameActionRepository roomGameActionRepository,
     PlayerRoomRepository playerRoomRepository,
+    PlayerRoleRepository playerRoleRepository,
     RoomRepository roomRepository,
     RoleSettingsRepository roleSettingsRepository,
     RoleFactory roleFactory,
@@ -19,7 +20,7 @@ public class GameService(
     private void ProcessQueuedActions(string roomId)
     {
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        var playerRoles = playerRoomRepository.GetPlayersInRoomWithARole(roomId);
+        var playerRoles = playerRoleRepository.GetPlayerRolesForRoom(roomId);
         var room = roomRepository.GetRoom(roomId);
         var playersRevivedSet = new HashSet<Guid>();
         var playersKilledSet = new HashSet<Guid>();
@@ -47,9 +48,9 @@ public class GameService(
                 {
                     if (playersRevivedSet.Contains(action.AffectedPlayerId)) continue;
                     playersKilledSet.Add(action.AffectedPlayerId);
-                    var killedPlayer = playerRoles.Find((player) => player.PlayerGuid.Equals(action.AffectedPlayerId));
+                    var killedPlayer = playerRoles.Find((player) => player.PlayerRoom.PlayerId.Equals(action.AffectedPlayerId));
                     if (killedPlayer == null) throw new Exception("Player not found");
-                    if (killedPlayer.AssignedRole != RoleName.WereWolf)
+                    if (killedPlayer.Role != RoleName.WereWolf)
                     {
                         if (!action.PlayerId.HasValue)
                         {
@@ -88,7 +89,7 @@ public class GameService(
         {
             playersKilledSet.Add(player);
         }
-        playerRoomRepository.UpdatePlayerIsAliveStatus(playersKilledSet.ToList(), false);
+        playerRoleRepository.UpdatePlayerStatusToDead(playersKilledSet.ToList(), room.CurrentNight);
         roomGameActionRepository.MarkActionsAsProcessed(roomId, queuedActions);
         foreach (var roomGameActionEntity in actionsQueuedForNextNight)
         {
@@ -104,25 +105,27 @@ public class GameService(
 
     public void LynchChosenPlayer(string roomId, Guid? playerId)
     {
-        if (!playerId.HasValue)
+        if (playerId.HasValue)
         {
-            return;
+            var playerIdVal = playerId.Value;
+            var player = playerRoleRepository.GetPlayerRoleInRoom(roomId, playerIdVal);
+            var room = roomRepository.GetRoom(roomId);
+            var votedOutAction = new RoomGameActionEntity()
+            {
+                RoomId = roomId,
+                PlayerId = playerIdVal,
+                AffectedPlayerId = playerIdVal,
+                Action = ActionType.VotedOut,
+                State = ActionState.Processed,
+                Night = room.CurrentNight
+            };
+            player.IsAlive = false;
+            player.NightKilled = room.CurrentNight;
+            player.WasVotedOut = true;
+            playerRoleRepository.UpdatePlayerRoleInRoom(player);
+            roomGameActionRepository.QueueActionForPlayer(votedOutAction);
         }
-        var playerIdVal = playerId.Value;
-        var player = playerRoomRepository.GetPlayerInRoom(roomId, playerIdVal);
-        var room = roomRepository.GetRoom(roomId);
-        var votedOutAction = new RoomGameActionEntity()
-        {
-            RoomId = roomId,
-            PlayerId = playerIdVal,
-            AffectedPlayerId = playerIdVal,
-            Action = ActionType.VotedOut,
-            State = ActionState.Processed,
-            Night = room.CurrentNight
-        };
-        player.isAlive = false;
-        playerRoomRepository.UpdatePlayerInRoom(player);
-        roomGameActionRepository.QueueActionForPlayer(votedOutAction);
+        ProgressToNextPoint(roomId);
     }
     
     
@@ -133,14 +136,9 @@ public class GameService(
         var room = roomRepository.GetRoom(roomId);
         room.CurrentNight = 0;
         room.isDay = false;
+        room.WinCondition = WinCondition.None;
         roomRepository.UpdateRoom(room);
-        var players = playerRoomRepository.GetPlayersInRoom(roomId);
-        foreach (var player in players)
-        {
-            player.isAlive = true;
-            player.AssignedRole = null;
-        }
-        playerRoomRepository.UpdateGroupOfPlayersInRoom(players);
+        playerRoleRepository.RemoveAllPlayerRolesForRoom(roomId);
     }
 
     private bool IsEnoughPlayersForGame(string roomId)
@@ -148,7 +146,7 @@ public class GameService(
         var playersInLobby = playerRoomRepository.GetPlayersInRoom(roomId);
         var roleSettingsForRoom = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
         var playerCountWithoutMod = playersInLobby.Count - 1;
-        var playersNeededForGame = roleSettingsForRoom.SelectedRoles.Count + (int)roleSettingsForRoom.Werewolves;
+        var playersNeededForGame = roleSettingsForRoom.SelectedRoles.Count + roleSettingsForRoom.NumberOfWerewolves;
         return playerCountWithoutMod >= playersNeededForGame;
     }
 
@@ -169,8 +167,10 @@ public class GameService(
 
     public RoleName? GetAssignedPlayerRole(string roomId, Guid playerId)
     {
-        var playerInRoom = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
-        return playerInRoom.AssignedRole;
+        var doesPlayerHaveRole = playerRoleRepository.DoesPlayerHaveRoleInRoom(roomId, playerId);
+        if(!doesPlayerHaveRole) return null;
+        var playerInRoom = playerRoleRepository.GetPlayerRoleInRoom(roomId, playerId);
+        return playerInRoom.Role;
     }
     // public List<PlayerRoleDTO> GetAllAssignedPlayerRolesAndActions(string roomId)
     // {
@@ -182,15 +182,11 @@ public class GameService(
 
     public List<RoleActionDto> GetActionsForPlayerRole(string roomId, Guid playerId)
     {
-        var playerDetails = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
+        var playerDetails = playerRoleRepository.GetPlayerRoleInRoom(roomId, playerId);
         var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        var allPlayersInGame = playerRoomRepository.GetPlayersInRoomWithARole(roomId);
-        var playerRole = playerDetails.AssignedRole;
-        if (!playerRole.HasValue)
-        {
-            throw new Exception("No role assigned");
-        }
+        var allPlayersInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var playerRole = playerDetails.Role;
 
         var actionCheckDto = new ActionCheckDto()
         {
@@ -200,37 +196,38 @@ public class GameService(
             ActivePlayers = allPlayersInGame,
         };
 
-        var role = roleFactory.GetRole(playerRole.Value);
+        var role = roleFactory.GetRole(playerRole);
         return role.GetActions(actionCheckDto);
     }
 
     public List<PlayerRoleActionDto> GetAllAssignedPlayerRolesAndActions(string roomId)
     {
         var currentMod = roomRepository.GetModeratorForRoom(roomId);
-        var allPlayersInGame = playerRoomRepository.GetPlayersInRoomWithARole(roomId);
+        var allPlayerRolesInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
         var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
         var roleActionList = new List<PlayerRoleActionDto>();
 
-        foreach (var player in allPlayersInGame)
+        foreach (var playerRole in allPlayerRolesInGame)
         {
             var actionCheckDto = new ActionCheckDto()
             {
-                CurrentPlayer = player,
+                CurrentPlayer = playerRole,
                 ProcessedActions = priorActions,
                 QueuedActions = queuedActions,
-                ActivePlayers = allPlayersInGame,
+                ActivePlayers = allPlayerRolesInGame,
             };
-            var role = roleFactory.GetRole(player.AssignedRole!.Value);
+            var role = roleFactory.GetRole(playerRole.Role);
+         // var playerInfo = playerRoomRepository.GetPlayerInRoom(roomId, playerRole.PlayerId);
             roleActionList.Add(
                 new PlayerRoleActionDto()
                 {
-                    Id = player.PlayerGuid,
-                    Nickname = player.NickName,
-                    AvatarIndex = player.AvatarIndex,
-                    Role = player.AssignedRole.Value,
+                    Id = playerRole.PlayerRoom.PlayerId,
+                    Nickname = playerRole.PlayerRoom.NickName,
+                    AvatarIndex = playerRole.PlayerRoom.AvatarIndex,
+                    Role = playerRole.Role,
                     Actions = role.GetActions(actionCheckDto),
-                    isAlive = player.isAlive,
+                    isAlive = playerRole.IsAlive,
                 });
         }
 
@@ -319,7 +316,7 @@ public class GameService(
         return room.GameState;
     }
 
-    private List<PlayerRoleDTO> ShuffleAndAssignRoles(string roomId)
+    private void ShuffleAndAssignRoles(string roomId)
     {
         var roomModerator = roomRepository.GetModeratorForRoom(roomId);
         var playersInRoomWithoutMod = playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
@@ -327,28 +324,38 @@ public class GameService(
         var roomSettings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
 
         var roleCards = roomSettings.SelectedRoles;
-        for (int i = 0; i < (int)roomSettings.Werewolves; i++)
+        for (int i = 0; i < roomSettings.NumberOfWerewolves; i++)
         {
             roleCards.Add(RoleName.WereWolf);
         }
 
         playersInRoomWithoutMod = playersInRoomWithoutMod.Shuffle();
+      var playerRolesToAdd = new List<PlayerRoleEntity>();
         for (int i = 0; i < playersInRoomWithoutMod.Count; i++)
-        {
+        { 
             var player = playersInRoomWithoutMod[i];
+            RoleName role;
             if (i > roleCards.Count - 1)
             {
-                player.AssignedRole = RoleName.Villager;
+                role = RoleName.Villager;
             }
             else
             {
-                player.AssignedRole = roleCards[i];
+                role = roleCards[i];
             }
+
+            var newPlayerRole = new PlayerRoleEntity()
+            {
+                RoomId = roomId,
+                PlayerRoomId = player.Id,
+                IsAlive = true,
+                Role = role,
+                WasVotedOut = false
+            };
+            playerRolesToAdd.Add(newPlayerRole);
+            
         }
-
-        var assignedRoles = playerRoomRepository.UpdateGroupOfPlayersInRoom(playersInRoomWithoutMod);
-
-        return mapper.Map<List<PlayerRoleDTO>>(assignedRoles);
+        playerRoleRepository.AddPlayerRolesToRoom(playerRolesToAdd);
     }
 
     public DayDto GetCurrentNightAndTime(string roomId)
@@ -374,6 +381,51 @@ public class GameService(
             room.isDay = true;
         }
         roomRepository.UpdateRoom(room);
+    }
+
+    public List<PlayerDTO> GetLatestDeaths(string roomId)
+    {
+        var currentNight = roomRepository.GetRoom(roomId).CurrentNight;
+        var playersInGame = playerRoomRepository.GetPlayersInRoom(roomId);
+        var gameDeaths = playerRoleRepository.GetPlayerRolesForRoom(roomId);
         
+        var playersDeadThisNight = playersInGame.Where((player) => gameDeaths
+            .Any((x)=>x.PlayerRoom.PlayerId == player.PlayerId && x.NightKilled == currentNight && !x.IsAlive)).ToList();
+        return mapper.Map<List<PlayerDTO>>(playersDeadThisNight);
+    }
+
+    public WinCondition CheckWinCondition(string roomId)
+    {
+        var winConditionForRoom = roomRepository.GetWinConditionForRoom(roomId);
+        if (winConditionForRoom != WinCondition.None)
+        {
+            return winConditionForRoom;
+        }
+        var playerRolesForRoom = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var aliveWerewolvesCount = playerRolesForRoom.Count(player => player is { IsAlive: true, Role: RoleName.WereWolf });
+        var otherPlayersCount = playerRolesForRoom.Count(player => player.IsAlive && player.Role != RoleName.WereWolf);
+        WinCondition winCondition = WinCondition.None;
+        if (aliveWerewolvesCount.Equals(0))
+        {
+            winCondition = WinCondition.Villagers;
+        }
+        if (aliveWerewolvesCount >= otherPlayersCount)
+        {
+            winCondition = WinCondition.Werewolves;
+        }
+
+        if (winCondition != WinCondition.None)
+        {
+           var room = roomRepository.GetRoom(roomId);
+           room.WinCondition = winCondition;
+           roomRepository.UpdateRoom(room);
+        }
+        return winCondition;
+    }
+
+    public WinCondition GetWinConditionForRoom(string roomId)
+    {
+        var room = roomRepository.GetRoom(roomId);
+        return room.WinCondition;
     }
 }

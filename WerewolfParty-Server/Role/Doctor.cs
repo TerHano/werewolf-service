@@ -15,7 +15,7 @@ public class Doctor() : Role()
             Type = ActionType.Revive,
             Enabled = true,
         };
-        if (actionCheckDto.CurrentPlayer.isAlive == false)
+        if (actionCheckDto.CurrentPlayer.IsAlive == false)
         {
             healAction.Enabled = false;
             healAction.DisabledReason = "Player is dead";

@@ -14,7 +14,7 @@ public class Detective() : Role()
             Type = ActionType.Investigate,
             Enabled = true,
         };
-        if (actionCheckDto.CurrentPlayer.isAlive == false)
+        if (actionCheckDto.CurrentPlayer.IsAlive == false)
         {
             investigateAction.Enabled = false;
             investigateAction.DisabledReason = "Player is dead";

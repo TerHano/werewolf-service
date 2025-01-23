@@ -7,11 +7,10 @@ namespace WerewolfParty_Server.Entities;
 [Table("player_room")]
 public class PlayerRoomEntity
 {
-    [Key]
-    [Column("id")]
-    public int Id { get; set; }
-    [Column("player_guid")]
-    public required Guid PlayerGuid { get; set; }
+    [Key] [Column("id")] public int Id { get; set; }
+    
+    [Column("player_id")]
+    public required Guid PlayerId { get; set; }
     [Column("room_id")]
     public required string RoomId { get; set; }
     public RoomEntity Room { get; set; }
@@ -22,8 +21,6 @@ public class PlayerRoomEntity
     public required int AvatarIndex { get; set; }
     [Column("player_status")]
     public required PlayerStatus Status { get; set; }
-    [Column("assigned_role")]
-    public RoleName? AssignedRole { get; set; }
-    [Column("is_alive")]
-    public required bool isAlive { get; set; }
+    [Column("player_role_id")]
+    public PlayerRoleEntity? PlayerRole { get; set; }
 }

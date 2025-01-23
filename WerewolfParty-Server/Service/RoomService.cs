@@ -46,7 +46,7 @@ public class RoomService(
     public RoleSettingsEntity UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
         var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
-        oldRoleSettings.Werewolves = updateRoleSettingsRequest.Werewolves;
+        oldRoleSettings.NumberOfWerewolves = updateRoleSettingsRequest.NumberOfWerewolves;
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         return roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
     }
@@ -57,7 +57,7 @@ public class RoomService(
         var players = playerRoomRepository.GetPlayersInRoom(roomId);
         if (includeModerator) return mapper.Map<List<PlayerDTO>>(players);
         var room = roomRepository.GetRoom(roomId);
-        players.RemoveAll((player) => player.PlayerGuid == room.CurrentModerator);
+        players.RemoveAll((player) => player.PlayerId == room.CurrentModerator);
         return mapper.Map<List<PlayerDTO>>(players);
     }
 
@@ -70,7 +70,9 @@ public class RoomService(
             GameState = GameState.Lobby,
             CurrentModerator = playerGuid,
             CurrentNight = 0,
-            isDay = false
+            isDay = false,
+            WinCondition = WinCondition.None,
+            LastModifiedDate = DateTime.Now,
         };
         roomRepository.CreateRoom(newRoom);
 
@@ -78,7 +80,7 @@ public class RoomService(
         var DefaultRoleSettings = new RoleSettingsEntity()
         {
             RoomId = newRoomId,
-            Werewolves = NumberOfWerewolves.One,
+            NumberOfWerewolves = 1,
             SelectedRoles = [RoleName.Doctor, RoleName.Detective, RoleName.Witch]
         };
         roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
@@ -91,13 +93,14 @@ public class RoomService(
         return roomRepository.DoesRoomExist(roomId);
     }
 
-    public void AddPlayerToRoom(string roomId, Guid playerId, AddEditPlayerDetailsDTO player)
+    public void AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
+        var roomId = addEditPlayerDetails.RoomId;
         var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, roomId);
         if (isPlayerAlreadyInRoom)
             //Do nothing, player already connected
             return;
-        var playerAdded = playerRoomRepository.AddPlayerToRoom(roomId, playerId, player);
+        var playerAdded = playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
     }
 
     public PlayerDTO GetModeratorForRoom(string roomId)
@@ -127,18 +130,24 @@ public class RoomService(
         roomRepository.UpdateRoom(room);
     }
 
-    public PlayerDTO UpdatePlayerDetailsForRoom(string roomId, Guid playerId,
+    public PlayerDTO UpdatePlayerDetailsForRoom(Guid playerId,
         AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
+        var roomId = addEditPlayerDetails.RoomId;
         var player = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
         if (player == null)
         {
             throw new PlayerNotFoundException($"Player with id {playerId} does not exist");
         }
 
+        if (addEditPlayerDetails.NickName == null)
+        {
+            throw new Exception("Nick name is required");
+        }
+
         player.NickName = addEditPlayerDetails.NickName;
-        player.AvatarIndex = addEditPlayerDetails.AvatarIndex;
-        var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerGuid, player);
+        player.AvatarIndex = addEditPlayerDetails.AvatarIndex.GetValueOrDefault(0);
+        var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerId, player);
         return mapper.Map<PlayerDTO>(updatedPlayer);
     }
 
@@ -148,7 +157,7 @@ public class RoomService(
         //Replace Mod if player was mod
         var room = roomRepository.GetRoom(roomId);
         var otherPlayers = playerRoomRepository.GetPlayersInRoom(roomId);
-        var newModerator = otherPlayers.FirstOrDefault()?.PlayerGuid;
+        var newModerator = otherPlayers.FirstOrDefault()?.PlayerId;
         if (room.CurrentModerator == playerId)
         {
             room.CurrentModerator = newModerator ?? playerId;

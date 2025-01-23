@@ -102,7 +102,13 @@ public static class GameEndpoint
             IHubContext<EventsHub, IClientEventsHub> hubContext,GameService gameService) =>
         {
             gameService.EndNight(request.RoomId);
+            var winCondition = gameService.CheckWinCondition(request.RoomId);
+            if (winCondition != WinCondition.None)
+            {
+                hubContext.Clients.Group(request.RoomId).WinConditionMet();
+            }
             hubContext.Clients.Group(request.RoomId).DayTimeUpdated();
+            
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
@@ -113,7 +119,11 @@ public static class GameEndpoint
             IHubContext<EventsHub, IClientEventsHub> hubContext,GameService gameService) =>
         {
             gameService.LynchChosenPlayer(request.RoomId, request.PlayerId);
-            gameService.ProgressToNextPoint(request.RoomId);
+            var winCondition = gameService.CheckWinCondition(request.RoomId);
+            if (winCondition != WinCondition.None)
+            {
+                hubContext.Clients.Group(request.RoomId).WinConditionMet();
+            }
             hubContext.Clients.Group(request.RoomId.ToUpper()).DayTimeUpdated();
             return TypedResults.Ok(new APIResponse()
             {
@@ -127,6 +137,30 @@ public static class GameEndpoint
                 var state = gameService.GetCurrentNightAndTime(roomId);
 
                 return TypedResults.Ok(new APIResponse<DayDto>()
+                {
+                    Success = true,
+                    Data = state
+                });
+            }).RequireAuthorization();
+        
+        app.MapGet("/api/game/{roomId}/latest-deaths",
+            (GameService gameService, string roomId) =>
+            {
+                var state = gameService.GetLatestDeaths(roomId);
+
+                return TypedResults.Ok(new APIResponse<List<PlayerDTO>>()
+                {
+                    Success = true,
+                    Data = state
+                });
+            }).RequireAuthorization();
+        
+        app.MapGet("/api/game/{roomId}/check-win-condition",
+            (GameService gameService, string roomId) =>
+            {
+                var state = gameService.GetWinConditionForRoom(roomId);
+
+                return TypedResults.Ok(new APIResponse<WinCondition>()
                 {
                     Success = true,
                     Data = state

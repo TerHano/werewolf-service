@@ -8,7 +8,7 @@ public class RoleSettingsRequestValidator : AbstractValidator<UpdateRoleSettings
 {
     public RoleSettingsRequestValidator()
     {
-        RuleFor(x => x.Werewolves).IsInEnum().WithMessage("Invalid Werewolves Amount");
+        RuleFor(x => x.NumberOfWerewolves).GreaterThanOrEqualTo(1).WithMessage("Invalid Werewolves Amount");
         RuleForEach(x => x.SelectedRoles).IsInEnum().WithMessage("Invalid Selected Roles");
     }
 }

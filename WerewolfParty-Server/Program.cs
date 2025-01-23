@@ -50,6 +50,8 @@ public abstract class Program
          builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
          builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
          builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+         builder.Services.AddDbContextPool<PlayerRoleDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
+
 
 //         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString(conntectionString)));
 
@@ -57,6 +59,8 @@ public abstract class Program
         builder.Services.AddScoped<PlayerRoomRepository>();
         builder.Services.AddScoped<RoleSettingsRepository>();
         builder.Services.AddScoped<RoomGameActionRepository>();
+        builder.Services.AddScoped<PlayerRoleRepository>();
+
 
 
         builder.Services.AddScoped<JwtService>();

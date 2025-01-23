@@ -16,7 +16,7 @@ public class Vigilante() : Role()
             Type = ActionType.VigilanteKill,
             Enabled = true,
         };
-        if (actionCheckDto.CurrentPlayer.isAlive == false)
+        if (actionCheckDto.CurrentPlayer.IsAlive == false)
         {
             killAction.Enabled = false;
             killAction.DisabledReason = "Player is dead";
@@ -27,7 +27,7 @@ public class Vigilante() : Role()
             //Check if vigilante is due for suicide
             var hasSuicide = queuedActions.Any((x) =>
                 x.Action.Equals(ActionType.Suicide) &&
-                (x.PlayerId == currentPlayer.PlayerGuid));
+                (x.PlayerId == currentPlayer.PlayerRoom.PlayerId));
             if (hasSuicide)
             {
                 killAction.Enabled = false;

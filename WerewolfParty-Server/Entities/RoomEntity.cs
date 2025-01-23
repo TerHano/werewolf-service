@@ -13,10 +13,13 @@ public class RoomEntity
     public required Guid CurrentModerator { get; set; }
     [Column("game_state")]
     public required GameState GameState { get; set; }
-
-    public ICollection<PlayerRoomEntity>? PlayersInRooms { get; set; }
     [Column("current_night")]
     public required int CurrentNight { get; set; }
     [Column("is_day")]
     public required bool isDay {get; set;}
+    [Column("win_condition")]
+    public required WinCondition WinCondition { get; set; }
+    [Column("last_modified_date")]
+    public required DateTime LastModifiedDate { get; set; }
+    
 }

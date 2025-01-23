@@ -21,7 +21,7 @@ public class Witch : Role
             Enabled = true,
         };
 
-        if (currentPlayer.isAlive == false)
+        if (currentPlayer.IsAlive == false)
         {
             killAction.Enabled = false;
             killAction.DisabledReason = "Player is dead";
@@ -34,9 +34,9 @@ public class Witch : Role
 
             var priorActions = actionCheckDto.ProcessedActions;
             var hasKilled = priorActions.Any((action) =>
-                action.PlayerId.Equals(currentPlayer.PlayerGuid) && action.Action.Equals(ActionType.Kill));
+                action.PlayerId.Equals(currentPlayer.PlayerRoom.PlayerId) && action.Action.Equals(ActionType.Kill));
             var hasRevived = priorActions.Any((action) =>
-                action.PlayerId.Equals(currentPlayer.PlayerGuid) && action.Action.Equals(ActionType.Revive));
+                action.PlayerId.Equals(currentPlayer.PlayerRoom.PlayerId) && action.Action.Equals(ActionType.Revive));
 
             
             killAction.Enabled = !hasKilled;

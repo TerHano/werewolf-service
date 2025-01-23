@@ -6,6 +6,8 @@ namespace WerewolfParty_Server.Hubs;
 
 public interface IClientEventsHub
 {
+    Task GameRestart();
+    Task WinConditionMet();
     Task DayTimeUpdated();
     Task GameState(GameState gameState);
     Task PlayersInLobbyUpdated();

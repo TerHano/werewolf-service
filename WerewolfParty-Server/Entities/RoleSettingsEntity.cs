@@ -13,7 +13,7 @@ public class RoleSettingsEntity
     [Column("room_id")]
     [MaxLength(10)] public required string RoomId { get; init; }
     [Column("number_of_werewolves")]
-    public required NumberOfWerewolves Werewolves { get; set; }
+    public required int NumberOfWerewolves { get; set; }
     [Column("selected_roles")]
     public List<RoleName> SelectedRoles { get; set; } = new();
 }
