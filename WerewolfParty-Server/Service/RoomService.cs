@@ -52,12 +52,17 @@ public class RoomService(
     }
 
 
-    public List<PlayerDTO> GetAllPlayersInRoom(string roomId, bool includeModerator = true)
+    public List<PlayerDTO> GetAllPlayersInRoom(string roomId, Guid? playerId = null, bool includeModerator = true)
     {
-        var players = playerRoomRepository.GetPlayersInRoom(roomId);
-        if (includeModerator) return mapper.Map<List<PlayerDTO>>(players);
         var room = roomRepository.GetRoom(roomId);
-        players.RemoveAll((player) => player.PlayerId == room.CurrentModerator);
+        var players = includeModerator
+            ? playerRoomRepository.GetPlayersInRoom(roomId)
+            : playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, room.CurrentModerator);
+        if (!playerId.HasValue) return mapper.Map<List<PlayerDTO>>(players);
+        var currentPlayer = players.FirstOrDefault((player) => player.PlayerId.Equals(playerId.Value));
+        if (currentPlayer == null) return mapper.Map<List<PlayerDTO>>(players);
+        players.Remove(currentPlayer);
+        players.Insert(0, currentPlayer);
         return mapper.Map<List<PlayerDTO>>(players);
     }
 
@@ -162,13 +167,13 @@ public class RoomService(
         {
             room.CurrentModerator = newModerator ?? playerId;
         }
+
         roomRepository.UpdateRoom(room);
     }
 
     public int GetPlayerCountForRoom(string roomId)
     {
         return playerRoomRepository.GetPlayerCountForRoom(roomId);
-        
     }
 
     public void UpdateRoomGameState(string roomId, GameState gameState)

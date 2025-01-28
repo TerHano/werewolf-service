@@ -129,7 +129,6 @@ public static class RoomEndpoint
         app.MapGet("/api/room/{roomId}/get-moderator", (string roomId, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
-            var playerGuid = httpContext.User.GetPlayerId();
             var mod = roomService.GetModeratorForRoom(roomId);
 
             return TypedResults.Ok(new APIResponse<PlayerDTO>()
@@ -151,9 +150,10 @@ public static class RoomEndpoint
         }).RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/players",
-            (RoomService roomService, string roomId) =>
+            (RoomService roomService, HttpContext httpContext, string roomId) =>
             {
-                var players = roomService.GetAllPlayersInRoom(roomId, false);
+                var playerGuid = httpContext.User.GetPlayerId();
+                var players = roomService.GetAllPlayersInRoom(roomId, playerGuid,false);
                 return TypedResults.Ok(new APIResponse<List<PlayerDTO>>()
                 {
                     Success = true,
