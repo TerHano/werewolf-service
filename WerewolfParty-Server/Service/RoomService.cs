@@ -72,7 +72,7 @@ public class RoomService(
             CurrentNight = 0,
             isDay = false,
             WinCondition = WinCondition.None,
-            LastModifiedDate = DateTime.Now,
+            LastModifiedDate = DateTime.UtcNow,
         };
         roomRepository.CreateRoom(newRoom);
 
@@ -162,8 +162,13 @@ public class RoomService(
         {
             room.CurrentModerator = newModerator ?? playerId;
         }
-
         roomRepository.UpdateRoom(room);
+    }
+
+    public int GetPlayerCountForRoom(string roomId)
+    {
+        return playerRoomRepository.GetPlayerCountForRoom(roomId);
+        
     }
 
     public void UpdateRoomGameState(string roomId, GameState gameState)

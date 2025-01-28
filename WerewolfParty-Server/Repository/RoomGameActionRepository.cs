@@ -6,7 +6,7 @@ using WerewolfParty_Server.Enum;
 
 namespace WerewolfParty_Server.Repository;
 
-public class RoomGameActionRepository(RoomGameActionDbContext context)
+public class RoomGameActionRepository(WerewolfDbContext context)
 {
     public void QueueActionForPlayer(RoomGameActionEntity roomGameActionEntity)
     {

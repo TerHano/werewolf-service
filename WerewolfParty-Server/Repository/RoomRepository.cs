@@ -7,7 +7,7 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class RoomRepository(RoomDbContext context) : IRoomRepository
+public class RoomRepository(WerewolfDbContext context) : IRoomRepository
 {
     public List<RoomEntity> GetAllRooms()
     {
@@ -51,7 +51,7 @@ public class RoomRepository(RoomDbContext context) : IRoomRepository
 
     public void UpdateRoom(RoomEntity roomEntity)
     {
-        roomEntity.LastModifiedDate = DateTime.Now;
+        roomEntity.LastModifiedDate = DateTime.UtcNow;
         context.Rooms.Update(roomEntity);
         context.SaveChanges();
     }

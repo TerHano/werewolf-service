@@ -15,6 +15,6 @@ public class PlayerRoleEntity
     [Column("was_voted_out")] public required bool WasVotedOut { get; set; }
     
     [Column("player_room_id")]
-    public required int  PlayerRoomId { get; set; }
-    public PlayerRoomEntity PlayerRoom { get; set; }
+    public required int PlayerRoomId { get; set; }
+    public PlayerRoomEntity? PlayerRoom { get; set; }
 }

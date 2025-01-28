@@ -12,8 +12,9 @@ public class PlayerRoomEntity
     [Column("player_id")]
     public required Guid PlayerId { get; set; }
     [Column("room_id")]
+    [StringLength(10)]
     public required string RoomId { get; set; }
-    public RoomEntity Room { get; set; }
+    public RoomEntity? Room { get; set; }
 
     [Column("nickname")]
     public required string NickName { get; set; }

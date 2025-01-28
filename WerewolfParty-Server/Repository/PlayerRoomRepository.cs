@@ -8,7 +8,7 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoomRepository> logger)
+public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomRepository> logger)
 {
     public PlayerRoomEntity GetPlayerInRoom(string roomId, Guid playerId)
     {
@@ -22,6 +22,14 @@ public class PlayerRoomRepository(PlayerRoomDbContext context, ILogger<PlayerRoo
 
         return player;
     }
+    
+    public int GetPlayerCountForRoom(string roomId)
+    {
+        var count = context.PlayerRooms.Count(playerRoom =>
+            EF.Functions.ILike(playerRoom.RoomId,roomId));
+        return count;
+    }
+
 
     public List<PlayerRoomEntity> GetPlayersInRoom(string roomId)
     {

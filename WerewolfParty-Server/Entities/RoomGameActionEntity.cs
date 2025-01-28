@@ -12,6 +12,7 @@ public class RoomGameActionEntity
     public int Id { get; set; }
     [Column("room_id")]
     public required string RoomId { get; set; }
+    public RoomEntity Room { get; set; }
     [Column("player_id")]
     public Guid? PlayerId { get; set; }
     [Column("action_type")]

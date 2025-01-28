@@ -22,4 +22,8 @@ public class RoomEntity
     [Column("last_modified_date")]
     public required DateTime LastModifiedDate { get; set; }
     
+    public RoleSettingsEntity? RoleSettings { get; set; }
+    public List<RoomGameActionEntity>? GameActions { get; set; }
+    public List<PlayerRoomEntity>? PlayersInRoom { get; set; }
+    
 }

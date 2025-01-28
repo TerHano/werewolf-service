@@ -8,7 +8,7 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class PlayerRoleRepository(PlayerRoleDbContext context, ILogger<PlayerRoomRepository> logger)
+public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomRepository> logger)
 {
     public List<PlayerRoleEntity> GetPlayerRolesForRoom(string roomId)
     {

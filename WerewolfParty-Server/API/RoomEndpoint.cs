@@ -90,9 +90,18 @@ public static class RoomEndpoint
 
         app.MapPost("/api/room/leave-room", (RoomIdRequest roomIdRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
-        {
+        { 
             var roomId = roomIdRequest.RoomId.ToUpper();
-            var playerGuid = httpContext.User.GetPlayerId();
+            var playerGuid = httpContext.User.GetPlayerId(); 
+            var playerCount = roomService.GetPlayerCountForRoom(roomId);
+            if (playerCount < 2)
+            {
+                //Do nothing and return
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = true,
+                });
+            }
             roomService.RemovePlayerFromRoom(roomId, playerGuid);
             hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced

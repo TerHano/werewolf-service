@@ -5,7 +5,7 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class RoleSettingsRepository(RoleSettingsDbContext context) : IRoleSettingsRepository
+public class RoleSettingsRepository(WerewolfDbContext context) : IRoleSettingsRepository
 
 {
     public RoleSettingsEntity AddRoleSettings(RoleSettingsEntity roleSettingsEntity)

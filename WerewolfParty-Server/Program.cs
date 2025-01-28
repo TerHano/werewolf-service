@@ -44,13 +44,10 @@ public abstract class Program
         //builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
         //builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
         //builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
+        
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+         builder.Services.AddDbContextPool<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
 
-
-         builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
-         builder.Services.AddDbContextPool<PlayerRoleDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 
 //         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString(conntectionString)));
