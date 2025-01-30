@@ -36,7 +36,8 @@ public static class PlayerEndpoint
         {
             var roomId = addEditPlayerDetails.RoomId;
             var playerGuid = httpContext.User.GetPlayerId();
-            var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(playerGuid, addEditPlayerDetails);
+            var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+            var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
             string sanitizedRoomId = roomId.ToUpper();
             hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
             return TypedResults.Ok(new APIResponse()
@@ -49,7 +50,7 @@ public static class PlayerEndpoint
             HttpContext httpContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            var currentPlayer = roomService.GetPlayerInRoom(roomId, playerGuid);
+            var currentPlayer = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
             return TypedResults.Ok(new APIResponse<PlayerDTO>()
             {
                 Success = true,

@@ -30,8 +30,9 @@ public static class GameEndpoint
             (HttpContext httpContext, GameService gameService, RoomService roomService, string roomId) =>
             {
                 var playerGuid = httpContext.User.GetPlayerId();
+                var currentPlayer = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
                 var currentModerator = roomService.GetModeratorForRoom(roomId);
-                if (playerGuid != currentModerator.Id)
+                if (currentPlayer.Id != currentModerator.Id)
                 {
                     throw new Exception("You are not the moderator of this room.");
                 }
@@ -45,10 +46,10 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
 
-        app.MapGet("/api/game/{roomId}/{playerGuid:guid}/role-actions",
-            (HttpContext httpContext, GameService gameService, string roomId, Guid playerGuid) =>
+        app.MapGet("/api/game/{roomId}/{playerRoleId}/role-actions",
+            (HttpContext httpContext, GameService gameService, string roomId, int playerRoleId) =>
             {
-                var state = gameService.GetActionsForPlayerRole(roomId, playerGuid);
+                var state = gameService.GetActionsForPlayerRole(roomId, playerRoleId);
                 return TypedResults.Ok(new APIResponse<List<RoleActionDto>>()
                 {
                     Success = true,
@@ -56,10 +57,10 @@ public static class GameEndpoint
                 });
             }).RequireAuthorization();
 
-        app.MapGet("/api/game/{roomId}/{playerGuid:guid}/queued-action",
-            (HttpContext httpContext, GameService gameService, string roomId, Guid playerGuid) =>
+        app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
+            (HttpContext httpContext, GameService gameService, string roomId, int playerRoleId) =>
             {
-                var state = gameService.GetPlayerQueuedAction(roomId, playerGuid);
+                var state = gameService.GetPlayerQueuedAction(roomId, playerRoleId);
 
                 return TypedResults.Ok(new APIResponse<PlayerQueuedActionDTO>()
                 {
@@ -115,10 +116,10 @@ public static class GameEndpoint
             });
         }).RequireAuthorization();
         
-        app.MapPost("/api/game/vote-out-player", (PlayerIdAndRoomIdRequestDto request,
+        app.MapPost("/api/game/vote-out-player", (PlayerVoteOutRequestDTO request,
             IHubContext<EventsHub, IClientEventsHub> hubContext,GameService gameService) =>
         {
-            gameService.LynchChosenPlayer(request.RoomId, request.PlayerId);
+            gameService.LynchChosenPlayer(request.RoomId, request.PlayerRoleId);
             var winCondition = gameService.CheckWinCondition(request.RoomId);
             if (winCondition != WinCondition.None)
             {
@@ -161,6 +162,18 @@ public static class GameEndpoint
                 var state = gameService.GetWinConditionForRoom(roomId);
 
                 return TypedResults.Ok(new APIResponse<WinCondition>()
+                {
+                    Success = true,
+                    Data = state
+                });
+            }).RequireAuthorization();
+        
+        app.MapGet("/api/game/{roomId}/summary",
+            (GameService gameService, string roomId) =>
+            {
+                var state = gameService.GetGameSummary(roomId);
+
+                return TypedResults.Ok(new APIResponse<List<GameNightHistoryDTO>>()
                 {
                     Success = true,
                     Data = state

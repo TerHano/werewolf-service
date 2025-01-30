@@ -27,7 +27,7 @@ public class Vigilante() : Role()
             //Check if vigilante is due for suicide
             var hasSuicide = queuedActions.Any((x) =>
                 x.Action.Equals(ActionType.Suicide) &&
-                (x.PlayerId == currentPlayer.PlayerRoom.PlayerId));
+                (x.PlayerRoleId == currentPlayer.Id));
             if (hasSuicide)
             {
                 killAction.Enabled = false;

@@ -22,6 +22,12 @@ public class WerewolfDbContext(DbContextOptions<WerewolfDbContext> options)
             .HasOne(e => e.Room)
             .WithOne(e => e.RoleSettings)
             .HasForeignKey<RoleSettingsEntity>(e => e.RoomId);
+        
+        modelBuilder.Entity<RoleSettingsEntity>()
+            .HasOne(e => e.Room)
+            .WithOne(e => e.RoleSettings)
+            .HasForeignKey<RoleSettingsEntity>(e => e.RoomId);
+       
 
         
         

@@ -10,7 +10,7 @@ public class RoomEntity
     [Column("id")]
     public required string Id { get; set; }
     [Column("current_moderator")]
-    public required Guid CurrentModerator { get; set; }
+    public int? CurrentModerator { get; set; }
     [Column("game_state")]
     public required GameState GameState { get; set; }
     [Column("current_night")]

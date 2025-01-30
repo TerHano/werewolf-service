@@ -5,7 +5,7 @@ namespace WerewolfParty_Server.DTO;
 
 public class PlayerActionRequestDTO : RoomIdRequest
 {
-    public Guid? PlayerId { get; set; }
+    public int? PlayerRoleId { get; set; }
     public ActionType Action { get; set; }
-    public Guid AffectedPlayerId { get; set; }
+    public int AffectedPlayerRoleId { get; set; }
 }

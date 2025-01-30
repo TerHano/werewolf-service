@@ -4,7 +4,7 @@ namespace WerewolfParty_Server.DTO;
 
 public class PlayerRoleDTO
 {
-    public Guid Id { get; set; }
+    public int Id { get; set; }
     public string Nickname { get; set; }
     public RoleName Role { get; set; }
 }

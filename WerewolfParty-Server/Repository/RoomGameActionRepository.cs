@@ -22,7 +22,7 @@ public class RoomGameActionRepository(WerewolfDbContext context)
         context.SaveChanges();
     }
 
-    public void DequeueActionForPlayer( int actionId)
+    public void DequeueActionForPlayer(int actionId)
     {
         var playerAction = context.RoomGameActions.FirstOrDefault(x =>
             x.Id.Equals(actionId));
@@ -31,11 +31,12 @@ public class RoomGameActionRepository(WerewolfDbContext context)
         context.SaveChanges();
     }
 
-    public RoomGameActionEntity? GetQueuedPlayerActionForRoom(string roomId, Guid playerId)
+    public RoomGameActionEntity? GetQueuedPlayerActionForRoom(string roomId, int playerRoleId)
     {
-        var playerAction = context.RoomGameActions.FirstOrDefault(x =>
-            EF.Functions.ILike(x.RoomId,roomId) && x.State == ActionState.Queued &&
-            x.PlayerId.Equals(playerId));
+        var playerAction = context.RoomGameActions
+            .FirstOrDefault(x=> EF.Functions.ILike(x.RoomId,roomId) && x.State == ActionState.Queued &&
+                                                               x.PlayerRoleId.Equals(playerRoleId));
+           
         return playerAction;
     }
     

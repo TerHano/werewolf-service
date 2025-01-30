@@ -20,7 +20,7 @@ public class RoomRepository(WerewolfDbContext context) : IRoomRepository
         context.SaveChanges();
     }
 
-    public Guid GetModeratorForRoom(string roomId)
+    public int? GetModeratorForRoom(string roomId)
     {
         var room = GetRoom(roomId);
         return room.CurrentModerator;

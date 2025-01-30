@@ -10,8 +10,8 @@ public class PlayerQueuedActionMapper : Profile
     {
         CreateMap<RoomGameActionEntity, PlayerQueuedActionDTO>()
             .ForMember(dest => dest.Id, opt => opt.MapFrom(src => src.Id))
-            .ForMember(dest => dest.PlayerId, opt => opt.MapFrom(src => src.PlayerId))
+            .ForMember(dest => dest.PlayerRoleId, opt => opt.MapFrom(src => src.PlayerRoleId))
             .ForMember(dest => dest.Action, opt => opt.MapFrom(src => src.Action))
-            .ForMember((dest) => dest.AffectedPlayerId, opt => opt.MapFrom(src => src.AffectedPlayerId));
+            .ForMember((dest) => dest.AffectedPlayerRoleId, opt => opt.MapFrom(src => src.AffectedPlayerRoleId));
     }
 }

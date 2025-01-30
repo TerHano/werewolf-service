@@ -71,6 +71,8 @@ public abstract class Program
         builder.Services.AddAutoMapper(typeof(PlayerMapper));
         builder.Services.AddAutoMapper(typeof(PlayerRoleMapper));
         builder.Services.AddAutoMapper(typeof(PlayerQueuedActionMapper));
+        builder.Services.AddAutoMapper(typeof(PlayerGameActionMapper));
+
 
         //Validators
         builder.Services.AddScoped<IValidator<PlayerDTO>, PlayerDTOValidator>();

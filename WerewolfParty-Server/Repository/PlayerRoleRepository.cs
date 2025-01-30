@@ -35,11 +35,23 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         context.SaveChanges();
     }
     
-    public PlayerRoleEntity GetPlayerRoleInRoom(string roomId, Guid playerId)
+    public PlayerRoleEntity GetPlayerRoleInRoom(string roomId, int playerRoleId)
     {
-        var player = context.PlayerRoles.Include(p=>p.PlayerRoom).FirstOrDefault(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
-            playerRoom.PlayerRoom.PlayerId == playerId);
+        var player = context.PlayerRoles.FirstOrDefault(playerRole =>
+            EF.Functions.ILike(playerRole.RoomId,roomId) &&
+            playerRole.Id == playerRoleId);
+        if (player == null)
+        {
+            throw new PlayerNotFoundException("No role for player found.");
+        }
+        return player;
+    }
+    
+    public PlayerRoleEntity GetPlayerRoleInRoomUsingPlayerGuid(string roomId, Guid playerGuid)
+    {
+        var player = context.PlayerRoles.Include(p=>p.PlayerRoom).FirstOrDefault(playerRole =>
+            EF.Functions.ILike(playerRole.RoomId,roomId) &&
+            playerRole.PlayerRoom.PlayerId == playerGuid);
         if (player == null)
         {
             throw new PlayerNotFoundException("No role for player found.");
@@ -67,11 +79,11 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
         context.SaveChanges();
     }
-    public void UpdatePlayerStatusToDead(List<Guid> playerIds, int night)
+    public void UpdatePlayerStatusToDead(List<int> playerIds, int night)
     {
         foreach (var playerId in playerIds)
         {
-            var player = context.PlayerRoles.FirstOrDefault((player) => player.PlayerRoom.PlayerId == playerId);
+            var player = context.PlayerRoles.FirstOrDefault((player) => player.Id == playerId);
             if (player == null) continue;
             player.IsAlive = false;
             player.NightKilled = night;

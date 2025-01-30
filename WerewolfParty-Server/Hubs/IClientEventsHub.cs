@@ -11,8 +11,8 @@ public interface IClientEventsHub
     Task DayTimeUpdated();
     Task GameState(GameState gameState);
     Task PlayersInLobbyUpdated();
-    Task ModeratorUpdated(Guid newModeratorId);
+    Task ModeratorUpdated(int newModeratorPlayerRoomId);
     Task RoomRoleSettingsUpdated();
 
-    Task PlayerKicked(Guid kickedPlayerId);
+    Task PlayerKicked(int kickedPlayerId);
 }

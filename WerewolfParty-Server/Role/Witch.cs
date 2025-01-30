@@ -34,9 +34,9 @@ public class Witch : Role
 
             var priorActions = actionCheckDto.ProcessedActions;
             var hasKilled = priorActions.Any((action) =>
-                action.PlayerId.Equals(currentPlayer.PlayerRoom.PlayerId) && action.Action.Equals(ActionType.Kill));
+                action.PlayerRoleId.Equals(currentPlayer.Id) && action.Action.Equals(ActionType.Kill));
             var hasRevived = priorActions.Any((action) =>
-                action.PlayerId.Equals(currentPlayer.PlayerRoom.PlayerId) && action.Action.Equals(ActionType.Revive));
+                action.PlayerRoleId.Equals(currentPlayer.Id) && action.Action.Equals(ActionType.Revive));
 
             
             killAction.Enabled = !hasKilled;
