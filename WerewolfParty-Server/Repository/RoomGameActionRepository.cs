@@ -57,7 +57,7 @@ public class RoomGameActionRepository(WerewolfDbContext context)
 
     public List<RoomGameActionEntity> GetAllProcessedActionsForRoom(string roomId)
     {
-        return context.RoomGameActions.Where(x =>
+        return context.RoomGameActions.Include((r)=>r.PlayerRole).Include((r)=>r.AffectedPlayerRole).Where(x =>
                 EF.Functions.ILike(x.RoomId,roomId) && x.State == ActionState.Processed)
             .ToList();
     }

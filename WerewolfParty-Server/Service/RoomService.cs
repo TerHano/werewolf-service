@@ -108,9 +108,20 @@ public class RoomService(
     {
         var roomId = addEditPlayerDetails.RoomId;
         var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, roomId);
-        //Do nothing, player already connected
-        if (isPlayerAlreadyInRoom) return ;
-        var player = playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
+        PlayerRoomEntity player;
+        if (!isPlayerAlreadyInRoom)
+        {
+            if (addEditPlayerDetails.NickName == null)
+            {
+                throw new Exception("Player details are required for new player");
+            }
+            player = playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
+        }
+        else
+        {
+            player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid( roomId, playerId);
+        }
+
         var currentMod = GetModeratorForRoom(roomId);
         if (currentMod == null)
         {
@@ -143,7 +154,6 @@ public class RoomService(
         {
             throw new Exception($"Room with id {roomId} does not exist");
         }
-
         room.CurrentModerator = newModeratorPlayerRoomId;
         roomRepository.UpdateRoom(room);
     }

@@ -113,10 +113,16 @@ public static class RoomEndpoint
         app.MapPost("/api/room/update-moderator", (UpdateModeratorRequest updateModeratorRequest,
             HttpContext httpContext, IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
+            if (updateModeratorRequest.NewModeratorPlayerRoomId == 0)
+            {
+                throw new Exception("New Moderator Id is required");
+            }
             string roomId = updateModeratorRequest.RoomId.ToUpper();
             var playerGuid = httpContext.User.GetPlayerId();
             roomService.UpdateModeratorForRoom(roomId, updateModeratorRequest.NewModeratorPlayerRoomId);
             hubContext.Clients.Group(roomId).ModeratorUpdated(updateModeratorRequest.NewModeratorPlayerRoomId);
+            hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
+
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,

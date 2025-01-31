@@ -62,8 +62,8 @@ public class GameService(
                         var vigilanteSuicideAction = new RoomGameActionEntity()
                         {
                             RoomId = roomId,
-                            PlayerRoleId = action.PlayerRoleId,
-                            AffectedPlayerRoleId = action.AffectedPlayerRoleId,
+                            PlayerRoleId = action.PlayerRoleId.Value,
+                            AffectedPlayerRoleId = action.PlayerRoleId.Value,
                             Action = ActionType.Suicide,
                             Night = room.CurrentNight + 1,
                             State = ActionState.Queued
@@ -435,24 +435,46 @@ public class GameService(
 
     public List<GameNightHistoryDTO> GetGameSummary(string roomId)
     {
-        var playerRolesForRoom = playerRoleRepository.GetPlayerRolesForRoom(roomId);
         var actions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
-        var history = new List<GameNightHistoryDTO>();
-        // var history = actions.GroupBy((e) => e.Night).OrderBy(e => e.Key)
-        //     .Select(e =>
-        //     {
-        //         return new GameNightHistoryDTO()
-        //         {
-        //             Night = e.Key,
-        //             NightActions = mapper.Map<List<PlayerGameActionDTO>>(e.Where(x=>x.Action != ActionType.VotedOut).Select(x=> new PlayerGameActionDTO()
-        //             {
-        //                 Id = x.Id,
-        //                 PlayerId = playerRolesForRoom.FirstOrDefault(player => player),
-        //             }).ToList()),
-        //             DayActions = mapper.Map<List<PlayerGameActionDTO>>(e.Where(x=>x.Action == ActionType.VotedOut).ToList()),
-        //
-        //         };
-        //     }).ToList();
+        var history = actions.GroupBy((e) => e.Night).OrderBy(e => e.Key)
+            .Select(e =>
+            {
+                return new GameNightHistoryDTO()
+                {
+                    Night = e.Key,
+                    NightActions = mapper.Map<List<PlayerGameActionDTO>>(e.Where(x => x.Action != ActionType.VotedOut)
+                        .Select(x => new PlayerGameActionDTO()
+                        {
+                            Id = x.Id,
+                            Player = mapper.Map<PlayerRoleDTO>(x.PlayerRole),
+                            Action = x.Action,
+                            AffectedPlayer = mapper.Map<PlayerRoleDTO>(x.AffectedPlayerRole),
+                        }).ToList()),
+                    DayActions = mapper.Map<List<PlayerGameActionDTO>>(e.Where(x => x.Action == ActionType.VotedOut)
+                        .Select(x => new PlayerGameActionDTO()
+                        {
+                            Id = x.Id,
+                            Player = mapper.Map<PlayerRoleDTO>(x.PlayerRole),
+                            Action = x.Action,
+                            AffectedPlayer = mapper.Map<PlayerRoleDTO>(x.AffectedPlayerRole),
+                        }).ToList()),
+                };
+            }).ToList();
+        
+        //Fill in days where no action was taken
+        var maxNight = history.Max((e) => e.Night);
+        for (var i = 0; i < maxNight; i++)
+        {
+            if (!history.Exists((e) => e.Night == i))
+            {
+                history.Insert(i, new GameNightHistoryDTO()
+                {
+                    Night = i,
+                    NightActions = [],
+                    DayActions = []
+                });
+            }
+        }
         return history;
         
 

@@ -28,16 +28,7 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         if (string.IsNullOrEmpty(roomId)) return new SocketResponse(false, "Room ID is required");
         var doesRoomExist = roomService.DoesRoomExist(roomId);
         if (!doesRoomExist) return new SocketResponse(false, "Room does not exist");
-        var isPlayerAlreadyInRoom = roomService.isPlayerInRoom(roomId, playerGuid);
-        if (!isPlayerAlreadyInRoom)
-        {
-            if (addEditPlayerDetails.NickName == null)
-            {
-                throw new Exception("Player details are required for new player");
-            }
-
-            roomService.AddPlayerToRoom(playerGuid, addEditPlayerDetails);
-        }
+        roomService.AddPlayerToRoom(playerGuid, addEditPlayerDetails);
 
         await Groups.AddToGroupAsync(Context.ConnectionId, roomId.ToUpper());
         await Clients.OthersInGroup(roomId.ToUpper()).PlayersInLobbyUpdated();
