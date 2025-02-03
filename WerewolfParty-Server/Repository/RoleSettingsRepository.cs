@@ -5,28 +5,27 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class RoleSettingsRepository(WerewolfDbContext context) : IRoleSettingsRepository
+public class RoleSettingsRepository(WerewolfDbContext context)
 
 {
-    public RoleSettingsEntity AddRoleSettings(RoleSettingsEntity roleSettingsEntity)
+    public RoomSettingsEntity AddRoleSettings(RoomSettingsEntity roomSettingsEntity)
     {
-        var roleSettings = context.RoleSettings.Add(roleSettingsEntity).Entity;
+        var roleSettings = context.RoleSettings.Add(roomSettingsEntity).Entity;
         context.SaveChanges();
         return roleSettings;
     }
 
-    public RoleSettingsEntity UpdateRoleSettings(RoleSettingsEntity roleSettingsEntity)
+    public void UpdateRoleSettings(RoomSettingsEntity roomSettingsEntity)
     {
-        var roleSettings = context.RoleSettings.Update(roleSettingsEntity).Entity;
+        context.RoleSettings.Update(roomSettingsEntity);
         context.SaveChanges();
-        return roleSettings;
     }
 
-    public RoleSettingsEntity GetRoomSettingsByRoomId(string roomId)
+    public RoomSettingsEntity GetRoomSettingsByRoomId(string roomId)
     {
         var roomSettings =
             context.RoleSettings.FirstOrDefault(r =>
-                EF.Functions.ILike(r.RoomId,roomId));
+                EF.Functions.ILike(r.RoomId, roomId));
         if (roomSettings is null)
         {
             throw new Exception("Room settings not found");
@@ -35,7 +34,7 @@ public class RoleSettingsRepository(WerewolfDbContext context) : IRoleSettingsRe
         return roomSettings;
     }
 
-    public RoleSettingsEntity GetRoomSettingsById(int roomSettingsId)
+    public RoomSettingsEntity GetRoomSettingsById(int roomSettingsId)
     {
         var roomSettings = context.RoleSettings.FirstOrDefault(r => r.Id == roomSettingsId);
         if (roomSettings is null)

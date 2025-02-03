@@ -1,4 +1,3 @@
-using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Models.Request;
 
 namespace WerewolfParty_Server.DTO;

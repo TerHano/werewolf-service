@@ -1,10 +1,9 @@
 using WerewolfParty_Server.DTO;
-using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 
 namespace WerewolfParty_Server.Role;
 
-public class Vigilante() : Role()
+public class Vigilante : Role
 {
     public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
@@ -20,7 +19,6 @@ public class Vigilante() : Role()
         {
             killAction.Enabled = false;
             killAction.DisabledReason = "Player is dead";
-            
         }
         else
         {

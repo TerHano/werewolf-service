@@ -7,7 +7,6 @@ public class Detective() : Role()
 {
     public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
-        
         var investigateAction = new RoleActionDto()
         {
             Label = "Investigate Player",
@@ -18,8 +17,8 @@ public class Detective() : Role()
         {
             investigateAction.Enabled = false;
             investigateAction.DisabledReason = "Player is dead";
-            
         }
+
         return [investigateAction];
     }
 }

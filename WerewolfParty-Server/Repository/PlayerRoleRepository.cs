@@ -13,9 +13,9 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
     public List<PlayerRoleEntity> GetPlayerRolesForRoom(string roomId)
     {
         return context.PlayerRoles
-            .Where(playerRole => EF.Functions.ILike(playerRole.RoomId,roomId)).Include(p=>p.PlayerRoom).ToList();
+            .Where(playerRole => EF.Functions.ILike(playerRole.RoomId, roomId)).Include(p => p.PlayerRoom).ToList();
     }
-    
+
     public PlayerRoleEntity UpdatePlayerRoleInRoom(PlayerRoleEntity player)
     {
         var updatedPlayer = context.PlayerRoles.Update(player);
@@ -28,45 +28,47 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         context.PlayerRoles.RemoveRange(context.PlayerRoles.Where(playerRole => playerRole.RoomId == roomId));
         context.SaveChanges();
     }
-    
+
     public void AddPlayerRolesToRoom(List<PlayerRoleEntity> playerRoles)
     {
         context.PlayerRoles.AddRange(playerRoles);
         context.SaveChanges();
     }
-    
+
     public PlayerRoleEntity GetPlayerRoleInRoom(string roomId, int playerRoleId)
     {
         var player = context.PlayerRoles.FirstOrDefault(playerRole =>
-            EF.Functions.ILike(playerRole.RoomId,roomId) &&
+            EF.Functions.ILike(playerRole.RoomId, roomId) &&
             playerRole.Id == playerRoleId);
         if (player == null)
         {
             throw new PlayerNotFoundException("No role for player found.");
         }
+
         return player;
     }
-    
+
     public PlayerRoleEntity GetPlayerRoleInRoomUsingPlayerGuid(string roomId, Guid playerGuid)
     {
-        var player = context.PlayerRoles.Include(p=>p.PlayerRoom).FirstOrDefault(playerRole =>
-            EF.Functions.ILike(playerRole.RoomId,roomId) &&
+        var player = context.PlayerRoles.Include(p => p.PlayerRoom).FirstOrDefault(playerRole =>
+            EF.Functions.ILike(playerRole.RoomId, roomId) &&
             playerRole.PlayerRoom.PlayerId == playerGuid);
         if (player == null)
         {
             throw new PlayerNotFoundException("No role for player found.");
         }
+
         return player;
     }
-    
+
     public bool DoesPlayerHaveRoleInRoom(string roomId, Guid playerId)
     {
         var player = context.PlayerRoles.FirstOrDefault(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.PlayerRoom.PlayerId == playerId);
         return player != null;
     }
-    
+
     public void UpdatePlayerIsAliveStatus(List<Guid> playerIds, bool isAlive)
     {
         foreach (var playerId in playerIds)
@@ -79,6 +81,7 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
         context.SaveChanges();
     }
+
     public void UpdatePlayerStatusToDead(List<int> playerIds, int night)
     {
         foreach (var playerId in playerIds)
@@ -89,7 +92,7 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             player.NightKilled = night;
             context.Update(player);
         }
+
         context.SaveChanges();
     }
-  
 }

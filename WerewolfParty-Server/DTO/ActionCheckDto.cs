@@ -4,8 +4,9 @@ namespace WerewolfParty_Server.DTO;
 
 public class ActionCheckDto
 {
-    public PlayerRoleEntity CurrentPlayer { get; set; }
-    public List<RoomGameActionEntity> ProcessedActions { get; set; }
-    public List<RoomGameActionEntity> QueuedActions { get; set; }
-    public List<PlayerRoleEntity> ActivePlayers { get; set; }
+    public required PlayerRoleEntity CurrentPlayer { get; set; }
+    public required List<RoomGameActionEntity> ProcessedActions { get; set; }
+    public required List<RoomGameActionEntity> QueuedActions { get; set; }
+    public required List<PlayerRoleEntity> ActivePlayers { get; set; }
+    public required RoomSettingsEntity Settings { get; set; }
 }

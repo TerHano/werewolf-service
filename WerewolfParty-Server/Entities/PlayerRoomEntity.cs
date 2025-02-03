@@ -8,20 +8,16 @@ namespace WerewolfParty_Server.Entities;
 public class PlayerRoomEntity
 {
     [Key] [Column("id")] public int Id { get; set; }
-    
-    [Column("player_id")]
-    public required Guid PlayerId { get; set; }
-    [Column("room_id")]
-    [StringLength(10)]
-    public required string RoomId { get; set; }
+
+    [Column("player_id")] public required Guid PlayerId { get; set; }
+    [Column("room_id")] [StringLength(10)] public required string RoomId { get; set; }
     public RoomEntity? Room { get; set; }
 
     [Column("nickname")]
+    [StringLength(10)]
     public required string NickName { get; set; }
-    [Column("avatar_index")]
-    public required int AvatarIndex { get; set; }
-    [Column("player_status")]
-    public required PlayerStatus Status { get; set; }
-    [Column("player_role_id")]
-    public PlayerRoleEntity? PlayerRole { get; set; }
+
+    [Column("avatar_index")] public required int AvatarIndex { get; set; }
+    [Column("player_status")] public required PlayerStatus Status { get; set; }
+    [Column("player_role_id")] public PlayerRoleEntity? PlayerRole { get; set; }
 }

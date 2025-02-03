@@ -30,20 +30,17 @@ public class Witch : Role
         }
         else
         {
-
-
             var priorActions = actionCheckDto.ProcessedActions;
             var hasKilled = priorActions.Any((action) =>
                 action.PlayerRoleId.Equals(currentPlayer.Id) && action.Action.Equals(ActionType.Kill));
             var hasRevived = priorActions.Any((action) =>
                 action.PlayerRoleId.Equals(currentPlayer.Id) && action.Action.Equals(ActionType.Revive));
 
-            
+
             killAction.Enabled = !hasKilled;
             killAction.DisabledReason = hasKilled ? "Ability was previously used" : null;
             healAction.Enabled = !hasRevived;
             healAction.DisabledReason = hasRevived ? "Ability was previously used" : null;
-
         }
 
         return [healAction, killAction];

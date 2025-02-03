@@ -117,6 +117,7 @@ public static class RoomEndpoint
             {
                 throw new Exception("New Moderator Id is required");
             }
+
             string roomId = updateModeratorRequest.RoomId.ToUpper();
             var playerGuid = httpContext.User.GetPlayerId();
             roomService.UpdateModeratorForRoom(roomId, updateModeratorRequest.NewModeratorPlayerRoomId);
@@ -156,7 +157,7 @@ public static class RoomEndpoint
             (RoomService roomService, HttpContext httpContext, string roomId) =>
             {
                 var playerGuid = httpContext.User.GetPlayerId();
-                var players = roomService.GetAllPlayersInRoom(roomId, playerGuid,false);
+                var players = roomService.GetAllPlayersInRoom(roomId, playerGuid, false);
                 return TypedResults.Ok(new APIResponse<List<PlayerDTO>>()
                 {
                     Success = true,
@@ -167,7 +168,7 @@ public static class RoomEndpoint
         app.MapGet("/api/room/{roomId}/role-settings", (RoomService roomService, string roomId) =>
         {
             var roleSettings = roomService.GetRoleSettingsForRoom(roomId);
-            return TypedResults.Ok(new APIResponse<RoleSettingsEntity>()
+            return TypedResults.Ok(new APIResponse<RoomSettingsDto>()
             {
                 Success = true,
                 Data = roleSettings

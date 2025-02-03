@@ -7,13 +7,11 @@ using Microsoft.IdentityModel.Tokens;
 using WerewolfParty_Server.API;
 using WerewolfParty_Server.DbContext;
 using WerewolfParty_Server.DTO;
-using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Exceptions;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Mappers;
 using WerewolfParty_Server.Models.Request;
 using WerewolfParty_Server.Repository;
-using WerewolfParty_Server.Repository.Interface;
 using WerewolfParty_Server.Role;
 using WerewolfParty_Server.Service;
 using WerewolfParty_Server.Validator;
@@ -44,10 +42,9 @@ public abstract class Program
         //builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
         //builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
         //builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
-        
-        var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
-         builder.Services.AddDbContextPool<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
 
+        var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+        builder.Services.AddDbContextPool<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
 
 
 //         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString(conntectionString)));
@@ -57,7 +54,6 @@ public abstract class Program
         builder.Services.AddScoped<RoleSettingsRepository>();
         builder.Services.AddScoped<RoomGameActionRepository>();
         builder.Services.AddScoped<PlayerRoleRepository>();
-
 
 
         builder.Services.AddScoped<JwtService>();
@@ -72,6 +68,7 @@ public abstract class Program
         builder.Services.AddAutoMapper(typeof(PlayerRoleMapper));
         builder.Services.AddAutoMapper(typeof(PlayerQueuedActionMapper));
         builder.Services.AddAutoMapper(typeof(PlayerGameActionMapper));
+        builder.Services.AddAutoMapper(typeof(RoomSettingsMapper));
 
 
         //Validators

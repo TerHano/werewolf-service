@@ -1,11 +1,8 @@
-using FluentValidation;
 using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
-using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Hubs;
-using WerewolfParty_Server.Models.Request;
 using WerewolfParty_Server.Service;
 
 namespace WerewolfParty_Server.API;
@@ -68,7 +65,7 @@ public static class GameEndpoint
                     Data = state!
                 });
             }).RequireAuthorization();
-        
+
         app.MapGet("/api/game/{roomId}/all-queued-actions",
             (HttpContext httpContext, GameService gameService, string roomId) =>
             {
@@ -81,14 +78,15 @@ public static class GameEndpoint
                 });
             }).RequireAuthorization();
 
-        app.MapPost("/api/game/queued-action", (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
-        {
-            gameService.QueueActionForPlayer(playerActionRequestDto);
-            return TypedResults.Ok(new APIResponse()
+        app.MapPost("/api/game/queued-action",
+            (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
             {
-                Success = true,
-            });
-        }).RequireAuthorization();
+                gameService.QueueActionForPlayer(playerActionRequestDto);
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = true,
+                });
+            }).RequireAuthorization();
 
         app.MapDelete("/api/game/queued-action/{actionId}", (int actionId, GameService gameService) =>
         {
@@ -98,9 +96,9 @@ public static class GameEndpoint
                 Success = true,
             });
         }).RequireAuthorization();
-        
+
         app.MapPost("/api/game/end-night", (PlayerIdAndRoomIdRequestDto request,
-            IHubContext<EventsHub, IClientEventsHub> hubContext,GameService gameService) =>
+            IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
             gameService.EndNight(request.RoomId);
             var winCondition = gameService.CheckWinCondition(request.RoomId);
@@ -108,16 +106,17 @@ public static class GameEndpoint
             {
                 hubContext.Clients.Group(request.RoomId).WinConditionMet();
             }
+
             hubContext.Clients.Group(request.RoomId).DayTimeUpdated();
-            
+
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
             });
         }).RequireAuthorization();
-        
+
         app.MapPost("/api/game/vote-out-player", (PlayerVoteOutRequestDTO request,
-            IHubContext<EventsHub, IClientEventsHub> hubContext,GameService gameService) =>
+            IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
             gameService.LynchChosenPlayer(request.RoomId, request.PlayerRoleId);
             var winCondition = gameService.CheckWinCondition(request.RoomId);
@@ -125,13 +124,14 @@ public static class GameEndpoint
             {
                 hubContext.Clients.Group(request.RoomId).WinConditionMet();
             }
+
             hubContext.Clients.Group(request.RoomId.ToUpper()).DayTimeUpdated();
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
             });
         }).RequireAuthorization();
-        
+
         app.MapGet("/api/game/{roomId}/day-time",
             (GameService gameService, string roomId) =>
             {
@@ -143,7 +143,7 @@ public static class GameEndpoint
                     Data = state
                 });
             }).RequireAuthorization();
-        
+
         app.MapGet("/api/game/{roomId}/latest-deaths",
             (GameService gameService, string roomId) =>
             {
@@ -155,7 +155,7 @@ public static class GameEndpoint
                     Data = state
                 });
             }).RequireAuthorization();
-        
+
         app.MapGet("/api/game/{roomId}/check-win-condition",
             (GameService gameService, string roomId) =>
             {
@@ -167,7 +167,7 @@ public static class GameEndpoint
                     Data = state
                 });
             }).RequireAuthorization();
-        
+
         app.MapGet("/api/game/{roomId}/summary",
             (GameService gameService, string roomId) =>
             {

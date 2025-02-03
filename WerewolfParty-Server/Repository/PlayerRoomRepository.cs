@@ -13,7 +13,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
     public PlayerRoomEntity GetPlayerInRoomUsingPlayerGuid(string roomId, Guid playerId)
     {
         var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.PlayerId == playerId);
         if (player == null)
         {
@@ -22,10 +22,11 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
         return player;
     }
+
     public PlayerRoomEntity GetPlayerInRoom(string roomId, int playerRoomId)
     {
         var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.Id == playerRoomId);
         if (player == null)
         {
@@ -34,11 +35,11 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
         return player;
     }
-    
+
     public int GetPlayerCountForRoom(string roomId)
     {
         var count = context.PlayerRooms.Count(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId));
+            EF.Functions.ILike(playerRoom.RoomId, roomId));
         return count;
     }
 
@@ -46,13 +47,13 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
     public List<PlayerRoomEntity> GetPlayersInRoom(string roomId)
     {
         return context.PlayerRooms
-            .Where(playerRoom => EF.Functions.ILike(playerRoom.RoomId,roomId)).ToList();
+            .Where(playerRoom => EF.Functions.ILike(playerRoom.RoomId, roomId)).ToList();
     }
 
     public List<PlayerRoomEntity> GetPlayersInRoomWithoutModerator(string roomId, int? moderatorId)
     {
         return context.PlayerRooms.Where(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             !playerRoom.Id.Equals(moderatorId)).ToList();
     }
 
@@ -94,7 +95,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
     public bool IsPlayerInRoom(Guid playerId, string roomId)
     {
         return context.PlayerRooms.Any(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.PlayerId.Equals(playerId));
     }
 
@@ -107,8 +108,8 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
     public void RemovePlayerFromRoom(string roomId, int playerRoomId)
     {
-        var playerToRemove = context.PlayerRooms.Include((p)=>p.PlayerRole).FirstOrDefault(playerRoom =>
-            EF.Functions.ILike(playerRoom.RoomId,roomId) &&
+        var playerToRemove = context.PlayerRooms.Include((p) => p.PlayerRole).FirstOrDefault(playerRoom =>
+            EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.Id.Equals(playerRoomId));
         if (playerToRemove == null)
         {

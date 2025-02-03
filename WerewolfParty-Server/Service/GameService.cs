@@ -14,7 +14,6 @@ public class GameService(
     PlayerRoleRepository playerRoleRepository,
     RoomRepository roomRepository,
     RoleSettingsRepository roleSettingsRepository,
-    RoleFactory roleFactory,
     IMapper mapper)
 {
     private void ProcessQueuedActions(string roomId)
@@ -190,6 +189,7 @@ public class GameService(
         var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
         var allPlayersInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
         var playerRole = playerDetails.Role;
 
         var actionCheckDto = new ActionCheckDto()
@@ -198,18 +198,19 @@ public class GameService(
             ProcessedActions = priorActions,
             QueuedActions = queuedActions,
             ActivePlayers = allPlayersInGame,
+            Settings = settings,
         };
 
-        var role = roleFactory.GetRole(playerRole);
+        var role = RoleFactory.GetRole(playerRole);
         return role.GetActions(actionCheckDto);
     }
 
     public List<PlayerRoleActionDto> GetAllAssignedPlayerRolesAndActions(string roomId)
     {
-        var currentMod = roomRepository.GetModeratorForRoom(roomId);
         var allPlayerRolesInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
         var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
+        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
         var roleActionList = new List<PlayerRoleActionDto>();
 
         foreach (var playerRole in allPlayerRolesInGame)
@@ -220,8 +221,9 @@ public class GameService(
                 ProcessedActions = priorActions,
                 QueuedActions = queuedActions,
                 ActivePlayers = allPlayerRolesInGame,
+                Settings = settings,
             };
-            var role = roleFactory.GetRole(playerRole.Role);
+            var role = RoleFactory.GetRole(playerRole.Role);
             // var playerInfo = playerRoomRepository.GetPlayerInRoom(roomId, playerRole.PlayerId);
             roleActionList.Add(
                 new PlayerRoleActionDto()
@@ -366,7 +368,7 @@ public class GameService(
         };
     }
 
-    public void ProgressToNextPoint(string roomId)
+    private void ProgressToNextPoint(string roomId)
     {
         var room = roomRepository.GetRoom(roomId);
         if (room.isDay)
@@ -435,7 +437,7 @@ public class GameService(
 
     public List<GameNightHistoryDTO> GetGameSummary(string roomId)
     {
-        var actions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
+        var actions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId, true);
         var history = actions.GroupBy((e) => e.Night).OrderBy(e => e.Key)
             .Select(e =>
             {
@@ -460,7 +462,7 @@ public class GameService(
                         }).ToList()),
                 };
             }).ToList();
-        
+
         //Fill in days where no action was taken
         var maxNight = history.Max((e) => e.Night);
         for (var i = 0; i < maxNight; i++)
@@ -475,9 +477,7 @@ public class GameService(
                 });
             }
         }
+
         return history;
-        
-
-
     }
 }

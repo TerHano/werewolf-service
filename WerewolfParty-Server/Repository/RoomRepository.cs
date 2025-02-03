@@ -7,7 +7,7 @@ using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
-public class RoomRepository(WerewolfDbContext context) : IRoomRepository
+public class RoomRepository(WerewolfDbContext context)
 {
     public List<RoomEntity> GetAllRooms()
     {
@@ -34,13 +34,13 @@ public class RoomRepository(WerewolfDbContext context) : IRoomRepository
 
     public bool DoesRoomExist(string roomId)
     {
-        return context.Rooms.Any((room) => EF.Functions.ILike(room.Id,roomId));
+        return context.Rooms.Any((room) => EF.Functions.ILike(room.Id, roomId));
     }
 
     public RoomEntity GetRoom(string roomId)
     {
         var room = context.Rooms.FirstOrDefault(room =>
-            EF.Functions.ILike(room.Id,roomId));
+            EF.Functions.ILike(room.Id, roomId));
         if (room == null)
         {
             throw new RoomNotFoundException("RoomId does not exist");

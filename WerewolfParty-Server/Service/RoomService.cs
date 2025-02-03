@@ -32,7 +32,7 @@ public class RoomService(
         var player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
         return mapper.Map<PlayerDTO>(player);
     }
-    
+
     public PlayerDTO GetPlayerInRoom(string roomId, int playerId)
     {
         var player = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
@@ -44,17 +44,20 @@ public class RoomService(
         return playerRoomRepository.IsPlayerInRoom(playerId, roomId);
     }
 
-    public RoleSettingsEntity GetRoleSettingsForRoom(string roomId)
+    public RoomSettingsDto GetRoleSettingsForRoom(string roomId)
     {
-        return roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        return mapper.Map<RoomSettingsDto>(settings);
     }
 
-    public RoleSettingsEntity UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
+    public void UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
         var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
         oldRoleSettings.NumberOfWerewolves = updateRoleSettingsRequest.NumberOfWerewolves;
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
-        return roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
+        oldRoleSettings.ShowGameSummary = updateRoleSettingsRequest.ShowGameSummary;
+        oldRoleSettings.AllowMultipleSelfHeals = updateRoleSettingsRequest.AllowMultipleSelfHeals;
+        roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
     }
 
 
@@ -88,11 +91,13 @@ public class RoomService(
         roomRepository.CreateRoom(newRoom);
 
         //Set Default Role Settings For Room
-        var DefaultRoleSettings = new RoleSettingsEntity()
+        var DefaultRoleSettings = new RoomSettingsEntity()
         {
             RoomId = newRoomId,
             NumberOfWerewolves = 1,
-            SelectedRoles = [RoleName.Doctor, RoleName.Detective, RoleName.Witch]
+            SelectedRoles = [RoleName.Doctor, RoleName.Detective, RoleName.Witch],
+            ShowGameSummary = true,
+            AllowMultipleSelfHeals = true
         };
         roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
 
@@ -115,11 +120,12 @@ public class RoomService(
             {
                 throw new Exception("Player details are required for new player");
             }
+
             player = playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
         }
         else
         {
-            player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid( roomId, playerId);
+            player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
         }
 
         var currentMod = GetModeratorForRoom(roomId);
@@ -154,6 +160,7 @@ public class RoomService(
         {
             throw new Exception($"Room with id {roomId} does not exist");
         }
+
         room.CurrentModerator = newModeratorPlayerRoomId;
         roomRepository.UpdateRoom(room);
     }

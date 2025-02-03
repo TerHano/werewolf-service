@@ -7,5 +7,4 @@ public class GameNightHistoryDTO
     public int Night { get; set; }
     public List<PlayerGameActionDTO> NightActions { get; set; }
     public List<PlayerGameActionDTO> DayActions { get; set; }
-
 }

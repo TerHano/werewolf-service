@@ -1,4 +1,3 @@
-using System.Security.Claims;
 using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Extensions;
@@ -13,13 +12,13 @@ public static class PlayerEndpoint
     {
         app.MapPost("/api/player/get-id", (HttpContext httpContext, JwtService jwtService) =>
         {
-            var token = "";
+            string token;
             try
             {
                 var playerId = httpContext.User.GetPlayerId();
                 token = jwtService.GenerateToken(playerId);
             }
-            catch (Exception ex)
+            catch (Exception)
             {
                 token = jwtService.GenerateToken();
             }
@@ -37,7 +36,7 @@ public static class PlayerEndpoint
             var roomId = addEditPlayerDetails.RoomId;
             var playerGuid = httpContext.User.GetPlayerId();
             var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
-            var updatedPlayer = roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
+            roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
             string sanitizedRoomId = roomId.ToUpper();
             hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
             return TypedResults.Ok(new APIResponse()

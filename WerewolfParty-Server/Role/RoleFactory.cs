@@ -4,7 +4,7 @@ namespace WerewolfParty_Server.Role;
 
 public class RoleFactory
 {
-    public Role GetRole(RoleName roleName)
+    public static Role GetRole(RoleName roleName)
     {
         switch (roleName)
         {
