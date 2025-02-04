@@ -50,14 +50,14 @@ public class RoomService(
         return mapper.Map<RoomSettingsDto>(settings);
     }
 
-    public void UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
+    public async Task UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
         var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
         oldRoleSettings.NumberOfWerewolves = updateRoleSettingsRequest.NumberOfWerewolves;
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         oldRoleSettings.ShowGameSummary = updateRoleSettingsRequest.ShowGameSummary;
         oldRoleSettings.AllowMultipleSelfHeals = updateRoleSettingsRequest.AllowMultipleSelfHeals;
-        roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
+        await roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
     }
 
 
@@ -75,7 +75,7 @@ public class RoomService(
         return mapper.Map<List<PlayerDTO>>(players);
     }
 
-    public string CreateRoom()
+    public async Task<string> CreateRoom()
     {
         var newRoomId = GenerateRoomId();
         var newRoom = new RoomEntity
@@ -88,7 +88,7 @@ public class RoomService(
             WinCondition = WinCondition.None,
             LastModifiedDate = DateTime.UtcNow,
         };
-        roomRepository.CreateRoom(newRoom);
+        await roomRepository.CreateRoom(newRoom);
 
         //Set Default Role Settings For Room
         var DefaultRoleSettings = new RoomSettingsEntity()
@@ -99,7 +99,7 @@ public class RoomService(
             ShowGameSummary = true,
             AllowMultipleSelfHeals = true
         };
-        roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
+        await roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
 
         return newRoomId;
     }
@@ -109,7 +109,7 @@ public class RoomService(
         return roomRepository.DoesRoomExist(roomId);
     }
 
-    public void AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
+    public async Task AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var roomId = addEditPlayerDetails.RoomId;
         var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, roomId);
@@ -121,7 +121,7 @@ public class RoomService(
                 throw new Exception("Player details are required for new player");
             }
 
-            player = playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
+            player = await playerRoomRepository.AddPlayerToRoom(playerId, addEditPlayerDetails);
         }
         else
         {
@@ -131,7 +131,7 @@ public class RoomService(
         var currentMod = GetModeratorForRoom(roomId);
         if (currentMod == null)
         {
-            UpdateModeratorForRoom(roomId, player.Id);
+            await UpdateModeratorForRoom(roomId, player.Id);
         }
     }
 
@@ -153,19 +153,20 @@ public class RoomService(
         return mapper.Map<PlayerDTO>(moderatorDetails);
     }
 
-    public void UpdateModeratorForRoom(string roomId, int newModeratorPlayerRoomId)
+    public async Task<PlayerDTO> UpdateModeratorForRoom(string roomId, int newModeratorPlayerRoomId)
     {
         var room = roomRepository.GetRoom(roomId);
         if (room == null)
         {
             throw new Exception($"Room with id {roomId} does not exist");
         }
-
+        var newMod = playerRoomRepository.GetPlayerInRoom(roomId, newModeratorPlayerRoomId);
         room.CurrentModerator = newModeratorPlayerRoomId;
-        roomRepository.UpdateRoom(room);
+        await roomRepository.UpdateRoom(room);
+        return mapper.Map<PlayerDTO>(newMod);
     }
 
-    public PlayerDTO UpdatePlayerDetailsForRoom(int playerRoomId,
+    public async Task<PlayerDTO> UpdatePlayerDetailsForRoom(int playerRoomId,
         AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var roomId = addEditPlayerDetails.RoomId;
@@ -182,13 +183,13 @@ public class RoomService(
 
         player.NickName = addEditPlayerDetails.NickName;
         player.AvatarIndex = addEditPlayerDetails.AvatarIndex.GetValueOrDefault(0);
-        var updatedPlayer = playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerId, player);
+        var updatedPlayer = await playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerId, player);
         return mapper.Map<PlayerDTO>(updatedPlayer);
     }
 
-    public void RemovePlayerFromRoom(string roomId, int playerRoomId)
+    public async Task RemovePlayerFromRoom(string roomId, int playerRoomId)
     {
-        playerRoomRepository.RemovePlayerFromRoom(roomId, playerRoomId);
+        await playerRoomRepository.RemovePlayerFromRoom(roomId, playerRoomId);
         //Replace Mod if player was mod
         var room = roomRepository.GetRoom(roomId);
         var otherPlayers = playerRoomRepository.GetPlayersInRoom(roomId);
@@ -197,8 +198,7 @@ public class RoomService(
         {
             room.CurrentModerator = newModerator;
         }
-
-        roomRepository.UpdateRoom(room);
+        await roomRepository.UpdateRoom(room);
     }
 
     public int GetPlayerCountForRoom(string roomId)
@@ -206,11 +206,11 @@ public class RoomService(
         return playerRoomRepository.GetPlayerCountForRoom(roomId);
     }
 
-    public void UpdateRoomGameState(string roomId, GameState gameState)
+    public async Task UpdateRoomGameState(string roomId, GameState gameState)
     {
         var room = roomRepository.GetRoom(roomId);
         room.GameState = gameState;
-        roomRepository.UpdateRoom(room);
+        await roomRepository.UpdateRoom(room);
     }
 
     private string GenerateRoomId()

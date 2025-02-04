@@ -3,7 +3,6 @@ using WerewolfParty_Server.DbContext;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
-using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
@@ -14,10 +13,10 @@ public class RoomRepository(WerewolfDbContext context)
         return context.Rooms.ToList();
     }
 
-    public void CreateRoom(RoomEntity newRoomEntity)
+    public async Task CreateRoom(RoomEntity newRoomEntity)
     {
         context.Rooms.Add(newRoomEntity);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
     public int? GetModeratorForRoom(string roomId)
@@ -45,14 +44,13 @@ public class RoomRepository(WerewolfDbContext context)
         {
             throw new RoomNotFoundException("RoomId does not exist");
         }
-
         return room;
     }
 
-    public void UpdateRoom(RoomEntity roomEntity)
+    public async Task UpdateRoom(RoomEntity roomEntity)
     {
         roomEntity.LastModifiedDate = DateTime.UtcNow;
         context.Rooms.Update(roomEntity);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 }

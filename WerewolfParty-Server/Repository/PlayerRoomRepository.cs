@@ -4,7 +4,6 @@ using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
-using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
@@ -57,7 +56,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             !playerRoom.Id.Equals(moderatorId)).ToList();
     }
 
-    public PlayerRoomEntity AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
+    public async Task<PlayerRoomEntity> AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var newPlayerRoom = new PlayerRoomEntity
         {
@@ -68,18 +67,18 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             Status = PlayerStatus.Active,
         };
         var newPlayer = context.PlayerRooms.Add(newPlayerRoom);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return newPlayer.Entity;
     }
 
-    public PlayerRoomEntity UpdatePlayerInRoom(PlayerRoomEntity player)
+    public async Task<PlayerRoomEntity> UpdatePlayerInRoom(PlayerRoomEntity player)
     {
         var updatedPlayer = context.PlayerRooms.Update(player);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return updatedPlayer.Entity;
     }
 
-    public List<PlayerRoomEntity> UpdateGroupOfPlayersInRoom(List<PlayerRoomEntity> players)
+    public async Task<List<PlayerRoomEntity>> UpdateGroupOfPlayersInRoom(List<PlayerRoomEntity> players)
     {
         List<PlayerRoomEntity> updatedGroupOfPlayers = new List<PlayerRoomEntity>();
         foreach (var player in players)
@@ -88,7 +87,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             updatedGroupOfPlayers.Add(updatedPlayer.Entity);
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return updatedGroupOfPlayers;
     }
 
@@ -99,14 +98,14 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             playerRoom.PlayerId.Equals(playerId));
     }
 
-    public PlayerRoomEntity UpdatePlayerInRoom(string roomId, Guid playerId, PlayerRoomEntity player)
+    public async Task<PlayerRoomEntity> UpdatePlayerInRoom(string roomId, Guid playerId, PlayerRoomEntity player)
     {
         var updatedPlayer = context.Update(player);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return updatedPlayer.Entity;
     }
 
-    public void RemovePlayerFromRoom(string roomId, int playerRoomId)
+    public async Task RemovePlayerFromRoom(string roomId, int playerRoomId)
     {
         var playerToRemove = context.PlayerRooms.Include((p) => p.PlayerRole).FirstOrDefault(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
@@ -120,7 +119,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             //Remove dependent data
             playerToRemove.PlayerRole = null;
             context.PlayerRooms.Remove(playerToRemove);
-            context.SaveChanges();
+            await context.SaveChangesAsync();
         }
     }
 }

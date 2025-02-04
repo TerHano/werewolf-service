@@ -16,7 +16,7 @@ public class GameService(
     RoleSettingsRepository roleSettingsRepository,
     IMapper mapper)
 {
-    private void ProcessQueuedActions(string roomId)
+    private async Task ProcessQueuedActions(string roomId)
     {
         var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
         var playerRoles = playerRoleRepository.GetPlayerRolesForRoom(roomId);
@@ -93,7 +93,7 @@ public class GameService(
             playersKilledSet.Add(player);
         }
 
-        playerRoleRepository.UpdatePlayerStatusToDead(playersKilledSet.ToList(), room.CurrentNight);
+        await playerRoleRepository.UpdatePlayerStatusToDead(playersKilledSet.ToList(), room.CurrentNight);
         roomGameActionRepository.MarkActionsAsProcessed(roomId, queuedActions);
         foreach (var roomGameActionEntity in actionsQueuedForNextNight)
         {
@@ -153,7 +153,7 @@ public class GameService(
         return playerCountWithoutMod >= playersNeededForGame;
     }
 
-    public void StartGame(string roomId)
+    public async Task StartGame(string roomId)
     {
         var canStartGame = IsEnoughPlayersForGame(roomId);
         if (!canStartGame)
@@ -165,7 +165,7 @@ public class GameService(
         ShuffleAndAssignRoles(roomId);
         var room = roomRepository.GetRoom(roomId);
         room.GameState = GameState.CardsDealt;
-        roomRepository.UpdateRoom(room);
+        await roomRepository.UpdateRoom(room);
     }
 
     public RoleName? GetAssignedPlayerRole(string roomId, Guid playerGuid)

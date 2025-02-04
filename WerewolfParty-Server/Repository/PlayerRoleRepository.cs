@@ -1,10 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using WerewolfParty_Server.DbContext;
-using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
-using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
-using WerewolfParty_Server.Repository.Interface;
 
 namespace WerewolfParty_Server.Repository;
 
@@ -16,23 +13,23 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             .Where(playerRole => EF.Functions.ILike(playerRole.RoomId, roomId)).Include(p => p.PlayerRoom).ToList();
     }
 
-    public PlayerRoleEntity UpdatePlayerRoleInRoom(PlayerRoleEntity player)
+    public async Task<PlayerRoleEntity> UpdatePlayerRoleInRoom(PlayerRoleEntity player)
     {
         var updatedPlayer = context.PlayerRoles.Update(player);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return updatedPlayer.Entity;
     }
 
-    public void RemoveAllPlayerRolesForRoom(string roomId)
+    public async Task RemoveAllPlayerRolesForRoom(string roomId)
     {
         context.PlayerRoles.RemoveRange(context.PlayerRoles.Where(playerRole => playerRole.RoomId == roomId));
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void AddPlayerRolesToRoom(List<PlayerRoleEntity> playerRoles)
+    public async Task AddPlayerRolesToRoom(List<PlayerRoleEntity> playerRoles)
     {
         context.PlayerRoles.AddRange(playerRoles);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
     public PlayerRoleEntity GetPlayerRoleInRoom(string roomId, int playerRoleId)
@@ -69,7 +66,7 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         return player != null;
     }
 
-    public void UpdatePlayerIsAliveStatus(List<Guid> playerIds, bool isAlive)
+    public async Task UpdatePlayerIsAliveStatus(List<Guid> playerIds, bool isAlive)
     {
         foreach (var playerId in playerIds)
         {
@@ -79,10 +76,10 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             context.Update(player);
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void UpdatePlayerStatusToDead(List<int> playerIds, int night)
+    public async Task UpdatePlayerStatusToDead(List<int> playerIds, int night)
     {
         foreach (var playerId in playerIds)
         {
@@ -93,6 +90,6 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             context.Update(player);
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 }

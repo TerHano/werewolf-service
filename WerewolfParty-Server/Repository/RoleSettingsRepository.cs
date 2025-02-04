@@ -8,17 +8,17 @@ namespace WerewolfParty_Server.Repository;
 public class RoleSettingsRepository(WerewolfDbContext context)
 
 {
-    public RoomSettingsEntity AddRoleSettings(RoomSettingsEntity roomSettingsEntity)
+    public async Task<RoomSettingsEntity> AddRoleSettings(RoomSettingsEntity roomSettingsEntity)
     {
         var roleSettings = context.RoleSettings.Add(roomSettingsEntity).Entity;
-        context.SaveChanges();
+        await context.SaveChangesAsync();
         return roleSettings;
     }
 
-    public void UpdateRoleSettings(RoomSettingsEntity roomSettingsEntity)
+    public async Task UpdateRoleSettings(RoomSettingsEntity roomSettingsEntity)
     {
         context.RoleSettings.Update(roomSettingsEntity);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
     public RoomSettingsEntity GetRoomSettingsByRoomId(string roomId)

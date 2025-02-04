@@ -29,7 +29,7 @@ public static class GameEndpoint
                 var playerGuid = httpContext.User.GetPlayerId();
                 var currentPlayer = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
                 var currentModerator = roomService.GetModeratorForRoom(roomId);
-                if (currentPlayer.Id != currentModerator.Id)
+                if (currentPlayer.Id != currentModerator?.Id)
                 {
                     throw new Exception("You are not the moderator of this room.");
                 }
@@ -44,7 +44,7 @@ public static class GameEndpoint
 
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/role-actions",
-            (HttpContext httpContext, GameService gameService, string roomId, int playerRoleId) =>
+            (GameService gameService, string roomId, int playerRoleId) =>
             {
                 var state = gameService.GetActionsForPlayerRole(roomId, playerRoleId);
                 return TypedResults.Ok(new APIResponse<List<RoleActionDto>>()
@@ -55,7 +55,7 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
-            (HttpContext httpContext, GameService gameService, string roomId, int playerRoleId) =>
+            (GameService gameService, string roomId, int playerRoleId) =>
             {
                 var state = gameService.GetPlayerQueuedAction(roomId, playerRoleId);
 
@@ -67,7 +67,7 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/all-queued-actions",
-            (HttpContext httpContext, GameService gameService, string roomId) =>
+            (GameService gameService, string roomId) =>
             {
                 var state = gameService.GetAllQueuedActionsForRoom(roomId);
 

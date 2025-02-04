@@ -30,15 +30,15 @@ public static class PlayerEndpoint
             });
         });
 
-        app.MapPost("/api/player/update-player", (AddEditPlayerDetailsDTO addEditPlayerDetails,
+        app.MapPost("/api/player/update-player", async (AddEditPlayerDetailsDTO addEditPlayerDetails,
             IHubContext<EventsHub, IClientEventsHub> hubContext, HttpContext httpContext, RoomService roomService) =>
         {
             var roomId = addEditPlayerDetails.RoomId;
             var playerGuid = httpContext.User.GetPlayerId();
             var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
-            roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
+            await roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
             string sanitizedRoomId = roomId.ToUpper();
-            hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
+            await hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true

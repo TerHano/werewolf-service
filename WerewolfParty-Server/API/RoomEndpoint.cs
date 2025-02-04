@@ -17,10 +17,10 @@ public static class RoomEndpoint
         app.MapGet("/api/room/all-rooms", (RoomService roomService) => roomService.GetAllRooms())
             .RequireAuthorization();
 
-        app.MapPost("/api/room/create-room", (HttpContext httpContext, RoomService roomService) =>
+        app.MapPost("/api/room/create-room", async (HttpContext httpContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            var newRoomId = roomService.CreateRoom();
+            var newRoomId = await roomService.CreateRoom();
             return TypedResults.Ok(new APIResponse<string>()
             {
                 Success = true,
@@ -28,12 +28,12 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/end-game", (RoomIdRequest roomIdRequest, HttpContext httpContext,
+        app.MapPost("/api/room/end-game", async (RoomIdRequest roomIdRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            roomService.UpdateRoomGameState(roomIdRequest.RoomId, GameState.Lobby);
-            hubContext.Clients.Group(roomIdRequest.RoomId.ToUpper()).GameState(GameState.Lobby);
+            await roomService.UpdateRoomGameState(roomIdRequest.RoomId, GameState.Lobby);
+            await hubContext.Clients.Group(roomIdRequest.RoomId.ToUpper()).GameState(GameState.Lobby);
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
@@ -41,7 +41,7 @@ public static class RoomEndpoint
         }).RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/is-player-in-room", (string roomId, HttpContext httpContext,
-            IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
+            RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
             var isPlayerInRoom = roomService.isPlayerInRoom(roomId, playerGuid);
@@ -52,20 +52,20 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/start-game", (RoomIdRequest roomIdRequest, HttpContext httpContext,
+        app.MapPost("/api/room/start-game", async(RoomIdRequest roomIdRequest, 
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
             string roomId = roomIdRequest.RoomId.ToUpper();
             var gameState = gameService.GetGameState(roomId);
-            gameService.StartGame(roomId);
+            await gameService.StartGame(roomId);
             if (gameState == GameState.CardsDealt)
             {
                 //We're restarting game
-                hubContext.Clients.Group(roomId).GameRestart();
+                await hubContext.Clients.Group(roomId).GameRestart();
             }
             else
             {
-                hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
+                await hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
             }
 
             return TypedResults.Ok(new APIResponse()
@@ -74,34 +74,34 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/kick-player/", (KickPlayerRequest kickPlayerRequest, HttpContext httpContext,
+        app.MapPost("/api/room/kick-player/", async(KickPlayerRequest kickPlayerRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            roomService.RemovePlayerFromRoom(kickPlayerRequest.RoomId, kickPlayerRequest.PlayerRoomIdToKick);
+            await roomService.RemovePlayerFromRoom(kickPlayerRequest.RoomId, kickPlayerRequest.PlayerRoomIdToKick);
             var sanitizedRoomId = kickPlayerRequest.RoomId.ToUpper();
             //hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
-            hubContext.Clients.Group(sanitizedRoomId).PlayerKicked(kickPlayerRequest.PlayerRoomIdToKick);
+            await hubContext.Clients.Group(sanitizedRoomId).PlayerKicked(kickPlayerRequest.PlayerRoomIdToKick);
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/leave-room", (RoomIdRequest roomIdRequest, HttpContext httpContext,
+        app.MapPost("/api/room/leave-room", async (RoomIdRequest roomIdRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             var roomId = roomIdRequest.RoomId.ToUpper();
             var oldModerator = roomService.GetModeratorForRoom(roomId);
             var playerGuid = httpContext.User.GetPlayerId();
             var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
-            roomService.RemovePlayerFromRoom(roomId, player.Id);
-            hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
+            await roomService.RemovePlayerFromRoom(roomId, player.Id);
+            await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced
             var newModerator = roomService.GetModeratorForRoom(roomId);
-            if (oldModerator?.Id != newModerator?.Id)
+            if (newModerator != null && oldModerator?.Id != newModerator?.Id)
             {
-                hubContext.Clients.Group(roomId).ModeratorUpdated(newModerator.Id);
+                await hubContext.Clients.Group(roomId).ModeratorUpdated(newModerator);
             }
 
             return TypedResults.Ok(new APIResponse()
@@ -110,7 +110,7 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/update-moderator", (UpdateModeratorRequest updateModeratorRequest,
+        app.MapPost("/api/room/update-moderator", async (UpdateModeratorRequest updateModeratorRequest,
             HttpContext httpContext, IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             if (updateModeratorRequest.NewModeratorPlayerRoomId == 0)
@@ -120,9 +120,9 @@ public static class RoomEndpoint
 
             string roomId = updateModeratorRequest.RoomId.ToUpper();
             var playerGuid = httpContext.User.GetPlayerId();
-            roomService.UpdateModeratorForRoom(roomId, updateModeratorRequest.NewModeratorPlayerRoomId);
-            hubContext.Clients.Group(roomId).ModeratorUpdated(updateModeratorRequest.NewModeratorPlayerRoomId);
-            hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
+            var newMod = await roomService.UpdateModeratorForRoom(roomId, updateModeratorRequest.NewModeratorPlayerRoomId);
+            await hubContext.Clients.Group(roomId).ModeratorUpdated(newMod);
+            await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
 
             return TypedResults.Ok(new APIResponse()
             {
@@ -130,12 +130,11 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/get-moderator", (string roomId, HttpContext httpContext,
-            IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
+        app.MapGet("/api/room/{roomId}/get-moderator", (string roomId, RoomService roomService) =>
         {
             var mod = roomService.GetModeratorForRoom(roomId);
 
-            return TypedResults.Ok(new APIResponse<PlayerDTO>()
+            return TypedResults.Ok(new APIResponse<PlayerDTO?>()
             {
                 Success = true,
                 Data = mod
@@ -175,11 +174,11 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/room/role-settings", (UpdateRoleSettingsRequest updateRoleSettingsRequest,
+        app.MapPost("/api/room/role-settings", async (UpdateRoleSettingsRequest updateRoleSettingsRequest,
             IHubContext<EventsHub, IClientEventsHub> hubContext,
             RoomService roomService, IValidator<UpdateRoleSettingsRequest> validator) =>
         {
-            var result = validator.Validate(updateRoleSettingsRequest);
+            var result = await validator.ValidateAsync(updateRoleSettingsRequest);
             if (!result.IsValid)
             {
                 return TypedResults.Ok(new APIResponse()
@@ -189,9 +188,9 @@ public static class RoomEndpoint
                 });
             }
 
-            roomService.UpdateRoleSettingsForRoom(updateRoleSettingsRequest);
+            await roomService.UpdateRoleSettingsForRoom(updateRoleSettingsRequest);
             var sanitizedRoomId = updateRoleSettingsRequest.RoomId.ToUpper();
-            hubContext.Clients.Group(sanitizedRoomId).RoomRoleSettingsUpdated();
+            await hubContext.Clients.Group(sanitizedRoomId).RoomRoleSettingsUpdated();
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
@@ -209,7 +208,7 @@ public static class RoomEndpoint
                 });
             }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/game-state", (HttpContext httpContext, GameService gameService, string roomId) =>
+        app.MapGet("/api/room/{roomId}/game-state", (GameService gameService, string roomId) =>
         {
             var state = gameService.GetGameState(roomId);
             return TypedResults.Ok(new APIResponse<GameState>()

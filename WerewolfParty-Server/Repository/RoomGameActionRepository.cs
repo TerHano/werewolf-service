@@ -1,6 +1,5 @@
 using Microsoft.EntityFrameworkCore;
 using WerewolfParty_Server.DbContext;
-using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 
@@ -8,7 +7,7 @@ namespace WerewolfParty_Server.Repository;
 
 public class RoomGameActionRepository(WerewolfDbContext context)
 {
-    public void QueueActionForPlayer(RoomGameActionEntity roomGameActionEntity)
+    public async Task QueueActionForPlayer(RoomGameActionEntity roomGameActionEntity)
     {
         if (roomGameActionEntity.Id == 0)
         {
@@ -19,16 +18,16 @@ public class RoomGameActionRepository(WerewolfDbContext context)
             context.RoomGameActions.Update(roomGameActionEntity);
         }
 
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
-    public void DequeueActionForPlayer(int actionId)
+    public async Task DequeueActionForPlayer(int actionId)
     {
         var playerAction = context.RoomGameActions.FirstOrDefault(x =>
             x.Id.Equals(actionId));
         if (playerAction == null) return;
         context.RoomGameActions.Remove(playerAction);
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
     public RoomGameActionEntity? GetQueuedPlayerActionForRoom(string roomId, int playerRoleId)
@@ -71,22 +70,21 @@ public class RoomGameActionRepository(WerewolfDbContext context)
     }
 
 
-    public void MarkActionsAsProcessed(string roomId, List<RoomGameActionEntity> actions)
+    public async Task MarkActionsAsProcessed(string roomId, List<RoomGameActionEntity> actions)
     {
         foreach (var action in actions)
         {
             action.State = ActionState.Processed;
             context.Update(action);
         }
-
-        context.SaveChanges();
+        await context.SaveChangesAsync();
     }
 
 
-    public void ClearAllActionsForRoom(string roomId)
+    public async Task ClearAllActionsForRoom(string roomId)
     {
         context.RoomGameActions.RemoveRange(context.RoomGameActions.Where(x =>
             EF.Functions.ILike(x.RoomId, roomId)));
-        context.SaveChanges();
+       await  context.SaveChangesAsync();
     }
 }

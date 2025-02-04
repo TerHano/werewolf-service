@@ -14,7 +14,6 @@ public class JwtService(IConfiguration config)
         var Issuer = Environment.GetEnvironmentVariable("Auth_Issuer");
         var Audience = Environment.GetEnvironmentVariable("Auth_Audience");
 
-        //var privateKeyValue = config.GetValue<string>("Auth:PrivateKey");
         if (string.IsNullOrEmpty(privateKeyValue)) throw new ApplicationException("JWT:Private key is empty");
         var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKeyValue);
 
