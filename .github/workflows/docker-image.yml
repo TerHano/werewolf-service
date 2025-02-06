@@ -18,7 +18,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Build image
-        run: docker build --build-arg BUILD_PLATFORM=$BUILD_PLATFORM ./WerewolfParty-Server --tag ${{vars.IMAGE_NAME}}
+        run: docker build --build-arg BUILD_PLATFORM=$BUILD_PLATFORM . -f WerewolfParty-Server/Dockerfile --tag ${{vars.IMAGE_NAME}}
       - name: Log in to registry
         run: | 
           docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
