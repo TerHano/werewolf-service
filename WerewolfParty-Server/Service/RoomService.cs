@@ -66,7 +66,7 @@ public class RoomService(
         var room = roomRepository.GetRoom(roomId);
         var players = includeModerator
             ? playerRoomRepository.GetPlayersInRoom(roomId)
-            : playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, room.CurrentModerator);
+            : playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, room.CurrentModeratorId);
         if (!playerId.HasValue) return mapper.Map<List<PlayerDTO>>(players);
         var currentPlayer = players.FirstOrDefault((player) => player.PlayerId.Equals(playerId.Value));
         if (currentPlayer == null) return mapper.Map<List<PlayerDTO>>(players);
@@ -82,7 +82,7 @@ public class RoomService(
         {
             Id = newRoomId,
             GameState = GameState.Lobby,
-            CurrentModerator = null,
+            CurrentModeratorId = null,
             CurrentNight = 0,
             isDay = false,
             WinCondition = WinCondition.None,
@@ -143,7 +143,7 @@ public class RoomService(
             throw new Exception($"Room with id {roomId} does not exist");
         }
 
-        var mod = room.CurrentModerator;
+        var mod = room.CurrentModeratorId;
         if (!mod.HasValue)
         {
             return null;
@@ -161,7 +161,7 @@ public class RoomService(
             throw new Exception($"Room with id {roomId} does not exist");
         }
         var newMod = playerRoomRepository.GetPlayerInRoom(roomId, newModeratorPlayerRoomId);
-        room.CurrentModerator = newModeratorPlayerRoomId;
+        room.CurrentModeratorId = newModeratorPlayerRoomId;
         await roomRepository.UpdateRoom(room);
         return mapper.Map<PlayerDTO>(newMod);
     }
@@ -194,9 +194,9 @@ public class RoomService(
         var room = roomRepository.GetRoom(roomId);
         var otherPlayers = playerRoomRepository.GetPlayersInRoom(roomId);
         var newModerator = otherPlayers.FirstOrDefault()?.Id;
-        if (room.CurrentModerator == playerRoomId)
+        if (room.CurrentModeratorId == null)
         {
-            room.CurrentModerator = newModerator;
+            room.CurrentModeratorId = newModerator;
         }
         await roomRepository.UpdateRoom(room);
     }

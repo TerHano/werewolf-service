@@ -22,7 +22,7 @@ public class RoomRepository(WerewolfDbContext context)
     public int? GetModeratorForRoom(string roomId)
     {
         var room = GetRoom(roomId);
-        return room.CurrentModerator;
+        return room.CurrentModeratorId;
     }
 
     public WinCondition GetWinConditionForRoom(string roomId)

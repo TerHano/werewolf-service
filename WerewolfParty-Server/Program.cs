@@ -23,6 +23,9 @@ public abstract class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+        
+        var allowedOrigins = builder.Configuration.GetValue<string>("AllowedOrigins") ?? "";
+
 
         builder.Services.AddCors(options =>
         {
@@ -30,25 +33,20 @@ public abstract class Program
                 policy =>
                 {
                     policy.AllowAnyMethod();
-                    //policy.AllowAnyOrigin();
                     policy.AllowAnyHeader();
-                    policy.WithOrigins("http://localhost:3000", "http://localhost:5173");
+                    policy.WithOrigins(allowedOrigins);
                     policy.AllowCredentials();
                 });
         });
 
-        // Add services to the container.
-        //builder.Services.AddDbContextPool<RoomDbContext>(opt => opt.UseInMemoryDatabase("RoomDb"));
-        //builder.Services.AddDbContextPool<PlayerRoomDbContext>(opt => opt.UseInMemoryDatabase("PlayerRoomDb"));
-        //builder.Services.AddDbContextPool<RoleSettingsDbContext>(opt => opt.UseInMemoryDatabase("RoleSettingsDb"));
-        //builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseInMemoryDatabase("RoomGameActionDb"));
 
-        var connectionString = Environment.GetEnvironmentVariable("ConnectionString");
+        var connectionString = builder.Configuration.GetValue<string>("ConnectionStrings:DefaultConnection");
+        if (string.IsNullOrEmpty(connectionString))
+        {
+            throw new Exception("ConnectionString is missing.");
+        }
         builder.Services.AddDbContextPool<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
-
-
-//         builder.Services.AddDbContextPool<RoomGameActionDbContext>(opt => opt.UseNpgsql(builder.Configuration.GetConnectionString(conntectionString)));
-
+        
         builder.Services.AddScoped<RoomRepository>();
         builder.Services.AddScoped<PlayerRoomRepository>();
         builder.Services.AddScoped<RoleSettingsRepository>();

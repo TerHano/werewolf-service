@@ -10,9 +10,9 @@ public class JwtService(IConfiguration config)
     public string GenerateToken(Guid? playerId = null)
     {
         var handler = new JwtSecurityTokenHandler();
-        var privateKeyValue = Environment.GetEnvironmentVariable("Auth_PrivateKey");
-        var Issuer = Environment.GetEnvironmentVariable("Auth_Issuer");
-        var Audience = Environment.GetEnvironmentVariable("Auth_Audience");
+        var privateKeyValue = config.GetValue<string>("Auth:PrivateKey");
+        var Issuer = config.GetValue<string>("Auth:Issuer");
+        var Audience = config.GetValue<string>("Auth:Audience");
 
         if (string.IsNullOrEmpty(privateKeyValue)) throw new ApplicationException("JWT:Private key is empty");
         var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKeyValue);
