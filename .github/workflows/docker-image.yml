@@ -48,6 +48,5 @@ jobs:
           key: ${{ secrets.ORACLE_KEY }}
           port: ${{ secrets.ORACLE_PORT }}
           script: |
-            sudo su
             cd /home/ubuntu/docker_projects/werewolf-party
             docker compose up -d
