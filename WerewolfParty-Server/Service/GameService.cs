@@ -94,20 +94,20 @@ public class GameService(
         }
 
         await playerRoleRepository.UpdatePlayerStatusToDead(playersKilledSet.ToList(), room.CurrentNight);
-        roomGameActionRepository.MarkActionsAsProcessed(roomId, queuedActions);
+        await roomGameActionRepository.MarkActionsAsProcessed(roomId, queuedActions);
         foreach (var roomGameActionEntity in actionsQueuedForNextNight)
         {
-            roomGameActionRepository.QueueActionForPlayer(roomGameActionEntity);
+            await roomGameActionRepository.QueueActionForPlayer(roomGameActionEntity);
         }
     }
 
-    public void EndNight(string roomId)
+    public async Task EndNight(string roomId)
     {
-        ProcessQueuedActions(roomId);
-        ProgressToNextPoint(roomId);
+        await ProcessQueuedActions(roomId);
+        await ProgressToNextPoint(roomId);
     }
 
-    public void LynchChosenPlayer(string roomId, int? playerId)
+    public async Task LynchChosenPlayer(string roomId, int? playerId)
     {
         if (playerId.HasValue)
         {
@@ -125,23 +125,23 @@ public class GameService(
             };
             player.IsAlive = false;
             player.NightKilled = room.CurrentNight;
-            roomGameActionRepository.QueueActionForPlayer(votedOutAction);
-            playerRoleRepository.UpdatePlayerRoleInRoom(player);
+            await roomGameActionRepository.QueueActionForPlayer(votedOutAction);
+            await playerRoleRepository.UpdatePlayerRoleInRoom(player);
         }
 
-        ProgressToNextPoint(roomId);
+        await ProgressToNextPoint(roomId);
     }
 
 
-    private void ResetRoomForNewGame(string roomId)
+    private async Task ResetRoomForNewGame(string roomId)
     {
-        roomGameActionRepository.ClearAllActionsForRoom(roomId);
+        await roomGameActionRepository.ClearAllActionsForRoom(roomId);
         var room = roomRepository.GetRoom(roomId);
         room.CurrentNight = 0;
         room.isDay = false;
         room.WinCondition = WinCondition.None;
-        roomRepository.UpdateRoom(room);
-        playerRoleRepository.RemoveAllPlayerRolesForRoom(roomId);
+        await roomRepository.UpdateRoom(room);
+        await playerRoleRepository.RemoveAllPlayerRolesForRoom(roomId);
     }
 
     private bool IsEnoughPlayersForGame(string roomId)
@@ -161,8 +161,8 @@ public class GameService(
             throw new Exception("Not enough players for game");
         }
 
-        ResetRoomForNewGame(roomId);
-        ShuffleAndAssignRoles(roomId);
+        await ResetRoomForNewGame(roomId);
+        await ShuffleAndAssignRoles(roomId);
         var room = roomRepository.GetRoom(roomId);
         room.GameState = GameState.CardsDealt;
         await roomRepository.UpdateRoom(room);
@@ -270,7 +270,7 @@ public class GameService(
     }
 
 
-    public void QueueActionForPlayer(PlayerActionRequestDTO playerActionRequestDto)
+    public async Task QueueActionForPlayer(PlayerActionRequestDTO playerActionRequestDto)
     {
         var night = roomRepository.GetRoom(playerActionRequestDto.RoomId).CurrentNight;
         RoomGameActionEntity? existingPlayerAction;
@@ -295,7 +295,7 @@ public class GameService(
             existingPlayerAction.Action = playerActionRequestDto.Action;
             existingPlayerAction.AffectedPlayerRoleId = playerActionRequestDto.AffectedPlayerRoleId;
             existingPlayerAction.Night = night;
-            roomGameActionRepository.QueueActionForPlayer(existingPlayerAction);
+            await roomGameActionRepository.QueueActionForPlayer(existingPlayerAction);
         }
         else
         {
@@ -309,13 +309,13 @@ public class GameService(
                 State = ActionState.Queued,
                 Night = night
             };
-            roomGameActionRepository.QueueActionForPlayer(playerAction);
+            await roomGameActionRepository.QueueActionForPlayer(playerAction);
         }
     }
 
-    public void DequeueActionForPlayer(int actionId)
+    public async Task DequeueActionForPlayer(int actionId)
     {
-        roomGameActionRepository.DequeueActionForPlayer(
+        await roomGameActionRepository.DequeueActionForPlayer(
             actionId);
     }
 
@@ -325,7 +325,7 @@ public class GameService(
         return room.GameState;
     }
 
-    private void ShuffleAndAssignRoles(string roomId)
+    private async Task ShuffleAndAssignRoles(string roomId)
     {
         var roomModerator = roomRepository.GetModeratorForRoom(roomId);
         var playersInRoomWithoutMod = playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
@@ -355,7 +355,7 @@ public class GameService(
             playerRolesToAdd.Add(newPlayerRole);
         }
 
-        playerRoleRepository.AddPlayerRolesToRoom(playerRolesToAdd);
+        await playerRoleRepository.AddPlayerRolesToRoom(playerRolesToAdd);
     }
 
     public DayDto GetCurrentNightAndTime(string roomId)
@@ -368,7 +368,7 @@ public class GameService(
         };
     }
 
-    private void ProgressToNextPoint(string roomId)
+    private async Task ProgressToNextPoint(string roomId)
     {
         var room = roomRepository.GetRoom(roomId);
         if (room.isDay)
@@ -381,7 +381,7 @@ public class GameService(
             room.isDay = true;
         }
 
-        roomRepository.UpdateRoom(room);
+        await roomRepository.UpdateRoom(room);
     }
 
     public List<PlayerDTO> GetLatestDeaths(string roomId)
@@ -396,7 +396,7 @@ public class GameService(
         return mapper.Map<List<PlayerDTO>>(playersDeadThisNight);
     }
 
-    public WinCondition CheckWinCondition(string roomId)
+    public async Task<WinCondition> CheckWinCondition(string roomId)
     {
         var winConditionForRoom = roomRepository.GetWinConditionForRoom(roomId);
         if (winConditionForRoom != WinCondition.None)
@@ -423,7 +423,7 @@ public class GameService(
         {
             var room = roomRepository.GetRoom(roomId);
             room.WinCondition = winCondition;
-            roomRepository.UpdateRoom(room);
+            await roomRepository.UpdateRoom(room);
         }
 
         return winCondition;

@@ -1,0 +1,8 @@
+﻿services:
+  werewolf-party-api:
+    image: !reset null
+    build:
+      context: .
+      dockerfile: WerewolfParty-Server/Dockerfile
+      args:
+        BUILD_PLATFORM: ${BUILD_PLATFORM}

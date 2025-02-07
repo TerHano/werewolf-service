@@ -1,6 +1,36 @@
-﻿services:
-  werewolfparty-server:
-    image: werewolfparty-server
-    build:
-      context: .
-      dockerfile: WerewolfParty-Server/Dockerfile
+﻿networks:
+  dev:
+    driver: bridge
+services:
+  werewolf-party-api:
+    image: ghcr.io/terhano/werewolfparty-api:merge
+    depends_on:
+      - "app_db"
+    container_name: werewolf-party
+    ports:
+      - "5049:80"
+    environment:
+      - AllowedOrigins=${ALLOWED_ORIGINS}
+      - ConnectionStrings__DefaultConnection=Username=${DB_USERNAME};Password=${DB_PASSWORD};Server=app_db;Database=${DB_NAME};
+      - Auth__Audience=${AUTH_AUDIENCE}
+      - Auth__Issuer=${AUTH_ISSUER}
+      - Auth__PrivateKey=${AUTH_PRIVATE_KEY}
+      - ASPNETCORE_URLS=http://+:80
+    networks:
+      - dev
+  app_db:
+    image: postgres:latest
+    container_name: app_db
+    environment:
+      - POSTGRES_USER=${DB_USERNAME}
+      - POSTGRES_PASSWORD=${DB_PASSWORD}
+      - POSTGRES_DB=${DB_NAME}
+    ports:
+      - "5432:5432"
+    restart: always
+    volumes:
+      - app_data:/var/lib/postgresql/data
+    networks:
+      - dev
+volumes:
+  app_data:

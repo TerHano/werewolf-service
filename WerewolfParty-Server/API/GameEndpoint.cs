@@ -79,35 +79,35 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapPost("/api/game/queued-action",
-            (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
+           async (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
             {
-                gameService.QueueActionForPlayer(playerActionRequestDto);
+                await gameService.QueueActionForPlayer(playerActionRequestDto);
                 return TypedResults.Ok(new APIResponse()
                 {
                     Success = true,
                 });
             }).RequireAuthorization();
 
-        app.MapDelete("/api/game/queued-action/{actionId}", (int actionId, GameService gameService) =>
+        app.MapDelete("/api/game/queued-action/{actionId}", async (int actionId, GameService gameService) =>
         {
-            gameService.DequeueActionForPlayer(actionId);
+            await gameService.DequeueActionForPlayer(actionId);
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/game/end-night", (PlayerIdAndRoomIdRequestDto request,
+        app.MapPost("/api/game/end-night", async (PlayerIdAndRoomIdRequestDto request,
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
-            gameService.EndNight(request.RoomId);
-            var winCondition = gameService.CheckWinCondition(request.RoomId);
+            await gameService.EndNight(request.RoomId);
+            var winCondition = await gameService.CheckWinCondition(request.RoomId);
             if (winCondition != WinCondition.None)
             {
-                hubContext.Clients.Group(request.RoomId).WinConditionMet();
+                await hubContext.Clients.Group(request.RoomId).WinConditionMet();
             }
 
-            hubContext.Clients.Group(request.RoomId).DayTimeUpdated();
+            await hubContext.Clients.Group(request.RoomId).DayTimeUpdated();
 
             return TypedResults.Ok(new APIResponse()
             {
@@ -115,17 +115,17 @@ public static class GameEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapPost("/api/game/vote-out-player", (PlayerVoteOutRequestDTO request,
+        app.MapPost("/api/game/vote-out-player", async (PlayerVoteOutRequestDTO request,
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
-            gameService.LynchChosenPlayer(request.RoomId, request.PlayerRoleId);
-            var winCondition = gameService.CheckWinCondition(request.RoomId);
+            await gameService.LynchChosenPlayer(request.RoomId, request.PlayerRoleId);
+            var winCondition = await gameService.CheckWinCondition(request.RoomId);
             if (winCondition != WinCondition.None)
             {
-                hubContext.Clients.Group(request.RoomId).WinConditionMet();
+                await hubContext.Clients.Group(request.RoomId).WinConditionMet();
             }
 
-            hubContext.Clients.Group(request.RoomId.ToUpper()).DayTimeUpdated();
+            await hubContext.Clients.Group(request.RoomId.ToUpper()).DayTimeUpdated();
             return TypedResults.Ok(new APIResponse()
             {
                 Success = true,
