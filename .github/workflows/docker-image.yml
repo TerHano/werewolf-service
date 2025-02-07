@@ -39,4 +39,15 @@ jobs:
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
           docker tag ${{vars.IMAGE_NAME}} $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION      
+          docker push $IMAGE_ID:$VERSION
+      - name: Updates server docker service
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USERNAME }}
+          key: ${{ secrets.ORACLE_KEY }}
+          port: ${{ secrets.ORACLE_PORT }}
+          script: |
+            sudo su
+            cd /home/ubuntu/docker_projects/werewolf-party
+            docker compose up -d
