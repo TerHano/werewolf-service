@@ -45,11 +45,11 @@ public static class PlayerEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapGet("/api/player/{roomId}/player", (string roomId,
+        app.MapGet("/api/player/{roomId}/player", async (string roomId,
             HttpContext httpContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            var currentPlayer = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+            var currentPlayer = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
             return TypedResults.Ok(new APIResponse<PlayerDTO>()
             {
                 Success = true,

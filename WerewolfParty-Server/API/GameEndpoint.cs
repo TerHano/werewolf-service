@@ -12,10 +12,10 @@ public static class GameEndpoint
     public static void RegisterGameEndpoints(this WebApplication app)
     {
         app.MapGet("/api/game/{roomId}/assigned-role",
-            (HttpContext httpContext, GameService gameService, string roomId) =>
+            async (HttpContext httpContext, GameService gameService, string roomId) =>
             {
                 var playerGuid = httpContext.User.GetPlayerId();
-                var assignedRole = gameService.GetAssignedPlayerRole(roomId, playerGuid);
+                var assignedRole = await gameService.GetAssignedPlayerRole(roomId, playerGuid);
                 return TypedResults.Ok(new APIResponse<RoleName?>()
                 {
                     Success = true,
@@ -24,17 +24,17 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/all-player-roles",
-            (HttpContext httpContext, GameService gameService, RoomService roomService, string roomId) =>
+            async (HttpContext httpContext, GameService gameService, RoomService roomService, string roomId) =>
             {
                 var playerGuid = httpContext.User.GetPlayerId();
-                var currentPlayer = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
-                var currentModerator = roomService.GetModeratorForRoom(roomId);
+                var currentPlayer = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+                var currentModerator = await roomService.GetModeratorForRoom(roomId);
                 if (currentPlayer.Id != currentModerator?.Id)
                 {
                     throw new Exception("You are not the moderator of this room.");
                 }
 
-                var assignedRoles = gameService.GetAllAssignedPlayerRolesAndActions(roomId);
+                var assignedRoles = await gameService.GetAllAssignedPlayerRolesAndActions(roomId);
                 return TypedResults.Ok(new APIResponse<List<PlayerRoleActionDto>>()
                 {
                     Success = true,
@@ -44,9 +44,9 @@ public static class GameEndpoint
 
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/role-actions",
-            (GameService gameService, string roomId, int playerRoleId) =>
+            async (GameService gameService, string roomId, int playerRoleId) =>
             {
-                var state = gameService.GetActionsForPlayerRole(roomId, playerRoleId);
+                var state = await gameService.GetActionsForPlayerRole(roomId, playerRoleId);
                 return TypedResults.Ok(new APIResponse<List<RoleActionDto>>()
                 {
                     Success = true,
@@ -55,9 +55,9 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
-            (GameService gameService, string roomId, int playerRoleId) =>
+            async (GameService gameService, string roomId, int playerRoleId) =>
             {
-                var state = gameService.GetPlayerQueuedAction(roomId, playerRoleId);
+                var state = await gameService.GetPlayerQueuedAction(roomId, playerRoleId);
 
                 return TypedResults.Ok(new APIResponse<PlayerQueuedActionDTO>()
                 {
@@ -67,9 +67,9 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/all-queued-actions",
-            (GameService gameService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var state = gameService.GetAllQueuedActionsForRoom(roomId);
+                var state = await gameService.GetAllQueuedActionsForRoom(roomId);
 
                 return TypedResults.Ok(new APIResponse<List<PlayerQueuedActionDTO>>()
                 {
@@ -133,9 +133,9 @@ public static class GameEndpoint
         }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/day-time",
-            (GameService gameService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var state = gameService.GetCurrentNightAndTime(roomId);
+                var state = await gameService.GetCurrentNightAndTime(roomId);
 
                 return TypedResults.Ok(new APIResponse<DayDto>()
                 {
@@ -145,9 +145,9 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/latest-deaths",
-            (GameService gameService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var state = gameService.GetLatestDeaths(roomId);
+                var state = await gameService.GetLatestDeaths(roomId);
 
                 return TypedResults.Ok(new APIResponse<List<PlayerDTO>>()
                 {
@@ -157,9 +157,9 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/check-win-condition",
-            (GameService gameService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var state = gameService.GetWinConditionForRoom(roomId);
+                var state = await gameService.GetWinConditionForRoom(roomId);
 
                 return TypedResults.Ok(new APIResponse<WinCondition>()
                 {
@@ -169,9 +169,9 @@ public static class GameEndpoint
             }).RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/summary",
-            (GameService gameService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var state = gameService.GetGameSummary(roomId);
+                var state = await gameService.GetGameSummary(roomId);
 
                 return TypedResults.Ok(new APIResponse<List<GameNightHistoryDTO>>()
                 {

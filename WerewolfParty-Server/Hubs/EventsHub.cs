@@ -26,7 +26,7 @@ public class EventsHub(RoomService roomService) : Hub<IClientEventsHub>
         var roomId = addEditPlayerDetails.RoomId;
         var playerGuid = GetPlayerId();
         if (string.IsNullOrEmpty(roomId)) return new SocketResponse(false, "Room ID is required");
-        var doesRoomExist = roomService.DoesRoomExist(roomId);
+        var doesRoomExist = await roomService.DoesRoomExist(roomId);
         if (!doesRoomExist) return new SocketResponse(false, "Room does not exist");
         await roomService.AddPlayerToRoom(playerGuid, addEditPlayerDetails);
 

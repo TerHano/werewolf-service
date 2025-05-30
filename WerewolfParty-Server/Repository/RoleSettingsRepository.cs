@@ -10,9 +10,10 @@ public class RoleSettingsRepository(WerewolfDbContext context)
 {
     public async Task<RoomSettingsEntity> AddRoleSettings(RoomSettingsEntity roomSettingsEntity)
     {
-        var roleSettings = context.RoleSettings.Add(roomSettingsEntity).Entity;
+        var roleSettings = await context.RoleSettings.AddAsync(roomSettingsEntity);
+        var entity = roleSettings.Entity;
         await context.SaveChangesAsync();
-        return roleSettings;
+        return entity;
     }
 
     public async Task UpdateRoleSettings(RoomSettingsEntity roomSettingsEntity)
@@ -21,10 +22,10 @@ public class RoleSettingsRepository(WerewolfDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public RoomSettingsEntity GetRoomSettingsByRoomId(string roomId)
+    public async Task<RoomSettingsEntity> GetRoomSettingsByRoomId(string roomId)
     {
         var roomSettings =
-            context.RoleSettings.FirstOrDefault(r =>
+            await context.RoleSettings.FirstOrDefaultAsync(r =>
                 EF.Functions.ILike(r.RoomId, roomId));
         if (roomSettings is null)
         {
@@ -34,9 +35,9 @@ public class RoleSettingsRepository(WerewolfDbContext context)
         return roomSettings;
     }
 
-    public RoomSettingsEntity GetRoomSettingsById(int roomSettingsId)
+    public async Task<RoomSettingsEntity> GetRoomSettingsById(int roomSettingsId)
     {
-        var roomSettings = context.RoleSettings.FirstOrDefault(r => r.Id == roomSettingsId);
+        var roomSettings = await context.RoleSettings.FirstOrDefaultAsync(r => r.Id == roomSettingsId);
         if (roomSettings is null)
         {
             throw new Exception("Room settings not found");

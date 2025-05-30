@@ -17,42 +17,42 @@ public class RoomService(
     private const string allowedRoomIdCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
     private const int roomIdLength = 5;
 
-    public List<RoomEntity> GetAllRooms()
+    public async Task<List<RoomEntity>> GetAllRooms()
     {
-        return roomRepository.GetAllRooms();
+        return await roomRepository.GetAllRooms();
     }
 
-    public RoomEntity GetRoom(string roomId)
+    public async Task<RoomEntity> GetRoom(string roomId)
     {
-        return roomRepository.GetRoom(roomId);
+        return await roomRepository.GetRoom(roomId);
     }
 
-    public PlayerDTO GetPlayerInRoomUsingGuid(string roomId, Guid playerId)
+    public async Task<PlayerDTO> GetPlayerInRoomUsingGuid(string roomId, Guid playerId)
     {
-        var player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
+        var player = await playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
         return mapper.Map<PlayerDTO>(player);
     }
 
-    public PlayerDTO GetPlayerInRoom(string roomId, int playerId)
+    public async Task<PlayerDTO> GetPlayerInRoom(string roomId, int playerId)
     {
-        var player = playerRoomRepository.GetPlayerInRoom(roomId, playerId);
+        var player = await playerRoomRepository.GetPlayerInRoom(roomId, playerId);
         return mapper.Map<PlayerDTO>(player);
     }
 
-    public bool isPlayerInRoom(string roomId, Guid playerId)
+    public async Task<bool> isPlayerInRoom(string roomId, Guid playerId)
     {
-        return playerRoomRepository.IsPlayerInRoom(playerId, roomId);
+        return await playerRoomRepository.IsPlayerInRoom(playerId, roomId);
     }
 
-    public RoomSettingsDto GetRoleSettingsForRoom(string roomId)
+    public async Task<RoomSettingsDto> GetRoleSettingsForRoom(string roomId)
     {
-        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var settings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
         return mapper.Map<RoomSettingsDto>(settings);
     }
 
     public async Task UpdateRoleSettingsForRoom(UpdateRoleSettingsRequest updateRoleSettingsRequest)
     {
-        var oldRoleSettings = roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
+        var oldRoleSettings = await roleSettingsRepository.GetRoomSettingsById(updateRoleSettingsRequest.Id);
         oldRoleSettings.NumberOfWerewolves = updateRoleSettingsRequest.NumberOfWerewolves;
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         oldRoleSettings.ShowGameSummary = updateRoleSettingsRequest.ShowGameSummary;
@@ -61,12 +61,12 @@ public class RoomService(
     }
 
 
-    public List<PlayerDTO> GetAllPlayersInRoom(string roomId, Guid? playerId = null, bool includeModerator = true)
+    public async Task<List<PlayerDTO>> GetAllPlayersInRoom(string roomId, Guid? playerId = null, bool includeModerator = true)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         var players = includeModerator
-            ? playerRoomRepository.GetPlayersInRoom(roomId)
-            : playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, room.CurrentModeratorId);
+            ? await playerRoomRepository.GetPlayersInRoom(roomId)
+            : await playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, room.CurrentModeratorId);
         if (!playerId.HasValue) return mapper.Map<List<PlayerDTO>>(players);
         var currentPlayer = players.FirstOrDefault((player) => player.PlayerId.Equals(playerId.Value));
         if (currentPlayer == null) return mapper.Map<List<PlayerDTO>>(players);
@@ -77,7 +77,7 @@ public class RoomService(
 
     public async Task<string> CreateRoom()
     {
-        var newRoomId = GenerateRoomId();
+        var newRoomId = await GenerateRoomId();
         var newRoom = new RoomEntity
         {
             Id = newRoomId,
@@ -104,15 +104,15 @@ public class RoomService(
         return newRoomId;
     }
 
-    public bool DoesRoomExist(string roomId)
+    public async Task<bool> DoesRoomExist(string roomId)
     {
-        return roomRepository.DoesRoomExist(roomId);
+        return await roomRepository.DoesRoomExist(roomId);
     }
 
     public async Task AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var roomId = addEditPlayerDetails.RoomId;
-        var isPlayerAlreadyInRoom = playerRoomRepository.IsPlayerInRoom(playerId, roomId);
+        var isPlayerAlreadyInRoom = await playerRoomRepository.IsPlayerInRoom(playerId, roomId);
         PlayerRoomEntity player;
         if (!isPlayerAlreadyInRoom)
         {
@@ -125,19 +125,19 @@ public class RoomService(
         }
         else
         {
-            player = playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
+            player = await playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
         }
 
-        var currentMod = GetModeratorForRoom(roomId);
+        var currentMod = await GetModeratorForRoom(roomId);
         if (currentMod == null)
         {
             await UpdateModeratorForRoom(roomId, player.Id);
         }
     }
 
-    public PlayerDTO? GetModeratorForRoom(string roomId)
+    public async Task<PlayerDTO?> GetModeratorForRoom(string roomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         if (room == null)
         {
             throw new Exception($"Room with id {roomId} does not exist");
@@ -149,18 +149,18 @@ public class RoomService(
             return null;
         }
 
-        var moderatorDetails = playerRoomRepository.GetPlayerInRoom(roomId, mod.Value);
+        var moderatorDetails = await playerRoomRepository.GetPlayerInRoom(roomId, mod.Value);
         return mapper.Map<PlayerDTO>(moderatorDetails);
     }
 
     public async Task<PlayerDTO> UpdateModeratorForRoom(string roomId, int newModeratorPlayerRoomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         if (room == null)
         {
             throw new Exception($"Room with id {roomId} does not exist");
         }
-        var newMod = playerRoomRepository.GetPlayerInRoom(roomId, newModeratorPlayerRoomId);
+        var newMod =await playerRoomRepository.GetPlayerInRoom(roomId, newModeratorPlayerRoomId);
         room.CurrentModeratorId = newModeratorPlayerRoomId;
         await roomRepository.UpdateRoom(room);
         return mapper.Map<PlayerDTO>(newMod);
@@ -170,7 +170,7 @@ public class RoomService(
         AddEditPlayerDetailsDTO addEditPlayerDetails)
     {
         var roomId = addEditPlayerDetails.RoomId;
-        var player = playerRoomRepository.GetPlayerInRoom(roomId, playerRoomId);
+        var player = await playerRoomRepository.GetPlayerInRoom(roomId, playerRoomId);
         if (player == null)
         {
             throw new PlayerNotFoundException($"Player with id {playerRoomId} does not exist");
@@ -191,8 +191,8 @@ public class RoomService(
     {
         await playerRoomRepository.RemovePlayerFromRoom(roomId, playerRoomId);
         //Replace Mod if player was mod
-        var room = roomRepository.GetRoom(roomId);
-        var otherPlayers = playerRoomRepository.GetPlayersInRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
+        var otherPlayers = await playerRoomRepository.GetPlayersInRoom(roomId);
         var newModerator = otherPlayers.FirstOrDefault()?.Id;
         if (room.CurrentModeratorId == null)
         {
@@ -201,19 +201,19 @@ public class RoomService(
         await roomRepository.UpdateRoom(room);
     }
 
-    public int GetPlayerCountForRoom(string roomId)
+    public async Task<int?> GetPlayerCountForRoom(string roomId)
     {
-        return playerRoomRepository.GetPlayerCountForRoom(roomId);
+        return await playerRoomRepository.GetPlayerCountForRoom(roomId);
     }
 
     public async Task UpdateRoomGameState(string roomId, GameState gameState)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         room.GameState = gameState;
         await roomRepository.UpdateRoom(room);
     }
 
-    private string GenerateRoomId()
+    private async Task<string> GenerateRoomId()
     {
         var random = new Random();
         var allowedRoomIdCharactersLength = allowedRoomIdCharacters.Length;
@@ -226,7 +226,7 @@ public class RoomService(
             for (var i = 0; i < roomIdLength; i++)
                 chars[i] = allowedRoomIdCharacters[random.Next(0, allowedRoomIdCharactersLength)];
             generatedRoomId = new string(chars);
-            isUniqueRoomId = DoesRoomExist(generatedRoomId) == false;
+            isUniqueRoomId = await DoesRoomExist(generatedRoomId) == false;
         }
 
         return generatedRoomId;

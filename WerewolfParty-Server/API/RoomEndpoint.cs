@@ -40,11 +40,11 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/is-player-in-room", (string roomId, HttpContext httpContext,
+        app.MapGet("/api/room/{roomId}/is-player-in-room",async (string roomId, HttpContext httpContext,
             RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
-            var isPlayerInRoom = roomService.isPlayerInRoom(roomId, playerGuid);
+            var isPlayerInRoom = await roomService.isPlayerInRoom(roomId, playerGuid);
             return TypedResults.Ok(new APIResponse<bool>()
             {
                 Success = true,
@@ -56,7 +56,7 @@ public static class RoomEndpoint
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
         {
             string roomId = roomIdRequest.RoomId.ToUpper();
-            var gameState = gameService.GetGameState(roomId);
+            var gameState = await gameService.GetGameState(roomId);
             await gameService.StartGame(roomId);
             if (gameState == GameState.CardsDealt)
             {
@@ -98,7 +98,7 @@ public static class RoomEndpoint
             await roomService.RemovePlayerFromRoom(roomId, player.Id);
             await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced
-            var newModerator = roomService.GetModeratorForRoom(roomId);
+            var newModerator = await roomService.GetModeratorForRoom(roomId);
             if (newModerator != null && oldModerator?.Id != newModerator?.Id)
             {
                 await hubContext.Clients.Group(roomId).ModeratorUpdated(newModerator);
@@ -130,9 +130,9 @@ public static class RoomEndpoint
             });
         }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/get-moderator", (string roomId, RoomService roomService) =>
+        app.MapGet("/api/room/{roomId}/get-moderator", async (string roomId, RoomService roomService) =>
         {
-            var mod = roomService.GetModeratorForRoom(roomId);
+            var mod = await roomService.GetModeratorForRoom(roomId);
 
             return TypedResults.Ok(new APIResponse<PlayerDTO?>()
             {
@@ -142,9 +142,9 @@ public static class RoomEndpoint
         }).RequireAuthorization();
 
 
-        app.MapPost("/api/room/check-room", (RoomIdRequest request, RoomService roomService) =>
+        app.MapPost("/api/room/check-room", async (RoomIdRequest request, RoomService roomService) =>
         {
-            var doesRoomExist = roomService.DoesRoomExist(request.RoomId);
+            var doesRoomExist =await  roomService.DoesRoomExist(request.RoomId);
             return TypedResults.Ok(new APIResponse<bool>()
             {
                 Success = true,
@@ -153,10 +153,10 @@ public static class RoomEndpoint
         }).RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/players",
-            (RoomService roomService, HttpContext httpContext, string roomId) =>
+           async (RoomService roomService, HttpContext httpContext, string roomId) =>
             {
                 var playerGuid = httpContext.User.GetPlayerId();
-                var players = roomService.GetAllPlayersInRoom(roomId, playerGuid, false);
+                var players = await roomService.GetAllPlayersInRoom(roomId, playerGuid, false);
                 return TypedResults.Ok(new APIResponse<List<PlayerDTO>>()
                 {
                     Success = true,
@@ -164,9 +164,9 @@ public static class RoomEndpoint
                 });
             }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/role-settings", (RoomService roomService, string roomId) =>
+        app.MapGet("/api/room/{roomId}/role-settings", async (RoomService roomService, string roomId) =>
         {
-            var roleSettings = roomService.GetRoleSettingsForRoom(roomId);
+            var roleSettings = await roomService.GetRoleSettingsForRoom(roomId);
             return TypedResults.Ok(new APIResponse<RoomSettingsDto>()
             {
                 Success = true,
@@ -198,9 +198,9 @@ public static class RoomEndpoint
         }).RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}",
-            (RoomService roomService, string roomId) =>
+          async  (RoomService roomService, string roomId) =>
             {
-                var room = roomService.GetRoom(roomId);
+                var room = await roomService.GetRoom(roomId);
                 return TypedResults.Ok(new APIResponse<RoomEntity>()
                 {
                     Success = true,
@@ -208,9 +208,9 @@ public static class RoomEndpoint
                 });
             }).RequireAuthorization();
 
-        app.MapGet("/api/room/{roomId}/game-state", (GameService gameService, string roomId) =>
+        app.MapGet("/api/room/{roomId}/game-state",async (GameService gameService, string roomId) =>
         {
-            var state = gameService.GetGameState(roomId);
+            var state = await gameService.GetGameState(roomId);
             return TypedResults.Ok(new APIResponse<GameState>()
             {
                 Success = true,

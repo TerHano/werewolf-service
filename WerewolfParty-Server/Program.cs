@@ -45,7 +45,7 @@ public abstract class Program
         {
             throw new Exception("ConnectionString is missing.");
         }
-        builder.Services.AddDbContextPool<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
+        builder.Services.AddDbContext<WerewolfDbContext>(opt => opt.UseNpgsql(connectionString));
         
         builder.Services.AddScoped<RoomRepository>();
         builder.Services.AddScoped<PlayerRoomRepository>();

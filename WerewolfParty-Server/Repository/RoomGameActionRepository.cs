@@ -11,7 +11,7 @@ public class RoomGameActionRepository(WerewolfDbContext context)
     {
         if (roomGameActionEntity.Id == 0)
         {
-            context.RoomGameActions.Add(roomGameActionEntity);
+            await context.RoomGameActions.AddAsync(roomGameActionEntity);
         }
         else
         {
@@ -30,43 +30,43 @@ public class RoomGameActionRepository(WerewolfDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public RoomGameActionEntity? GetQueuedPlayerActionForRoom(string roomId, int playerRoleId)
+    public async Task<RoomGameActionEntity?> GetQueuedPlayerActionForRoom(string roomId, int playerRoleId)
     {
-        var playerAction = context.RoomGameActions
-            .FirstOrDefault(x => EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Queued &&
+        var playerAction = await context.RoomGameActions
+            .FirstOrDefaultAsync(x => EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Queued &&
                                  x.PlayerRoleId.Equals(playerRoleId));
 
         return playerAction;
     }
 
-    public RoomGameActionEntity? GetQueuedWerewolfActionForRoom(string roomId)
+    public async Task<RoomGameActionEntity?> GetQueuedWerewolfActionForRoom(string roomId)
     {
-        var playerAction = context.RoomGameActions.FirstOrDefault(x =>
+        var playerAction = await context.RoomGameActions.FirstOrDefaultAsync(x =>
             EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Queued &&
             x.Action == ActionType.WerewolfKill);
         return playerAction;
     }
 
-    public List<RoomGameActionEntity> GetAllQueuedActionsForRoom(string roomId)
+    public async Task<List<RoomGameActionEntity>> GetAllQueuedActionsForRoom(string roomId)
     {
-        return context.RoomGameActions.Where(x =>
+        return await context.RoomGameActions.Where(x =>
                 EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Queued)
-            .ToList();
+            .ToListAsync();
     }
 
-    public List<RoomGameActionEntity> GetAllProcessedActionsForRoom(string roomId, bool includeDependencies = false)
+    public async Task<List<RoomGameActionEntity>> GetAllProcessedActionsForRoom(string roomId, bool includeDependencies = false)
     {
         if (includeDependencies)
         {
-            return context.RoomGameActions.Include((r) => r.PlayerRole).ThenInclude((pr => pr.PlayerRoom))
+            return await context.RoomGameActions.Include((r) => r.PlayerRole).ThenInclude((pr => pr.PlayerRoom))
                 .Include((r) => r.AffectedPlayerRole).ThenInclude((pr => pr.PlayerRoom)).Where(x =>
                     EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Processed)
-                .ToList();
+                .ToListAsync();
         }
 
-        return context.RoomGameActions.Where(x =>
+        return await  context.RoomGameActions.Where(x =>
                 EF.Functions.ILike(x.RoomId, roomId) && x.State == ActionState.Processed)
-            .ToList();
+            .ToListAsync();
     }
 
 
@@ -85,6 +85,6 @@ public class RoomGameActionRepository(WerewolfDbContext context)
     {
         context.RoomGameActions.RemoveRange(context.RoomGameActions.Where(x =>
             EF.Functions.ILike(x.RoomId, roomId)));
-       await  context.SaveChangesAsync();
+       await context.SaveChangesAsync();
     }
 }

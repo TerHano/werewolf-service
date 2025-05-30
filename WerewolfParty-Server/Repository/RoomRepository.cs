@@ -8,37 +8,37 @@ namespace WerewolfParty_Server.Repository;
 
 public class RoomRepository(WerewolfDbContext context)
 {
-    public List<RoomEntity> GetAllRooms()
+    public async Task<List<RoomEntity>> GetAllRooms()
     {
-        return context.Rooms.ToList();
+        return await context.Rooms.ToListAsync();
     }
 
     public async Task CreateRoom(RoomEntity newRoomEntity)
     {
-        context.Rooms.Add(newRoomEntity);
+        await context.Rooms.AddAsync(newRoomEntity);
         await context.SaveChangesAsync();
     }
 
-    public int? GetModeratorForRoom(string roomId)
+    public async Task<int?> GetModeratorForRoom(string roomId)
     {
-        var room = GetRoom(roomId);
+        var room = await GetRoom(roomId);
         return room.CurrentModeratorId;
     }
 
-    public WinCondition GetWinConditionForRoom(string roomId)
+    public async Task<WinCondition> GetWinConditionForRoom(string roomId)
     {
-        var room = GetRoom(roomId);
+        var room = await GetRoom(roomId);
         return room.WinCondition;
     }
 
-    public bool DoesRoomExist(string roomId)
+    public async Task<bool> DoesRoomExist(string roomId)
     {
-        return context.Rooms.Any((room) => EF.Functions.ILike(room.Id, roomId));
+        return await context.Rooms.AnyAsync((room) => EF.Functions.ILike(room.Id, roomId));
     }
 
-    public RoomEntity GetRoom(string roomId)
+    public async Task<RoomEntity> GetRoom(string roomId)
     {
-        var room = context.Rooms.FirstOrDefault(room =>
+        var room = await context.Rooms.FirstOrDefaultAsync(room =>
             EF.Functions.ILike(room.Id, roomId));
         if (room == null)
         {

@@ -18,9 +18,10 @@ public class GameService(
 {
     private async Task ProcessQueuedActions(string roomId)
     {
-        var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        var playerRoles = playerRoleRepository.GetPlayerRolesForRoom(roomId);
-        var room = roomRepository.GetRoom(roomId);
+        var queuedActions = await roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
+        
         var playersRevivedSet = new HashSet<int>();
         var playersKilledSet = new HashSet<int>();
         var playersDeadSet = new HashSet<int>();
@@ -112,8 +113,8 @@ public class GameService(
         if (playerId.HasValue)
         {
             var playerIdVal = playerId.Value;
-            var player = playerRoleRepository.GetPlayerRoleInRoom(roomId, playerIdVal);
-            var room = roomRepository.GetRoom(roomId);
+            var player =await  playerRoleRepository.GetPlayerRoleInRoom(roomId, playerIdVal);
+            var room = await roomRepository.GetRoom(roomId);
             var votedOutAction = new RoomGameActionEntity()
             {
                 RoomId = roomId,
@@ -136,7 +137,7 @@ public class GameService(
     private async Task ResetRoomForNewGame(string roomId)
     {
         await roomGameActionRepository.ClearAllActionsForRoom(roomId);
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         room.CurrentNight = 0;
         room.isDay = false;
         room.WinCondition = WinCondition.None;
@@ -144,10 +145,10 @@ public class GameService(
         await playerRoleRepository.RemoveAllPlayerRolesForRoom(roomId);
     }
 
-    private bool IsEnoughPlayersForGame(string roomId)
+    private async Task<bool> IsEnoughPlayersForGame(string roomId)
     {
-        var playersInLobby = playerRoomRepository.GetPlayersInRoom(roomId);
-        var roleSettingsForRoom = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var playersInLobby = await playerRoomRepository.GetPlayersInRoom(roomId);
+        var roleSettingsForRoom = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
         var playerCountWithoutMod = playersInLobby.Count - 1;
         var playersNeededForGame = roleSettingsForRoom.SelectedRoles.Count + roleSettingsForRoom.NumberOfWerewolves;
         return playerCountWithoutMod >= playersNeededForGame;
@@ -155,7 +156,7 @@ public class GameService(
 
     public async Task StartGame(string roomId)
     {
-        var canStartGame = IsEnoughPlayersForGame(roomId);
+        var canStartGame = await IsEnoughPlayersForGame(roomId);
         if (!canStartGame)
         {
             throw new Exception("Not enough players for game");
@@ -163,16 +164,16 @@ public class GameService(
 
         await ResetRoomForNewGame(roomId);
         await ShuffleAndAssignRoles(roomId);
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         room.GameState = GameState.CardsDealt;
         await roomRepository.UpdateRoom(room);
     }
 
-    public RoleName? GetAssignedPlayerRole(string roomId, Guid playerGuid)
+    public async Task<RoleName?> GetAssignedPlayerRole(string roomId, Guid playerGuid)
     {
-        var doesPlayerHaveRole = playerRoleRepository.DoesPlayerHaveRoleInRoom(roomId, playerGuid);
+        var doesPlayerHaveRole = await playerRoleRepository.DoesPlayerHaveRoleInRoom(roomId, playerGuid);
         if (!doesPlayerHaveRole) return null;
-        var playerInRoom = playerRoleRepository.GetPlayerRoleInRoomUsingPlayerGuid(roomId, playerGuid);
+        var playerInRoom = await playerRoleRepository.GetPlayerRoleInRoomUsingPlayerGuid(roomId, playerGuid);
         return playerInRoom.Role;
     }
     // public List<PlayerRoleDTO> GetAllAssignedPlayerRolesAndActions(string roomId)
@@ -183,13 +184,14 @@ public class GameService(
     //     return mapper.Map<List<PlayerRoleDTO>>(playersInRoomWithoutMod);
     // }
 
-    public List<RoleActionDto> GetActionsForPlayerRole(string roomId, int playerRoleId)
+    public async Task<List<RoleActionDto>> GetActionsForPlayerRole(string roomId, int playerRoleId)
     {
-        var playerDetails = playerRoleRepository.GetPlayerRoleInRoom(roomId, playerRoleId);
-        var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
-        var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        var allPlayersInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
-        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var playerDetails = await playerRoleRepository.GetPlayerRoleInRoom(roomId, playerRoleId);
+        var priorActions = await roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
+        var queuedActions = await roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
+        var allPlayersInGame = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var settings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        
         var playerRole = playerDetails.Role;
 
         var actionCheckDto = new ActionCheckDto()
@@ -205,12 +207,13 @@ public class GameService(
         return role.GetActions(actionCheckDto);
     }
 
-    public List<PlayerRoleActionDto> GetAllAssignedPlayerRolesAndActions(string roomId)
+    public async Task<List<PlayerRoleActionDto>> GetAllAssignedPlayerRolesAndActions(string roomId)
     {
-        var allPlayerRolesInGame = playerRoleRepository.GetPlayerRolesForRoom(roomId);
-        var priorActions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
-        var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        var settings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var allPlayerRolesInGame = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var priorActions = await roomGameActionRepository.GetAllProcessedActionsForRoom(roomId);
+        var queuedActions = await roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
+        var settings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        
         var roleActionList = new List<PlayerRoleActionDto>();
 
         foreach (var playerRole in allPlayerRolesInGame)
@@ -224,7 +227,6 @@ public class GameService(
                 Settings = settings,
             };
             var role = RoleFactory.GetRole(playerRole.Role);
-            // var playerInfo = playerRoomRepository.GetPlayerInRoom(roomId, playerRole.PlayerId);
             roleActionList.Add(
                 new PlayerRoleActionDto()
                 {
@@ -240,9 +242,9 @@ public class GameService(
         return roleActionList;
     }
 
-    public PlayerQueuedActionDTO? GetPlayerQueuedAction(string roomId, int playerRoleId)
+    public async Task<PlayerQueuedActionDTO?> GetPlayerQueuedAction(string roomId, int playerRoleId)
     {
-        var queuedAction = roomGameActionRepository.GetQueuedPlayerActionForRoom(roomId, playerRoleId);
+        var queuedAction = await roomGameActionRepository.GetQueuedPlayerActionForRoom(roomId, playerRoleId);
         if (queuedAction == null)
         {
             return null;
@@ -256,10 +258,9 @@ public class GameService(
         return mappedAction;
     }
 
-    public List<PlayerQueuedActionDTO> GetAllQueuedActionsForRoom(string roomId)
+    public async Task<List<PlayerQueuedActionDTO>> GetAllQueuedActionsForRoom(string roomId)
     {
-        var queuedActions = roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
-        //Remove player unmmodifiable actions
+        var queuedActions = await roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
         queuedActions.RemoveAll(queuedAction => queuedAction.Action.Equals(ActionType.Suicide));
         var mappedAction = mapper.Map<List<PlayerQueuedActionDTO>>(queuedActions);
         // var playerNickname = playerRoomRepository.GetPlayerInRoom(roomId, mappedAction.PlayerId).NickName;
@@ -272,12 +273,13 @@ public class GameService(
 
     public async Task QueueActionForPlayer(PlayerActionRequestDTO playerActionRequestDto)
     {
-        var night = roomRepository.GetRoom(playerActionRequestDto.RoomId).CurrentNight;
+        var room = await roomRepository.GetRoom(playerActionRequestDto.RoomId);
+        var night = room.CurrentNight;
         RoomGameActionEntity? existingPlayerAction;
         if (playerActionRequestDto.Action == ActionType.WerewolfKill)
         {
             existingPlayerAction =
-                roomGameActionRepository.GetQueuedWerewolfActionForRoom(playerActionRequestDto.RoomId);
+                await roomGameActionRepository.GetQueuedWerewolfActionForRoom(playerActionRequestDto.RoomId);
         }
         else
         {
@@ -286,7 +288,7 @@ public class GameService(
                 throw new Exception("No player assigned for this action");
             }
 
-            existingPlayerAction = roomGameActionRepository.GetQueuedPlayerActionForRoom(
+            existingPlayerAction = await roomGameActionRepository.GetQueuedPlayerActionForRoom(
                 playerActionRequestDto.RoomId, playerActionRequestDto.PlayerRoleId.Value);
         }
 
@@ -319,18 +321,18 @@ public class GameService(
             actionId);
     }
 
-    public GameState GetGameState(string roomId)
+    public async Task<GameState> GetGameState(string roomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         return room.GameState;
     }
 
     private async Task ShuffleAndAssignRoles(string roomId)
     {
-        var roomModerator = roomRepository.GetModeratorForRoom(roomId);
-        var playersInRoomWithoutMod = playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
+        var roomModerator =  await roomRepository.GetModeratorForRoom(roomId);
+        var playersInRoomWithoutMod = await playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
         playersInRoomWithoutMod = playersInRoomWithoutMod.Shuffle();
-        var roomSettings = roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+        var roomSettings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
 
         var roleCards = new List<RoleName>(roomSettings.SelectedRoles);
         for (int i = 0; i < roomSettings.NumberOfWerewolves; i++)
@@ -358,9 +360,9 @@ public class GameService(
         await playerRoleRepository.AddPlayerRolesToRoom(playerRolesToAdd);
     }
 
-    public DayDto GetCurrentNightAndTime(string roomId)
+    public async Task<DayDto> GetCurrentNightAndTime(string roomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         return new DayDto()
         {
             CurrentNight = room.CurrentNight,
@@ -370,7 +372,7 @@ public class GameService(
 
     private async Task ProgressToNextPoint(string roomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         if (room.isDay)
         {
             room.CurrentNight++;
@@ -384,11 +386,15 @@ public class GameService(
         await roomRepository.UpdateRoom(room);
     }
 
-    public List<PlayerDTO> GetLatestDeaths(string roomId)
+    public async Task<List<PlayerDTO>> GetLatestDeaths(string roomId)
     {
-        var currentNight = roomRepository.GetRoom(roomId).CurrentNight;
-        var playersInGame = playerRoomRepository.GetPlayersInRoom(roomId);
-        var gameDeaths = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
+        var currentNight = room.CurrentNight;
+        var playersInGameTask = playerRoomRepository.GetPlayersInRoom(roomId);
+        var gameDeathsTask = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        await Task.WhenAll(playersInGameTask, gameDeathsTask);
+        var playersInGame = await playersInGameTask;
+        var gameDeaths = await gameDeathsTask;
 
         var playersDeadThisNight = playersInGame.Where((player) => gameDeaths
                 .Any((x) => x.PlayerRoom.PlayerId == player.PlayerId && x.NightKilled == currentNight && !x.IsAlive))
@@ -398,13 +404,13 @@ public class GameService(
 
     public async Task<WinCondition> CheckWinCondition(string roomId)
     {
-        var winConditionForRoom = roomRepository.GetWinConditionForRoom(roomId);
+        var winConditionForRoom = await roomRepository.GetWinConditionForRoom(roomId);
         if (winConditionForRoom != WinCondition.None)
         {
             return winConditionForRoom;
         }
 
-        var playerRolesForRoom = playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var playerRolesForRoom = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
         var aliveWerewolvesCount =
             playerRolesForRoom.Count(player => player is { IsAlive: true, Role: RoleName.WereWolf });
         var otherPlayersCount = playerRolesForRoom.Count(player => player.IsAlive && player.Role != RoleName.WereWolf);
@@ -421,7 +427,7 @@ public class GameService(
 
         if (winCondition != WinCondition.None)
         {
-            var room = roomRepository.GetRoom(roomId);
+            var room = await roomRepository.GetRoom(roomId);
             room.WinCondition = winCondition;
             await roomRepository.UpdateRoom(room);
         }
@@ -429,15 +435,15 @@ public class GameService(
         return winCondition;
     }
 
-    public WinCondition GetWinConditionForRoom(string roomId)
+    public async Task<WinCondition> GetWinConditionForRoom(string roomId)
     {
-        var room = roomRepository.GetRoom(roomId);
+        var room = await roomRepository.GetRoom(roomId);
         return room.WinCondition;
     }
 
-    public List<GameNightHistoryDTO> GetGameSummary(string roomId)
+    public async Task<List<GameNightHistoryDTO>> GetGameSummary(string roomId)
     {
-        var actions = roomGameActionRepository.GetAllProcessedActionsForRoom(roomId, true);
+        var actions = await roomGameActionRepository.GetAllProcessedActionsForRoom(roomId, true);
         var history = actions.GroupBy((e) => e.Night).OrderBy(e => e.Key)
             .Select(e =>
             {
@@ -463,8 +469,8 @@ public class GameService(
                 };
             }).ToList();
 
-        //Fill in days where no action was taken
-        var maxNight = history.Max((e) => e.Night);
+        //Fill in days when no action was taken
+        var maxNight = history.Count > 0 ?history.Max((e) => e.Night) : 0;
         for (var i = 0; i < maxNight; i++)
         {
             if (!history.Exists((e) => e.Night == i))

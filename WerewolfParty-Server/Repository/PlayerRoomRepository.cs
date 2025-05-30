@@ -9,9 +9,9 @@ namespace WerewolfParty_Server.Repository;
 
 public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomRepository> logger)
 {
-    public PlayerRoomEntity GetPlayerInRoomUsingPlayerGuid(string roomId, Guid playerId)
+    public async Task<PlayerRoomEntity> GetPlayerInRoomUsingPlayerGuid(string roomId, Guid playerId)
     {
-        var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
+        var player = await context.PlayerRooms.FirstOrDefaultAsync(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.PlayerId == playerId);
         if (player == null)
@@ -22,9 +22,9 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         return player;
     }
 
-    public PlayerRoomEntity GetPlayerInRoom(string roomId, int playerRoomId)
+    public async Task<PlayerRoomEntity> GetPlayerInRoom(string roomId, int playerRoomId)
     {
-        var player = context.PlayerRooms.FirstOrDefault(playerRoom =>
+        var player = await context.PlayerRooms.FirstOrDefaultAsync(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.Id == playerRoomId);
         if (player == null)
@@ -35,25 +35,25 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         return player;
     }
 
-    public int GetPlayerCountForRoom(string roomId)
+    public async Task<int> GetPlayerCountForRoom(string roomId)
     {
-        var count = context.PlayerRooms.Count(playerRoom =>
+        var count = await context.PlayerRooms.CountAsync(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId));
         return count;
     }
 
 
-    public List<PlayerRoomEntity> GetPlayersInRoom(string roomId)
+    public async Task<List<PlayerRoomEntity>> GetPlayersInRoom(string roomId)
     {
-        return context.PlayerRooms
-            .Where(playerRoom => EF.Functions.ILike(playerRoom.RoomId, roomId)).ToList();
+        return await context.PlayerRooms
+            .Where(playerRoom => EF.Functions.ILike(playerRoom.RoomId, roomId)).ToListAsync();
     }
 
-    public List<PlayerRoomEntity> GetPlayersInRoomWithoutModerator(string roomId, int? moderatorId)
+    public async Task<List<PlayerRoomEntity>> GetPlayersInRoomWithoutModerator(string roomId, int? moderatorId)
     {
-        return context.PlayerRooms.Where(playerRoom =>
+        return await context.PlayerRooms.Where(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
-            !playerRoom.Id.Equals(moderatorId)).ToList();
+            !playerRoom.Id.Equals(moderatorId)).ToListAsync();
     }
 
     public async Task<PlayerRoomEntity> AddPlayerToRoom(Guid playerId, AddEditPlayerDetailsDTO addEditPlayerDetails)
@@ -66,7 +66,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
             AvatarIndex = addEditPlayerDetails.AvatarIndex.GetValueOrDefault(0),
             Status = PlayerStatus.Active,
         };
-        var newPlayer = context.PlayerRooms.Add(newPlayerRoom);
+        var newPlayer = await context.PlayerRooms.AddAsync(newPlayerRoom);
         await context.SaveChangesAsync();
         return newPlayer.Entity;
     }
@@ -91,9 +91,9 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         return updatedGroupOfPlayers;
     }
 
-    public bool IsPlayerInRoom(Guid playerId, string roomId)
+    public async Task<bool> IsPlayerInRoom(Guid playerId, string roomId)
     {
-        return context.PlayerRooms.Any(playerRoom =>
+        return await context.PlayerRooms.AnyAsync(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.PlayerId.Equals(playerId));
     }
@@ -107,7 +107,7 @@ public class PlayerRoomRepository(WerewolfDbContext context, ILogger<PlayerRoomR
 
     public async Task RemovePlayerFromRoom(string roomId, int playerRoomId)
     {
-        var playerToRemove = context.PlayerRooms.Include((p) => p.PlayerRole).FirstOrDefault(playerRoom =>
+        var playerToRemove = await context.PlayerRooms.Include((p) => p.PlayerRole).FirstOrDefaultAsync(playerRoom =>
             EF.Functions.ILike(playerRoom.RoomId, roomId) &&
             playerRoom.Id.Equals(playerRoomId));
         if (playerToRemove == null)
