@@ -39,7 +39,7 @@ public static class PlayerEndpoint
         {
             var roomId = addEditPlayerDetails.RoomId;
             var playerGuid = httpContext.User.GetPlayerId();
-            var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
             await roomService.UpdatePlayerDetailsForRoom(player.Id, addEditPlayerDetails);
             string sanitizedRoomId = roomId.ToUpper();
             await hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();

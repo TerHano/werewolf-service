@@ -23,7 +23,7 @@ public class RoomGameActionRepository(WerewolfDbContext context)
 
     public async Task DequeueActionForPlayer(int actionId)
     {
-        var playerAction = context.RoomGameActions.FirstOrDefault(x =>
+        var playerAction = await context.RoomGameActions.FirstOrDefaultAsync(x =>
             x.Id.Equals(actionId));
         if (playerAction == null) return;
         context.RoomGameActions.Remove(playerAction);
@@ -88,3 +88,4 @@ public class RoomGameActionRepository(WerewolfDbContext context)
        await context.SaveChangesAsync();
     }
 }
+

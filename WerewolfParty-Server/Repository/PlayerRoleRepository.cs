@@ -70,7 +70,7 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
     {
         foreach (var playerId in playerIds)
         {
-            var player = context.PlayerRoles.FirstOrDefault((player) => player.PlayerRoom.PlayerId == playerId);
+            var player = await context.PlayerRoles.FirstOrDefaultAsync((player) => player.PlayerRoom.PlayerId == playerId);
             if (player == null) continue;
             player.IsAlive = isAlive;
             context.Update(player);
@@ -93,3 +93,4 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         await context.SaveChangesAsync();
     }
 }
+

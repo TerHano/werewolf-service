@@ -133,9 +133,9 @@ public static class RoomEndpoint
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             var roomId = roomIdRequest.RoomId.ToUpper();
-            var oldModerator = roomService.GetModeratorForRoom(roomId);
+            var oldModerator = await roomService.GetModeratorForRoom(roomId); // Added await
             var playerGuid = httpContext.User.GetPlayerId();
-            var player = roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid); // Added await
             await roomService.RemovePlayerFromRoom(roomId, player.Id);
             await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced

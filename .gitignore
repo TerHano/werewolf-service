@@ -46,5 +46,5 @@ msbuild.wrn
 script.sql
 
 #Environment files
-**.env
+*.env
 !.env
