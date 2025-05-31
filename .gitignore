@@ -44,3 +44,7 @@ msbuild.wrn
 
 #Database
 script.sql
+
+#Environment files
+**.env
+!.env
