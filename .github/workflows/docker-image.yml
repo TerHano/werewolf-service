@@ -50,6 +50,6 @@ jobs:
           key: ${{ secrets.ORACLE_KEY }}
           port: ${{ secrets.ORACLE_PORT }}
           script: |
-            docker pull ghcr.io/${{ github.repository_owner }}/${{vars.IMAGE_NAME}}:latest
+            docker pull ghcr.io/terhano/werewolfparty-api:latest
             cd /home/ubuntu/docker_projects/werewolf-party
             docker compose up -d
