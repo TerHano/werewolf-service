@@ -440,6 +440,9 @@ public class GameService(
         var room = await roomRepository.GetRoom(roomId);
         return room.WinCondition;
     }
+    
+    //Create a method that returns a random description on how a player died, make it begin with were, make it environmental accidents
+    
 
     public async Task<List<GameNightHistoryDTO>> GetGameSummary(string roomId)
     {

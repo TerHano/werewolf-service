@@ -15,6 +15,10 @@ public static class RoomEndpoint
     public static void RegisterRoomEndpoints(this WebApplication app)
     {
         app.MapGet("/api/room/all-rooms", (RoomService roomService) => roomService.GetAllRooms())
+            .WithName("GetAllRooms")
+            .WithTags("Room")
+            .WithSummary("Get all rooms.")
+            .WithDescription("Returns a list of all available rooms.")
             .RequireAuthorization();
 
         app.MapPost("/api/room/create-room", async (HttpContext httpContext, RoomService roomService) =>
@@ -26,7 +30,12 @@ public static class RoomEndpoint
                 Success = true,
                 Data = newRoomId
             });
-        }).RequireAuthorization();
+        })
+        .WithName("CreateRoom")
+        .WithTags("Room")
+        .WithSummary("Create a new room.")
+        .WithDescription("Creates a new game room and returns its unique identifier.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/end-game", async (RoomIdRequest roomIdRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -38,7 +47,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("EndGame")
+        .WithTags("Room")
+        .WithSummary("End the current game in a room.")
+        .WithDescription("Ends the current game in the specified room and returns to lobby state.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/is-player-in-room",async (string roomId, HttpContext httpContext,
             RoomService roomService) =>
@@ -50,7 +64,12 @@ public static class RoomEndpoint
                 Success = true,
                 Data = isPlayerInRoom
             });
-        }).RequireAuthorization();
+        })
+        .WithName("IsPlayerInRoom")
+        .WithTags("Room")
+        .WithSummary("Check if player is in room.")
+        .WithDescription("Verifies if the current player is a member of the specified room.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/start-game", async(RoomIdRequest roomIdRequest, 
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
@@ -72,7 +91,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("StartGame")
+        .WithTags("Room")
+        .WithSummary("Start a game in a room.")
+        .WithDescription("Initiates a new game in the specified room, dealing cards to all players.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/kick-player/", async(KickPlayerRequest kickPlayerRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -86,7 +110,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("KickPlayer")
+        .WithTags("Room")
+        .WithSummary("Kick a player from the room.")
+        .WithDescription("Removes a player from the specified room and notifies all room participants.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/leave-room", async (RoomIdRequest roomIdRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -108,7 +137,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("LeaveRoom")
+        .WithTags("Room")
+        .WithSummary("Leave the current room.")
+        .WithDescription("Removes the current player from the specified room and notifies other players.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/update-moderator", async (UpdateModeratorRequest updateModeratorRequest,
             HttpContext httpContext, IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -128,7 +162,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("UpdateModerator")
+        .WithTags("Room")
+        .WithSummary("Update the room moderator.")
+        .WithDescription("Assigns a new moderator to the specified room and notifies all participants.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/get-moderator", async (string roomId, RoomService roomService) =>
         {
@@ -139,7 +178,12 @@ public static class RoomEndpoint
                 Success = true,
                 Data = mod
             });
-        }).RequireAuthorization();
+        })
+        .WithName("GetModerator")
+        .WithTags("Room")
+        .WithSummary("Get the room moderator.")
+        .WithDescription("Returns the details of the current moderator for the specified room.")
+        .RequireAuthorization();
 
 
         app.MapPost("/api/room/check-room", async (RoomIdRequest request, RoomService roomService) =>
@@ -150,7 +194,12 @@ public static class RoomEndpoint
                 Success = true,
                 Data = doesRoomExist
             });
-        }).RequireAuthorization();
+        })
+        .WithName("CheckRoomExists")
+        .WithTags("Room")
+        .WithSummary("Check if a room exists.")
+        .WithDescription("Verifies if a room with the specified ID exists.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/players",
            async (RoomService roomService, HttpContext httpContext, string roomId) =>
@@ -162,7 +211,12 @@ public static class RoomEndpoint
                     Success = true,
                     Data = players
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("GetPlayersInRoom")
+        .WithTags("Room")
+        .WithSummary("Get all players in a room.")
+        .WithDescription("Returns a list of all players currently in the specified room.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/role-settings", async (RoomService roomService, string roomId) =>
         {
@@ -172,7 +226,12 @@ public static class RoomEndpoint
                 Success = true,
                 Data = roleSettings
             });
-        }).RequireAuthorization();
+        })
+        .WithName("GetRoleSettings")
+        .WithTags("Room")
+        .WithSummary("Get role settings for a room.")
+        .WithDescription("Returns the current role settings configuration for the specified room.")
+        .RequireAuthorization();
 
         app.MapPost("/api/room/role-settings", async (UpdateRoleSettingsRequest updateRoleSettingsRequest,
             IHubContext<EventsHub, IClientEventsHub> hubContext,
@@ -195,7 +254,12 @@ public static class RoomEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("UpdateRoleSettings")
+        .WithTags("Room")
+        .WithSummary("Update role settings for a room.")
+        .WithDescription("Modifies the role settings configuration for the specified room and notifies all participants.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}",
           async  (RoomService roomService, string roomId) =>
@@ -206,7 +270,12 @@ public static class RoomEndpoint
                     Success = true,
                     Data = room
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("GetRoom")
+        .WithTags("Room")
+        .WithSummary("Get room details.")
+        .WithDescription("Returns detailed information about the specified room.")
+        .RequireAuthorization();
 
         app.MapGet("/api/room/{roomId}/game-state",async (GameService gameService, string roomId) =>
         {
@@ -216,6 +285,11 @@ public static class RoomEndpoint
                 Success = true,
                 Data = state
             });
-        }).RequireAuthorization();
+        })
+        .WithName("GetGameState")
+        .WithTags("Room")
+        .WithSummary("Get the current game state for a room.")
+        .WithDescription("Returns the current game state (Lobby, CardsDealt, etc.) for the specified room.")
+        .RequireAuthorization();
     }
 }

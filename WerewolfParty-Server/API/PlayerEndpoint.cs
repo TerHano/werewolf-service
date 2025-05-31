@@ -28,7 +28,11 @@ public static class PlayerEndpoint
                 Success = true,
                 Data = token
             });
-        });
+        })
+        .WithName("GetPlayerIdToken")
+        .WithTags("Player")
+        .WithSummary("Get player ID token.")
+        .WithDescription("Generates and returns a JWT token containing the player's ID. Creates a new ID if none exists.");
 
         app.MapPost("/api/player/update-player", async (AddEditPlayerDetailsDTO addEditPlayerDetails,
             IHubContext<EventsHub, IClientEventsHub> hubContext, HttpContext httpContext, RoomService roomService) =>
@@ -43,7 +47,12 @@ public static class PlayerEndpoint
             {
                 Success = true
             });
-        }).RequireAuthorization();
+        })
+        .WithName("UpdatePlayerDetails")
+        .WithTags("Player")
+        .WithSummary("Update player details.")
+        .WithDescription("Updates the current player's details in a room and notifies other players about the change.")
+        .RequireAuthorization();
 
         app.MapGet("/api/player/{roomId}/player", async (string roomId,
             HttpContext httpContext, RoomService roomService) =>
@@ -55,6 +64,11 @@ public static class PlayerEndpoint
                 Success = true,
                 Data = currentPlayer
             });
-        }).RequireAuthorization();
+        })
+        .WithName("GetCurrentPlayerInRoom")
+        .WithTags("Player")
+        .WithSummary("Get current player in room.")
+        .WithDescription("Returns the current player's details for the specified room.")
+        .RequireAuthorization();
     }
 }

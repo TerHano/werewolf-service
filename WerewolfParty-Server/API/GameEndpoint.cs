@@ -21,7 +21,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = assignedRole
                 });
-            }).RequireAuthorization();
+            })
+            .WithName("GetAssignedRole")
+            .WithTags("Game")
+            .WithSummary("Get current player's assigned role.")
+            .WithDescription("Returns the role assigned to the current player in the specified room.")
+            .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/all-player-roles",
             async (HttpContext httpContext, GameService gameService, RoomService roomService, string roomId) =>
@@ -40,8 +45,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = assignedRoles
                 });
-            }).RequireAuthorization();
-
+            })
+            .WithName("GetAllPlayerRoles")
+            .WithTags("Game")
+            .WithSummary("Get all player roles in room.")
+            .WithDescription("Returns all assigned player roles and actions in the room. Only accessible by the moderator.")
+            .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/role-actions",
             async (GameService gameService, string roomId, int playerRoleId) =>
@@ -52,7 +61,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+            .WithName("GetRoleActions")
+            .WithTags("Game")
+            .WithSummary("Get available actions for a player role.")
+            .WithDescription("Returns a list of available actions for the specified player role in a room.")
+            .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
             async (GameService gameService, string roomId, int playerRoleId) =>
@@ -64,7 +78,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state!
                 });
-            }).RequireAuthorization();
+            })
+            .WithName("GetQueuedAction")
+            .WithTags("Game")
+            .WithSummary("Get queued action for a player.")
+            .WithDescription("Returns the currently queued action for the specified player role.")
+            .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/all-queued-actions",
             async (GameService gameService, string roomId) =>
@@ -76,7 +95,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+            .WithName("GetAllQueuedActions")
+            .WithTags("Game")
+            .WithSummary("Get all queued actions in a room.")
+            .WithDescription("Returns a list of all queued actions from players in the specified room.")
+            .RequireAuthorization();
 
         app.MapPost("/api/game/queued-action",
            async (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
@@ -86,7 +110,12 @@ public static class GameEndpoint
                 {
                     Success = true,
                 });
-            }).RequireAuthorization();
+            })
+            .WithName("QueuePlayerAction")
+            .WithTags("Game")
+            .WithSummary("Queue a player action.")
+            .WithDescription("Creates a queued action for a player role in the game.")
+            .RequireAuthorization();
 
         app.MapDelete("/api/game/queued-action/{actionId}", async (int actionId, GameService gameService) =>
         {
@@ -95,7 +124,12 @@ public static class GameEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("DequeuePlayerAction")
+        .WithTags("Game")
+        .WithSummary("Remove a queued player action.")
+        .WithDescription("Deletes a previously queued action for a player.")
+        .RequireAuthorization();
 
         app.MapPost("/api/game/end-night", async (PlayerIdAndRoomIdRequestDto request,
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
@@ -113,7 +147,12 @@ public static class GameEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("EndNight")
+        .WithTags("Game")
+        .WithSummary("End the night phase.")
+        .WithDescription("Processes all queued night actions and transitions to day phase. Checks for win conditions.")
+        .RequireAuthorization();
 
         app.MapPost("/api/game/vote-out-player", async (PlayerVoteOutRequestDTO request,
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
@@ -130,7 +169,12 @@ public static class GameEndpoint
             {
                 Success = true,
             });
-        }).RequireAuthorization();
+        })
+        .WithName("VoteOutPlayer")
+        .WithTags("Game")
+        .WithSummary("Vote out a player.")
+        .WithDescription("Removes a player from the game through village voting. Checks for win conditions.")
+        .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/day-time",
             async (GameService gameService, string roomId) =>
@@ -142,7 +186,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("GetDayTime")
+        .WithTags("Game")
+        .WithSummary("Get current day and time information.")
+        .WithDescription("Returns the current day number and phase (day/night) for the game.")
+        .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/latest-deaths",
             async (GameService gameService, string roomId) =>
@@ -154,7 +203,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("GetLatestDeaths")
+        .WithTags("Game")
+        .WithSummary("Get latest player deaths.")
+        .WithDescription("Returns a list of players who died in the most recent night/day phase.")
+        .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/check-win-condition",
             async (GameService gameService, string roomId) =>
@@ -166,7 +220,12 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("CheckWinCondition")
+        .WithTags("Game")
+        .WithSummary("Check for game win condition.")
+        .WithDescription("Returns the current win condition status for the game, if any faction has won.")
+        .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/summary",
             async (GameService gameService, string roomId) =>
@@ -178,6 +237,11 @@ public static class GameEndpoint
                     Success = true,
                     Data = state
                 });
-            }).RequireAuthorization();
+            })
+        .WithName("GetGameSummary")
+        .WithTags("Game")
+        .WithSummary("Get game summary.")
+        .WithDescription("Returns a historical summary of game events, organized by night/day.")
+        .RequireAuthorization();
     }
 }
