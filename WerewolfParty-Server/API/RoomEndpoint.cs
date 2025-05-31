@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
+using WerewolfParty_Server.Exceptions;
 using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Models.Request;
@@ -71,32 +72,43 @@ public static class RoomEndpoint
         .WithDescription("Verifies if the current player is a member of the specified room.")
         .RequireAuthorization();
 
-        app.MapPost("/api/room/start-game", async(RoomIdRequest roomIdRequest, 
-            IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
-        {
-            string roomId = roomIdRequest.RoomId.ToUpper();
-            var gameState = await gameService.GetGameState(roomId);
-            await gameService.StartGame(roomId);
-            if (gameState == GameState.CardsDealt)
+        app.MapPost("/api/room/start-game", async (RoomIdRequest roomIdRequest,
+                HttpContext httpContext,
+                IHubContext<EventsHub, IClientEventsHub> hubContext,
+                GameService gameService) =>
             {
-                //We're restarting game
-                await hubContext.Clients.Group(roomId).GameRestart();
-            }
-            else
-            {
-                await hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
-            }
-
-            return TypedResults.Ok(new APIResponse()
-            {
-                Success = true,
-            });
-        })
-        .WithName("StartGame")
-        .WithTags("Room")
-        .WithSummary("Start a game in a room.")
-        .WithDescription("Initiates a new game in the specified room, dealing cards to all players.")
-        .RequireAuthorization();
+                var roomId = roomIdRequest.RoomId.ToUpper();
+                var gameState = await gameService.GetGameState(roomId);
+                try
+                {
+                    await gameService.StartGame(roomId);
+                    if (gameState == GameState.CardsDealt)
+                    {
+                        await hubContext.Clients.Group(roomId).GameRestart();
+                    }
+                    else
+                    {
+                        await hubContext.Clients.Group(roomId).GameState(GameState.CardsDealt);
+                    }
+                }
+                catch (NotEnoughPlayersException e)
+                {
+                    return TypedResults.Ok(new APIResponse()
+                    {
+                        Success = false,
+                        ErrorMessages = new List<string> { e.Message }
+                    });
+                }
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = true,
+                });
+            })
+            .WithName("StartGame")
+            .WithTags("Room")
+            .WithSummary("Start a game in a room.")
+            .WithDescription("Initiates a new game in the specified room, dealing cards to all players.")
+            .RequireAuthorization();
 
         app.MapPost("/api/room/kick-player/", async(KickPlayerRequest kickPlayerRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>

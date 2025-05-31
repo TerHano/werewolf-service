@@ -2,6 +2,7 @@ using AutoMapper;
 using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
+using WerewolfParty_Server.Exceptions;
 using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Repository;
 using WerewolfParty_Server.Role;
@@ -159,7 +160,7 @@ public class GameService(
         var canStartGame = await IsEnoughPlayersForGame(roomId);
         if (!canStartGame)
         {
-            throw new Exception("Not enough players for game");
+            throw new NotEnoughPlayersException("More players are needed for current game settings");
         }
 
         await ResetRoomForNewGame(roomId);
