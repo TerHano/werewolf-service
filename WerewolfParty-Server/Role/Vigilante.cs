@@ -7,6 +7,7 @@ public class Vigilante : Role
 {
     public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
+        var allPlayersExceptSelf = actionCheckDto.ActivePlayers.Where(x=>x.Id != actionCheckDto.CurrentPlayer.Id && x.IsAlive).Select(x=>x.Id).ToList();
         var currentPlayer = actionCheckDto.CurrentPlayer;
         var queuedActions = actionCheckDto.QueuedActions;
         var killAction = new RoleActionDto()
@@ -14,6 +15,7 @@ public class Vigilante : Role
             Label = "Kill Player",
             Type = ActionType.VigilanteKill,
             Enabled = true,
+            ValidPlayerIds = allPlayersExceptSelf
         };
         if (actionCheckDto.CurrentPlayer.IsAlive == false)
         {

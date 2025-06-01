@@ -25,7 +25,7 @@ public class GameService(
         
         var playersRevivedSet = new HashSet<int>();
         var playersKilledSet = new HashSet<int>();
-        var playersDeadSet = new HashSet<int>();
+        //var playersDeadSet = new HashSet<int>();
         var actionsQueuedForNextNight = new List<RoomGameActionEntity>();
 
         foreach (var action in queuedActions)
@@ -35,8 +35,8 @@ public class GameService(
                 case ActionType.Investigate:
                     break;
                 case ActionType.Suicide:
-                    playersDeadSet.Add(action.AffectedPlayerRoleId);
-                    break;
+                  //  playersDeadSet.Add(action.AffectedPlayerRoleId);
+                  //  break;
                 case ActionType.WerewolfKill:
                 case ActionType.Kill:
                 {
@@ -59,7 +59,7 @@ public class GameService(
                             throw new Exception("Vigilante action must have a player id");
                         }
 
-                        //Vigilante will be set to be killed next night;
+                        //Vigilante will be set to be killed next night
                         var vigilanteSuicideAction = new RoomGameActionEntity()
                         {
                             RoomId = roomId,
@@ -80,7 +80,6 @@ public class GameService(
                     {
                         playersKilledSet.Remove(action.AffectedPlayerRoleId);
                     }
-
                     playersRevivedSet.Add(action.AffectedPlayerRoleId);
                     break;
                 }
@@ -90,17 +89,26 @@ public class GameService(
         }
 
         //Set killed players as dead
-        foreach (var player in playersDeadSet)
-        {
-            playersKilledSet.Add(player);
-        }
+        // foreach (var player in playersDeadSet)
+        // {
+        //     playersKilledSet.Add(player);
+        // }
 
         await playerRoleRepository.UpdatePlayerStatusToDead(playersKilledSet.ToList(), room.CurrentNight);
         await roomGameActionRepository.MarkActionsAsProcessed(roomId, queuedActions);
         foreach (var roomGameActionEntity in actionsQueuedForNextNight)
         {
-            await roomGameActionRepository.QueueActionForPlayer(roomGameActionEntity);
+            await roomGameActionRepository.AddActionForPlayer(roomGameActionEntity);
         }
+    }
+
+    //Returns true if player is werewolf
+    public async Task<bool> InvestigatePlayerInRoom(string roomId,int playerId)
+    {
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var player = playerRoles.FirstOrDefault(p=>p.Id.Equals(playerId));
+        if (player == null) throw new Exception("Player not found");
+        return player.Role is RoleName.WereWolf or RoleName.Cursed;
     }
 
     public async Task EndNight(string roomId)
@@ -127,7 +135,7 @@ public class GameService(
             };
             player.IsAlive = false;
             player.NightKilled = room.CurrentNight;
-            await roomGameActionRepository.QueueActionForPlayer(votedOutAction);
+            await roomGameActionRepository.AddActionForPlayer(votedOutAction);
             await playerRoleRepository.UpdatePlayerRoleInRoom(player);
         }
 
@@ -252,10 +260,7 @@ public class GameService(
         }
 
         var mappedAction = mapper.Map<PlayerQueuedActionDTO>(queuedAction);
-        // var playerNickname = playerRoomRepository.GetPlayerInRoom(roomId, mappedAction.PlayerId).NickName;
-        // var affectedPlayerNickname = playerRoomRepository.GetPlayerInRoom(roomId, mappedAction.AffectedPlayerRoleId).NickName;
-        // mappedAction.PlayerNickname = playerNickname;
-        // mappedAction.AffectedPlayerNickname = affectedPlayerNickname;
+
         return mappedAction;
     }
 
@@ -264,10 +269,7 @@ public class GameService(
         var queuedActions = await roomGameActionRepository.GetAllQueuedActionsForRoom(roomId);
         queuedActions.RemoveAll(queuedAction => queuedAction.Action.Equals(ActionType.Suicide));
         var mappedAction = mapper.Map<List<PlayerQueuedActionDTO>>(queuedActions);
-        // var playerNickname = playerRoomRepository.GetPlayerInRoom(roomId, mappedAction.PlayerId).NickName;
-        // var affectedPlayerNickname = playerRoomRepository.GetPlayerInRoom(roomId, mappedAction.AffectedPlayerRoleId).NickName;
-        // mappedAction.PlayerNickname = playerNickname;
-        // mappedAction.AffectedPlayerNickname = affectedPlayerNickname;
+  
         return mappedAction;
     }
 
@@ -298,7 +300,7 @@ public class GameService(
             existingPlayerAction.Action = playerActionRequestDto.Action;
             existingPlayerAction.AffectedPlayerRoleId = playerActionRequestDto.AffectedPlayerRoleId;
             existingPlayerAction.Night = night;
-            await roomGameActionRepository.QueueActionForPlayer(existingPlayerAction);
+            await roomGameActionRepository.AddActionForPlayer(existingPlayerAction);
         }
         else
         {
@@ -312,13 +314,13 @@ public class GameService(
                 State = ActionState.Queued,
                 Night = night
             };
-            await roomGameActionRepository.QueueActionForPlayer(playerAction);
+            await roomGameActionRepository.AddActionForPlayer(playerAction);
         }
     }
 
     public async Task DequeueActionForPlayer(int actionId)
     {
-        await roomGameActionRepository.DequeueActionForPlayer(
+        await roomGameActionRepository.RemoveActionForPlayer(
             actionId);
     }
 

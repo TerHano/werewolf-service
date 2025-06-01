@@ -7,11 +7,13 @@ public class Detective() : Role()
 {
     public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
+        var allPlayersExceptSelf = actionCheckDto.ActivePlayers.Where(x=>x.Id != actionCheckDto.CurrentPlayer.Id && x.IsAlive).Select(x=>x.Id).ToList();
         var investigateAction = new RoleActionDto()
         {
             Label = "Investigate Player",
             Type = ActionType.Investigate,
             Enabled = true,
+            ValidPlayerIds = allPlayersExceptSelf,
         };
         if (actionCheckDto.CurrentPlayer.IsAlive == false)
         {

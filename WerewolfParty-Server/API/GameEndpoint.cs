@@ -67,6 +67,22 @@ public static class GameEndpoint
             .WithSummary("Get available actions for a player role.")
             .WithDescription("Returns a list of available actions for the specified player role in a room.")
             .RequireAuthorization();
+        
+        app.MapPost("/api/game/{roomId}/investigate/{playerRoleId}",
+                async (GameService gameService, string roomId, int playerRoleId) =>
+                {
+                    var isPlayerWerewolf = await gameService.InvestigatePlayerInRoom(roomId, playerRoleId);
+                    return TypedResults.Ok(new APIResponse<bool>()
+                    {
+                        Success = true,
+                        Data = isPlayerWerewolf
+                    });
+                })
+            .WithName("InvestigatePlayerInRoom")
+            .WithTags("Game")
+            .WithSummary("Checks if player is a werewolf")
+            .WithDescription("Return true if player is a werewolf, otherwise false")
+            .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
             async (GameService gameService, string roomId, int playerRoleId) =>

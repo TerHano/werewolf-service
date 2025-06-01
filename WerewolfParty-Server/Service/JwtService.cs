@@ -11,8 +11,8 @@ public class JwtService(IConfiguration config)
     {
         var handler = new JwtSecurityTokenHandler();
         var privateKeyValue = config.GetValue<string>("Auth:PrivateKey");
-        var Issuer = config.GetValue<string>("Auth:Issuer");
-        var Audience = config.GetValue<string>("Auth:Audience");
+        var issuer = config.GetValue<string>("Auth:Issuer");
+        var audience = config.GetValue<string>("Auth:Audience");
 
         if (string.IsNullOrEmpty(privateKeyValue)) throw new ApplicationException("JWT:Private key is empty");
         var encodedPrivateKey = Encoding.UTF8.GetBytes(privateKeyValue);
@@ -26,8 +26,8 @@ public class JwtService(IConfiguration config)
             SigningCredentials = credentials,
             Expires = DateTime.UtcNow.AddDays(1),
             Subject = GenerateClaims(playerId),
-            Issuer = Issuer,
-            Audience = Audience,
+            Issuer = issuer,
+            Audience = audience,
         };
         var token = handler.CreateToken(tokenDescriptor);
         return handler.WriteToken(token);

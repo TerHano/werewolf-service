@@ -7,18 +7,22 @@ public class Witch : Role
 {
     public override List<RoleActionDto> GetActions(ActionCheckDto actionCheckDto)
     {
+        var allPlayers = actionCheckDto.ActivePlayers.Where(x=>x.IsAlive).Select(x=>x.Id).ToList();
+        var allPlayersExceptSelf = actionCheckDto.ActivePlayers.Where(x=>x.Id != actionCheckDto.CurrentPlayer.Id && x.IsAlive).Select(x=>x.Id).ToList();
         var currentPlayer = actionCheckDto.CurrentPlayer;
         var healAction = new RoleActionDto()
         {
             Label = "Heal Player",
             Type = ActionType.Revive,
             Enabled = true,
+            ValidPlayerIds = allPlayers,
         };
         var killAction = new RoleActionDto()
         {
             Label = "Kill Player",
             Type = ActionType.Kill,
             Enabled = true,
+            ValidPlayerIds = allPlayersExceptSelf,
         };
 
         if (currentPlayer.IsAlive == false)

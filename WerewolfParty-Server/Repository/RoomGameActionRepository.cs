@@ -7,7 +7,7 @@ namespace WerewolfParty_Server.Repository;
 
 public class RoomGameActionRepository(WerewolfDbContext context)
 {
-    public async Task QueueActionForPlayer(RoomGameActionEntity roomGameActionEntity)
+    public async Task AddActionForPlayer(RoomGameActionEntity roomGameActionEntity)
     {
         if (roomGameActionEntity.Id == 0)
         {
@@ -21,7 +21,7 @@ public class RoomGameActionRepository(WerewolfDbContext context)
         await context.SaveChangesAsync();
     }
 
-    public async Task DequeueActionForPlayer(int actionId)
+    public async Task RemoveActionForPlayer(int actionId)
     {
         var playerAction = await context.RoomGameActions.FirstOrDefaultAsync(x =>
             x.Id.Equals(actionId));
