@@ -37,11 +37,9 @@ public class Doctor : Role
             Enabled = true,
             ValidPlayerIds = applicablePlayerIds,
         };
-        if (actionCheckDto.CurrentPlayer.IsAlive == false)
-        {
-            healAction.Enabled = false;
-            healAction.DisabledReason = "Player is dead";
-        }
+        if (actionCheckDto.CurrentPlayer.IsAlive != false) return [healAction];
+        healAction.Enabled = false;
+        healAction.DisabledReason = "Player is dead";
 
         return [healAction];
     }

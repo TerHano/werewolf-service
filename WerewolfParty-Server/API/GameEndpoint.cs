@@ -68,14 +68,14 @@ public static class GameEndpoint
             .WithDescription("Returns a list of available actions for the specified player role in a room.")
             .RequireAuthorization();
         
-        app.MapPost("/api/game/{roomId}/investigate/{playerRoleId}",
-                async (GameService gameService, string roomId, int playerRoleId) =>
+        app.MapPost("/api/game/investigate",
+                async (GameService gameService, InvestigatePlayerRequest request) =>
                 {
-                    var isPlayerWerewolf = await gameService.InvestigatePlayerInRoom(roomId, playerRoleId);
-                    return TypedResults.Ok(new APIResponse<bool>()
+                    var investigationResult = await gameService.InvestigatePlayerInRoom(request);
+                    return TypedResults.Ok(new APIResponse<InvestigatePlayerResult>()
                     {
                         Success = true,
-                        Data = isPlayerWerewolf
+                        Data = investigationResult
                     });
                 })
             .WithName("InvestigatePlayerInRoom")

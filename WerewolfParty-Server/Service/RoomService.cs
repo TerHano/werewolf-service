@@ -91,7 +91,7 @@ public class RoomService(
         await roomRepository.CreateRoom(newRoom);
 
         //Set Default Role Settings For Room
-        var DefaultRoleSettings = new RoomSettingsEntity()
+        var defaultRoleSettings = new RoomSettingsEntity()
         {
             RoomId = newRoomId,
             NumberOfWerewolves = 1,
@@ -99,7 +99,7 @@ public class RoomService(
             ShowGameSummary = true,
             AllowMultipleSelfHeals = true
         };
-        await roleSettingsRepository.AddRoleSettings(DefaultRoleSettings);
+        await roleSettingsRepository.AddRoleSettings(defaultRoleSettings);
 
         return newRoomId;
     }

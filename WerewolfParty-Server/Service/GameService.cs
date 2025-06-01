@@ -103,12 +103,26 @@ public class GameService(
     }
 
     //Returns true if player is werewolf
-    public async Task<bool> InvestigatePlayerInRoom(string roomId,int playerId)
+    public async Task<InvestigatePlayerResult> InvestigatePlayerInRoom(InvestigatePlayerRequest request)
     {
-        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
-        var player = playerRoles.FirstOrDefault(p=>p.Id.Equals(playerId));
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(request.RoomId);
+        var player = playerRoles.FirstOrDefault(p=>p.Id.Equals(request.PlayerRoleId));
+        var playerRoleDto = mapper.Map<PlayerRoleDTO>(player);
         if (player == null) throw new Exception("Player not found");
-        return player.Role is RoleName.WereWolf or RoleName.Cursed;
+        bool isInvestigationCorrect = false;
+        switch (request.InvestigationType)
+        {
+            case InvestigationType.Werewolf:
+                isInvestigationCorrect = player.Role is RoleName.WereWolf or RoleName.Cursed;
+                break;
+            default:
+                throw new Exception("Invalid investigation type");
+        }
+        return new InvestigatePlayerResult()
+        {
+            PlayerRole = playerRoleDto,
+            IsInvestigationSuccessful = isInvestigationCorrect
+        };
     }
 
     public async Task EndNight(string roomId)
@@ -185,13 +199,7 @@ public class GameService(
         var playerInRoom = await playerRoleRepository.GetPlayerRoleInRoomUsingPlayerGuid(roomId, playerGuid);
         return playerInRoom.Role;
     }
-    // public List<PlayerRoleDTO> GetAllAssignedPlayerRolesAndActions(string roomId)
-    // {
-    //     var currentModerator = roomRepository.GetRoom(roomId).CurrentModerator;
-    //     var playersInRoom = playerRoomRepository.GetPlayersInRoom(roomId);
-    //     var playersInRoomWithoutMod = playersInRoom.Where(p => p.PlayerGuid != currentModerator).ToList();
-    //     return mapper.Map<List<PlayerRoleDTO>>(playersInRoomWithoutMod);
-    // }
+
 
     public async Task<List<RoleActionDto>> GetActionsForPlayerRole(string roomId, int playerRoleId)
     {
@@ -443,8 +451,6 @@ public class GameService(
         var room = await roomRepository.GetRoom(roomId);
         return room.WinCondition;
     }
-    
-    //Create a method that returns a random description on how a player died, make it begin with were, make it environmental accidents
     
 
     public async Task<List<GameNightHistoryDTO>> GetGameSummary(string roomId)
