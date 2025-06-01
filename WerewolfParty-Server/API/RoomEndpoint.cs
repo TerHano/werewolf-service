@@ -129,19 +129,20 @@ public static class RoomEndpoint
         .WithDescription("Removes a player from the specified room and notifies all room participants.")
         .RequireAuthorization();
 
-        app.MapPost("/api/room/leave-room", async (RoomIdRequest roomIdRequest, HttpContext httpContext,
+        app.MapPost("/api/room/leave-room", async (LeaveRoomRequest request, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
-            var roomId = roomIdRequest.RoomId.ToUpper();
-            var oldModerator = await roomService.GetModeratorForRoom(roomId); // Added await
+            var roomId = request.RoomId.ToUpper();
+            var oldModerator = await roomService.GetModeratorForRoom(roomId);
             var playerGuid = httpContext.User.GetPlayerId();
-            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid); // Added await
+            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid); 
             await roomService.RemovePlayerFromRoom(roomId, player.Id);
             await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced
             var newModerator = await roomService.GetModeratorForRoom(roomId);
             if (newModerator != null && oldModerator?.Id != newModerator?.Id)
             {
+                await hubContext.Groups.RemoveFromGroupAsync(request.ConnectionId, roomId);
                 await hubContext.Clients.Group(roomId).ModeratorUpdated(newModerator);
             }
 
