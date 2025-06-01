@@ -109,7 +109,7 @@ public class GameService(
         var player = playerRoles.FirstOrDefault(p=>p.Id.Equals(request.PlayerRoleId));
         var playerRoleDto = mapper.Map<PlayerRoleDTO>(player);
         if (player == null) throw new Exception("Player not found");
-        bool isInvestigationCorrect = false;
+        bool isInvestigationCorrect;
         switch (request.InvestigationType)
         {
             case InvestigationType.Werewolf:
