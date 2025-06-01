@@ -9,16 +9,16 @@ public class Doctor : Role
     {
         var canHealSelf = true;
         var applicablePlayerIds = actionCheckDto.ActivePlayers.Where(x=>x.IsAlive).Select(x=>x.Id).ToList();
-        var isPreventContinousHealsOn = actionCheckDto.Settings.AllowMultipleSelfHeals == false;
-        if (isPreventContinousHealsOn)
+        var isPreventContinuousHealsOn = actionCheckDto.Settings.AllowMultipleSelfHeals == false;
+        if (isPreventContinuousHealsOn)
         {
             var currentPlayerId = actionCheckDto.CurrentPlayer.Id;
             var previousHealsByPlayer = actionCheckDto.ProcessedActions
                 .Where(x => x.PlayerRoleId == currentPlayerId && x.Action == ActionType.Revive).ToList();
-            if (previousHealsByPlayer.Any())
+            if (previousHealsByPlayer.Count != 0)
             {
                 var lastHealsByPlayer = previousHealsByPlayer.MaxBy(x => x.Night);
-                if (lastHealsByPlayer.AffectedPlayerRoleId == currentPlayerId)
+                if (lastHealsByPlayer != null && lastHealsByPlayer.AffectedPlayerRoleId == currentPlayerId)
                 {
                     canHealSelf = false;
                 }
