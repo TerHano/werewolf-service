@@ -106,7 +106,14 @@ export const useSocketConnection = ({
   const onReconnectRef = useRef(onReconnect);
   onReconnectRef.current = onReconnect;
 
+  // Only register for callers that actually want reconnect notifications. Since the
+  // handler can never be removed, registering a no-op dispatcher for every other caller
+  // would still pile one up per mount. Call sites pass a fixed shape, so reading this
+  // once on the first render is enough.
+  const wantsReconnectRef = useRef(onReconnect !== undefined);
+
   useEffect(() => {
+    if (!wantsReconnectRef.current) return;
     connection.onreconnected(() => onReconnectRef.current?.());
   }, [connection]);
 
