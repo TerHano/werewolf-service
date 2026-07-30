@@ -1,6 +1,7 @@
 using FluentValidation;
 using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
+using WerewolfParty_Server.Filters;
 using WerewolfParty_Server.Entities;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Exceptions;
@@ -53,7 +54,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("End the current game in a room.")
         .WithDescription("Ends the current game in the specified room and returns to lobby state.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapGet("/api/room/{roomId}/is-player-in-room",async (string roomId, HttpContext httpContext,
             RoomService roomService) =>
@@ -108,12 +109,23 @@ public static class RoomEndpoint
             .WithTags("Room")
             .WithSummary("Start a game in a room.")
             .WithDescription("Initiates a new game in the specified room, dealing cards to all players.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
         app.MapPost("/api/room/kick-player/", async(KickPlayerRequest kickPlayerRequest, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
         {
             var playerGuid = httpContext.User.GetPlayerId();
+            if (!await roomService.CanPlayerBeRemovedFromRoom(kickPlayerRequest.RoomId,
+                    kickPlayerRequest.PlayerRoomIdToKick))
+            {
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = false,
+                    ErrorMessages = new List<string>
+                        { "Players cannot be kicked while a game is in progress." }
+                });
+            }
+
             await roomService.RemovePlayerFromRoom(kickPlayerRequest.RoomId, kickPlayerRequest.PlayerRoomIdToKick);
             var sanitizedRoomId = kickPlayerRequest.RoomId.ToUpper();
             //hubContext.Clients.Group(sanitizedRoomId).PlayersInLobbyUpdated();
@@ -127,7 +139,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Kick a player from the room.")
         .WithDescription("Removes a player from the specified room and notifies all room participants.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapPost("/api/room/leave-room", async (LeaveRoomRequest request, HttpContext httpContext,
             IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -135,7 +147,17 @@ public static class RoomEndpoint
             var roomId = request.RoomId.ToUpper();
             var oldModerator = await roomService.GetModeratorForRoom(roomId);
             var playerGuid = httpContext.User.GetPlayerId();
-            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid); 
+            var player = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
+            if (!await roomService.CanPlayerBeRemovedFromRoom(roomId, player.Id))
+            {
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = false,
+                    ErrorMessages = new List<string>
+                        { "You cannot leave while a game is in progress." }
+                });
+            }
+
             await roomService.RemovePlayerFromRoom(roomId, player.Id);
             await hubContext.Clients.Group(roomId).PlayersInLobbyUpdated();
             //Emit moderator change incase mod is replaced
@@ -155,7 +177,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Leave the current room.")
         .WithDescription("Removes the current player from the specified room and notifies other players.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapPost("/api/room/update-moderator", async (UpdateModeratorRequest updateModeratorRequest,
             HttpContext httpContext, IHubContext<EventsHub, IClientEventsHub> hubContext, RoomService roomService) =>
@@ -180,7 +202,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Update the room moderator.")
         .WithDescription("Assigns a new moderator to the specified room and notifies all participants.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapGet("/api/room/{roomId}/get-moderator", async (string roomId, RoomService roomService) =>
         {
@@ -196,7 +218,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Get the room moderator.")
         .WithDescription("Returns the details of the current moderator for the specified room.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
 
         app.MapPost("/api/room/check-room", async (RoomIdRequest request, RoomService roomService) =>
@@ -229,7 +251,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Get all players in a room.")
         .WithDescription("Returns a list of all players currently in the specified room.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/room/{roomId}/role-settings", async (RoomService roomService, string roomId) =>
         {
@@ -244,7 +266,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Get role settings for a room.")
         .WithDescription("Returns the current role settings configuration for the specified room.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapPost("/api/room/role-settings", async (UpdateRoleSettingsRequest updateRoleSettingsRequest,
             IHubContext<EventsHub, IClientEventsHub> hubContext,
@@ -272,7 +294,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Update role settings for a room.")
         .WithDescription("Modifies the role settings configuration for the specified room and notifies all participants.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapGet("/api/room/{roomId}",
           async  (RoomService roomService, string roomId) =>
@@ -288,7 +310,7 @@ public static class RoomEndpoint
         .WithTags("Room")
         .WithSummary("Get room details.")
         .WithDescription("Returns detailed information about the specified room.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/room/{roomId}/game-state",async (GameService gameService, string roomId) =>
         {

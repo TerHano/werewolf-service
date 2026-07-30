@@ -58,6 +58,13 @@ public class PlayerRoleRepository(WerewolfDbContext context, ILogger<PlayerRoomR
         return player;
     }
 
+    public async Task<bool> DoesPlayerRoomHaveRoleInRoom(string roomId, int playerRoomId)
+    {
+        return await context.PlayerRoles.AnyAsync(playerRole =>
+            EF.Functions.ILike(playerRole.RoomId, roomId) &&
+            playerRole.PlayerRoomId == playerRoomId);
+    }
+
     public async Task<bool>  DoesPlayerHaveRoleInRoom(string roomId, Guid playerId)
     {
         var player = await context.PlayerRoles.FirstOrDefaultAsync(playerRoom =>

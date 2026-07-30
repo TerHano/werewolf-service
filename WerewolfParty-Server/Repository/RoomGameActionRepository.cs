@@ -21,6 +21,11 @@ public class RoomGameActionRepository(WerewolfDbContext context)
         await context.SaveChangesAsync();
     }
 
+    public async Task<RoomGameActionEntity?> GetActionById(int actionId)
+    {
+        return await context.RoomGameActions.FirstOrDefaultAsync(x => x.Id.Equals(actionId));
+    }
+
     public async Task RemoveActionForPlayer(int actionId)
     {
         var playerAction = await context.RoomGameActions.FirstOrDefaultAsync(x =>
