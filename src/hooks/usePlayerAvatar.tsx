@@ -1,5 +1,13 @@
 import { useCallback, useMemo } from "react";
 
+const avatarDirectory = "/src/assets/icons/avatars";
+
+// Vite replaces this with a static module map at build time. Kept at module scope so the
+// map is not rebuilt on every single avatar lookup.
+const avatarModules = import.meta.glob(`/src/assets/icons/avatars/*`, {
+  eager: true,
+}) as Record<string, { default: string }>;
+
 export const usePlayerAvatar = () => {
   const data = useMemo(
     () => [
@@ -43,16 +51,19 @@ export const usePlayerAvatar = () => {
 
   const getAvatarImageSrcForIndex = useCallback(
     (avatarIndex?: number) => {
-      if (!avatarIndex || avatarIndex > data.length) {
-        avatarIndex = 0;
-      }
-      const avatarName = data[avatarIndex];
-      const path = `/src/assets/icons/avatars/${avatarName}.png`;
-      const modules = import.meta.glob("/src/assets/icons/avatars/*", {
-        eager: true,
-      });
-      const mod = modules[path] as { default: string };
-      return mod.default;
+      // Valid indices are 0..data.length-1. The old check used `> data.length`, so an
+      // index of exactly data.length slipped through and read past the end of the array;
+      // negative indices were not caught either. Anything out of range falls back to the
+      // first avatar rather than throwing on `undefined.default`.
+      const isInRange =
+        avatarIndex !== undefined &&
+        Number.isInteger(avatarIndex) &&
+        avatarIndex >= 0 &&
+        avatarIndex < data.length;
+      const avatarName = data[isInRange ? avatarIndex : 0];
+      return (
+        avatarModules[`${avatarDirectory}/${avatarName}.png`]?.default ?? ""
+      );
     },
     [data]
   );

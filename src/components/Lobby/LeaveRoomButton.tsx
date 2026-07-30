@@ -17,16 +17,29 @@ import { useTranslation } from "react-i18next";
 import { Alert, Stack, Text } from "@chakra-ui/react";
 import { useIsModerator } from "@/hooks/useIsModerator";
 import { useSocketConnection } from "@/hooks/useSocketConnection";
+import { useToaster } from "@/hooks/ui/useToaster";
 
 export const LeaveRoomButton = () => {
   const { t } = useTranslation();
   const roomId = useRoomId();
   const navigate = useNavigate();
+  const { showToast } = useToaster();
   const { getConnectionId } = useSocketConnection({});
 
   const { mutate: leaveRoomMutate, isPending: isLeavingRoom } = useLeaveRoom({
     onSuccess: async () => {
       await navigate({ to: "/" });
+    },
+    onError: async (e) => {
+      // The server refuses to remove a player who holds a role in a running game — most
+      // likely the game started while this dialog was open.
+      showToast({
+        type: "error",
+        title: t("Can't Leave Room"),
+        description: e.message,
+        duration: 3000,
+        withDismissButton: true,
+      });
     },
   });
   const { data: isModerator } = useIsModerator(roomId);

@@ -10,11 +10,12 @@ import {
   useCallback,
   useEffect,
   useMemo,
+  useRef,
   useState,
 } from "react";
 import { Button, Progress, Stack, Text } from "@chakra-ui/react";
 import { IconCards, IconPlugConnectedX } from "@tabler/icons-react";
-import { useDebounce, useIsFirstRender } from "@uidotdev/usehooks";
+import { useDebounce } from "@uidotdev/usehooks";
 import { useTranslation } from "react-i18next";
 import { SocketContext } from "./SocketContext";
 import { useToaster } from "@/hooks/ui/useToaster";
@@ -22,7 +23,6 @@ import { useToaster } from "@/hooks/ui/useToaster";
 export const SocketProvider = ({ children }: PropsWithChildren) => {
   const { t } = useTranslation();
   const { showToast } = useToaster();
-  const isFirstRender = useIsFirstRender();
   const [_connectionState, setConnectionState] = useState<
     HubConnectionState | undefined
   >(undefined);
@@ -83,24 +83,26 @@ export const SocketProvider = ({ children }: PropsWithChildren) => {
         }),
     [connection, showToast, t]
   );
+  // startConnection's identity changes whenever the toaster or translations change, and
+  // it must not be a dependency of the effect below: SignalR cannot unregister
+  // onreconnected/onreconnecting/onclose handlers, so re-running that effect would stack
+  // up another three every time. Reach the latest version through a ref instead.
+  const startConnectionRef = useRef(startConnection);
+  startConnectionRef.current = startConnection;
+
+  // `connection` is memoised with no dependencies, so this runs exactly once: the state
+  // handlers are registered a single time, and the initial connection is started.
   useEffect(() => {
-    connection.onreconnected(() => {
-      setConnectionState(connection.state);
-    });
+    const syncConnectionState = () => setConnectionState(connection.state);
 
-    connection.onreconnecting(() => {
-      setConnectionState(connection.state);
-    });
+    connection.onreconnected(syncConnectionState);
+    connection.onreconnecting(syncConnectionState);
+    connection.onclose(syncConnectionState);
 
-    connection.onclose(() => {
-      setConnectionState(connection.state);
-    });
-    if (isFirstRender) {
-      if (connection.state === HubConnectionState.Disconnected) {
-        startConnection();
-      }
+    if (connection.state === HubConnectionState.Disconnected) {
+      void startConnectionRef.current();
     }
-  }, [connection, connection.state, isFirstRender, startConnection]);
+  }, [connection]);
 
   return (
     <SocketContext.Provider value={connection}>
