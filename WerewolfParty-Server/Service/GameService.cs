@@ -47,12 +47,15 @@ public class GameService(
                 }
                 case ActionType.VigilanteKill:
                 {
-                    if (playersRevivedSet.Contains(action.AffectedPlayerRoleId)) continue;
-                    playersKilledSet.Add(action.AffectedPlayerRoleId);
-                    var killedPlayer = playerRoles.Find((player) =>
+                    var target = playerRoles.Find((player) =>
                         player.Id.Equals(action.AffectedPlayerRoleId));
-                    if (killedPlayer == null) throw new Exception("Player not found");
-                    if (killedPlayer.Role != RoleName.WereWolf)
+                    if (target == null) throw new PlayerNotFoundException("Player not found");
+
+                    // Guilt is decided by who the Vigilante shot, not by whether they survived:
+                    // a Doctor or Witch saving the victim does not spare the Vigilante. This is
+                    // checked before the revive test below so the outcome does not depend on the
+                    // order actions come back from the database.
+                    if (target.Role != RoleName.WereWolf)
                     {
                         if (!action.PlayerRoleId.HasValue)
                         {
@@ -72,6 +75,10 @@ public class GameService(
                         actionsQueuedForNextNight.Add(vigilanteSuicideAction);
                     }
 
+                    //If the victim has been revived, they survive the shot (the Revive case also
+                    //removes them from the killed set when it is processed after this one).
+                    if (playersRevivedSet.Contains(action.AffectedPlayerRoleId)) break;
+                    playersKilledSet.Add(action.AffectedPlayerRoleId);
                     break;
                 }
                 case ActionType.Revive:
@@ -107,8 +114,8 @@ public class GameService(
     {
         var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(request.RoomId);
         var player = playerRoles.FirstOrDefault(p=>p.Id.Equals(request.PlayerRoleId));
-        var playerRoleDto = mapper.Map<PlayerRoleDTO>(player);
-        if (player == null) throw new Exception("Player not found");
+        if (player == null) throw new PlayerNotFoundException("Player not found");
+        var playerRoleDto = mapper.Map<InvestigatedPlayerDTO>(player);
         bool isInvestigationCorrect;
         switch (request.InvestigationType)
         {
@@ -324,6 +331,16 @@ public class GameService(
             };
             await roomGameActionRepository.AddActionForPlayer(playerAction);
         }
+    }
+
+    /// <summary>
+    /// Returns the room an action belongs to, or null if the action does not exist. Used to
+    /// scope authorization for routes that only carry an action id.
+    /// </summary>
+    public async Task<string?> GetRoomIdForAction(int actionId)
+    {
+        var action = await roomGameActionRepository.GetActionById(actionId);
+        return action?.RoomId;
     }
 
     public async Task DequeueActionForPlayer(int actionId)

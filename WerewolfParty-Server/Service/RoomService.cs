@@ -12,6 +12,7 @@ public class RoomService(
     RoomRepository roomRepository,
     PlayerRoomRepository playerRoomRepository,
     RoleSettingsRepository roleSettingsRepository,
+    PlayerRoleRepository playerRoleRepository,
     IMapper mapper)
 {
     private const string allowedRoomIdCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ123456789";
@@ -42,6 +43,14 @@ public class RoomService(
     public async Task<bool> isPlayerInRoom(string roomId, Guid playerId)
     {
         return await playerRoomRepository.IsPlayerInRoom(playerId, roomId);
+    }
+
+    public async Task<bool> IsPlayerModeratorOfRoom(string roomId, Guid playerId)
+    {
+        if (!await playerRoomRepository.IsPlayerInRoom(playerId, roomId)) return false;
+        var player = await playerRoomRepository.GetPlayerInRoomUsingPlayerGuid(roomId, playerId);
+        var moderator = await GetModeratorForRoom(roomId);
+        return moderator != null && moderator.Id == player.Id;
     }
 
     public async Task<RoomSettingsDto> GetRoleSettingsForRoom(string roomId)
@@ -185,6 +194,19 @@ public class RoomService(
         player.AvatarIndex = addEditPlayerDetails.AvatarIndex.GetValueOrDefault(0);
         var updatedPlayer = await playerRoomRepository.UpdatePlayerInRoom(roomId, player.PlayerId, player);
         return mapper.Map<PlayerDTO>(updatedPlayer);
+    }
+
+    /// <summary>
+    /// A player holding a dealt role may not leave or be kicked while a game is running:
+    /// pulling them out mid-game breaks the flow for everyone else, and deleting their role
+    /// would take their night history with it. Players who joined after the cards were dealt
+    /// hold no role, are only spectating until the next game, and may come and go freely.
+    /// </summary>
+    public async Task<bool> CanPlayerBeRemovedFromRoom(string roomId, int playerRoomId)
+    {
+        var room = await roomRepository.GetRoom(roomId);
+        if (room.GameState == GameState.Lobby) return true;
+        return !await playerRoleRepository.DoesPlayerRoomHaveRoleInRoom(roomId, playerRoomId);
     }
 
     public async Task RemovePlayerFromRoom(string roomId, int playerRoomId)

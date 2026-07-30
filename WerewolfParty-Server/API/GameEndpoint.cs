@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
 using WerewolfParty_Server.Enum;
 using WerewolfParty_Server.Extensions;
+using WerewolfParty_Server.Filters;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Service;
 
@@ -26,19 +27,11 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get current player's assigned role.")
             .WithDescription("Returns the role assigned to the current player in the specified room.")
-            .RequireAuthorization();
+            .RequireRoomMembership();
 
         app.MapGet("/api/game/{roomId}/all-player-roles",
-            async (HttpContext httpContext, GameService gameService, RoomService roomService, string roomId) =>
+            async (GameService gameService, string roomId) =>
             {
-                var playerGuid = httpContext.User.GetPlayerId();
-                var currentPlayer = await roomService.GetPlayerInRoomUsingGuid(roomId, playerGuid);
-                var currentModerator = await roomService.GetModeratorForRoom(roomId);
-                if (currentPlayer.Id != currentModerator?.Id)
-                {
-                    throw new Exception("You are not the moderator of this room.");
-                }
-
                 var assignedRoles = await gameService.GetAllAssignedPlayerRolesAndActions(roomId);
                 return TypedResults.Ok(new APIResponse<List<PlayerRoleActionDto>>()
                 {
@@ -50,7 +43,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get all player roles in room.")
             .WithDescription("Returns all assigned player roles and actions in the room. Only accessible by the moderator.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/role-actions",
             async (GameService gameService, string roomId, int playerRoleId) =>
@@ -66,7 +59,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get available actions for a player role.")
             .WithDescription("Returns a list of available actions for the specified player role in a room.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
         
         app.MapPost("/api/game/investigate",
                 async (GameService gameService, InvestigatePlayerRequest request) =>
@@ -82,7 +75,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Checks if player is a werewolf")
             .WithDescription("Return true if player is a werewolf, otherwise false")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
         app.MapGet("/api/game/{roomId}/{playerRoleId}/queued-action",
             async (GameService gameService, string roomId, int playerRoleId) =>
@@ -99,7 +92,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get queued action for a player.")
             .WithDescription("Returns the currently queued action for the specified player role.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
         app.MapGet("/api/game/{roomId}/all-queued-actions",
             async (GameService gameService, string roomId) =>
@@ -116,7 +109,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get all queued actions in a room.")
             .WithDescription("Returns a list of all queued actions from players in the specified room.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
         app.MapPost("/api/game/queued-action",
            async (PlayerActionRequestDTO playerActionRequestDto, GameService gameService) =>
@@ -131,20 +124,43 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Queue a player action.")
             .WithDescription("Creates a queued action for a player role in the game.")
-            .RequireAuthorization();
+            .RequireRoomModerator();
 
-        app.MapDelete("/api/game/queued-action/{actionId}", async (int actionId, GameService gameService) =>
-        {
-            await gameService.DequeueActionForPlayer(actionId);
-            return TypedResults.Ok(new APIResponse()
+        // This route carries no room id, so RoomAccessFilter cannot scope it. Resolve the
+        // action's room first, then apply the same moderator check by hand.
+        app.MapDelete("/api/game/queued-action/{actionId}",
+            async (int actionId, HttpContext httpContext, GameService gameService, RoomService roomService) =>
             {
-                Success = true,
-            });
-        })
+                var roomId = await gameService.GetRoomIdForAction(actionId);
+                if (roomId == null)
+                {
+                    return TypedResults.Json(new APIResponse()
+                    {
+                        Success = false,
+                        ErrorMessages = new List<string> { "Action not found." }
+                    }, statusCode: StatusCodes.Status404NotFound);
+                }
+
+                var playerGuid = httpContext.User.GetPlayerId();
+                if (!await roomService.IsPlayerModeratorOfRoom(roomId, playerGuid))
+                {
+                    return TypedResults.Json(new APIResponse()
+                    {
+                        Success = false,
+                        ErrorMessages = new List<string> { "You are not the moderator of this room." }
+                    }, statusCode: StatusCodes.Status403Forbidden);
+                }
+
+                await gameService.DequeueActionForPlayer(actionId);
+                return TypedResults.Json(new APIResponse()
+                {
+                    Success = true,
+                });
+            })
         .WithName("DequeuePlayerAction")
         .WithTags("Game")
         .WithSummary("Remove a queued player action.")
-        .WithDescription("Deletes a previously queued action for a player.")
+        .WithDescription("Deletes a previously queued action for a player. Moderator only.")
         .RequireAuthorization();
 
         app.MapPost("/api/game/end-night", async (PlayerIdAndRoomIdRequestDto request,
@@ -168,7 +184,7 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("End the night phase.")
         .WithDescription("Processes all queued night actions and transitions to day phase. Checks for win conditions.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapPost("/api/game/vote-out-player", async (PlayerVoteOutRequestDTO request,
             IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
@@ -190,7 +206,7 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("Vote out a player.")
         .WithDescription("Removes a player from the game through village voting. Checks for win conditions.")
-        .RequireAuthorization();
+        .RequireRoomModerator();
 
         app.MapGet("/api/game/{roomId}/day-time",
             async (GameService gameService, string roomId) =>
@@ -207,7 +223,7 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("Get current day and time information.")
         .WithDescription("Returns the current day number and phase (day/night) for the game.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/game/{roomId}/latest-deaths",
             async (GameService gameService, string roomId) =>
@@ -224,7 +240,7 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("Get latest player deaths.")
         .WithDescription("Returns a list of players who died in the most recent night/day phase.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/game/{roomId}/check-win-condition",
             async (GameService gameService, string roomId) =>
@@ -241,7 +257,7 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("Check for game win condition.")
         .WithDescription("Returns the current win condition status for the game, if any faction has won.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/game/{roomId}/summary",
             async (GameService gameService, string roomId) =>
@@ -258,6 +274,6 @@ public static class GameEndpoint
         .WithTags("Game")
         .WithSummary("Get game summary.")
         .WithDescription("Returns a historical summary of game events, organized by night/day.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
     }
 }

@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.SignalR;
 using WerewolfParty_Server.DTO;
+using WerewolfParty_Server.Filters;
 using WerewolfParty_Server.Extensions;
 using WerewolfParty_Server.Hubs;
 using WerewolfParty_Server.Service;
@@ -52,7 +53,7 @@ public static class PlayerEndpoint
         .WithTags("Player")
         .WithSummary("Update player details.")
         .WithDescription("Updates the current player's details in a room and notifies other players about the change.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
 
         app.MapGet("/api/player/{roomId}/player", async (string roomId,
             HttpContext httpContext, RoomService roomService) =>
@@ -69,6 +70,6 @@ public static class PlayerEndpoint
         .WithTags("Player")
         .WithSummary("Get current player in room.")
         .WithDescription("Returns the current player's details for the specified room.")
-        .RequireAuthorization();
+        .RequireRoomMembership();
     }
 }
