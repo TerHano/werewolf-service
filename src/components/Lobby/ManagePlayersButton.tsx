@@ -23,12 +23,14 @@ import { IconKarate, IconSpeakerphone, IconUserCog } from "@tabler/icons-react";
 import { useUpdateModerator } from "@/hooks/useUpdateModerator";
 import { useCallback } from "react";
 import { useKickPlayer } from "@/hooks/useKickPlayer";
+import { useToaster } from "@/hooks/ui/useToaster";
 import { DrawerPlacementForMobileDesktop } from "@/util/drawer";
 
 export const ManagePlayersButton = ({ player }: { player: PlayerDto }) => {
   const { t } = useTranslation();
   const drawer = useDrawer();
   const roomId = useRoomId();
+  const { showToast } = useToaster();
   const { getAvatarImageSrcForIndex } = usePlayerAvatar();
 
   const { mutate: updateModeratorMutate } = useUpdateModerator({
@@ -39,6 +41,17 @@ export const ManagePlayersButton = ({ player }: { player: PlayerDto }) => {
 
   const { mutate: kickPlayerMutate } = useKickPlayer({
     onSuccess: async () => {
+      drawer.setOpen(false);
+    },
+    onError: async (e) => {
+      // The server refuses to remove a player who holds a role in a running game.
+      showToast({
+        type: "error",
+        title: t("Can't Kick Player"),
+        description: e.message,
+        duration: 3000,
+        withDismissButton: true,
+      });
       drawer.setOpen(false);
     },
   });

@@ -1,4 +1,4 @@
-import { PlayerRoleDto } from "@/dto/PlayerRoleDto";
+import { InvestigatedPlayerDto } from "@/dto/InvestigatedPlayerDto";
 import { mutationOptions, useApiMutation } from "./useApiMutation";
 import { InvestigationType } from "@/enum/InvestigationType";
 
@@ -9,7 +9,7 @@ type InvestigatePlayerRequest = {
 };
 
 export type InvestigatePlayerResponse = {
-  playerRole: PlayerRoleDto;
+  playerRole: InvestigatedPlayerDto;
   isInvestigationSuccessful: boolean;
 };
 

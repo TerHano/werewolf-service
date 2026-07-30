@@ -24,20 +24,19 @@ export const useApiMutation = <ReturnType, Body>({
   skipInvalidatingQueries,
 }: useApiMutationProps<ReturnType, Body>) => {
   const queryClient = useQueryClient();
-  let url = `${import.meta.env.WEREWOLF_SERVER_URL}/api/${endpoint}`;
+  const baseUrl = `${import.meta.env.WEREWOLF_SERVER_URL}/api/${endpoint}`;
   return useMutation<ReturnType, Error, Body>({
     mutationFn: (body: Body) => {
-      let isValidDelete = false;
-      if (method === "DELETE") {
-        if (typeof body === "number") {
-          url = url.replace("{id}", body.toString());
-          isValidDelete = true;
-        }
-      }
+      // The id goes in the path, not the body. Derive the URL from baseUrl on every call —
+      // mutating a shared variable here meant a second delete reused the first id.
+      const isIdInPathDelete = method === "DELETE" && typeof body === "number";
+      const url = isIdInPathDelete
+        ? baseUrl.replace("{id}", body.toString())
+        : baseUrl;
       return getApi<ReturnType>({
         url,
         method,
-        body: isValidDelete ? undefined : JSON.stringify(body),
+        body: isIdInPathDelete ? undefined : JSON.stringify(body),
       });
     },
     onSuccess: (data, variables) => {
