@@ -1,4 +1,4 @@
-import { useCallback, useContext, useEffect } from "react";
+import { useCallback, useContext, useEffect, useRef } from "react";
 import { AddEditPlayerDetailsDto } from "@/dto/AddEditPlayerDetailsDto";
 import { APIResponse } from "@/dto/APIResponse";
 import { SocketContext } from "@/context/SocketContext";
@@ -43,9 +43,6 @@ export const useSocketConnection = ({
     }
     if (onPlayerKicked) {
       connection.on("PlayerKicked", onPlayerKicked);
-    }
-    if (onReconnect) {
-      connection.onreconnected(onReconnect);
     }
     if (onRoomRoleSettingsUpdated) {
       connection.on("RoomRoleSettingsUpdated", onRoomRoleSettingsUpdated);
@@ -98,14 +95,20 @@ export const useSocketConnection = ({
     onLobbyUpdated,
     onModeratorUpdated,
     onPlayerKicked,
-    onReconnect,
     onRoomRoleSettingsUpdated,
     onWinConditionMet,
   ]);
 
-  connection.onclose(() => {
-    console.log("closing");
-  });
+  // SignalR has no way to remove an onreconnected handler, so registering the caller's
+  // callback directly would add another one on every render. Register a single stable
+  // dispatcher per connection instead and route it through a ref holding the latest
+  // callback.
+  const onReconnectRef = useRef(onReconnect);
+  onReconnectRef.current = onReconnect;
+
+  useEffect(() => {
+    connection.onreconnected(() => onReconnectRef.current?.());
+  }, [connection]);
 
   const joinRoom = useCallback(
     (addEditPlayerDetails: AddEditPlayerDetailsDto) => {

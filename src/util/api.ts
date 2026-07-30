@@ -27,25 +27,40 @@ export async function getApi<T>({ url, method, body }: apiOptions): Promise<T> {
 
     clearTimeout(timeoutId);
 
-    // Check if response is ok (status 200-299)
-    if (!response.ok) {
-      throw new Error(`HTTP ${response.status}: ${response.statusText}`);
+    // The server sends its APIResponse envelope on failures too — a 500 from the global
+    // exception handler and 401/403 from the room access filter all carry errorMessages.
+    // Parse the body before looking at the status so the real reason reaches the user
+    // instead of a bare "HTTP 500: Internal Server Error".
+    const contentType = response.headers.get("content-type");
+    const isJson = contentType?.includes("application/json") ?? false;
+
+    let data: APIResponse<T> | null = null;
+    if (isJson) {
+      try {
+        data = (await response.json()) as APIResponse<T>;
+      } catch {
+        data = null;
+      }
     }
 
-    // Check if response is JSON
-    const contentType = response.headers.get("content-type");
-    if (!contentType || !contentType.includes("application/json")) {
+    const serverMessage = data?.errorMessages?.[0];
+
+    if (!response.ok) {
+      throw new Error(
+        serverMessage ?? `HTTP ${response.status}: ${response.statusText}`
+      );
+    }
+
+    if (!isJson) {
       throw new Error("Server returned non-JSON response");
     }
 
-    const data: APIResponse<T> = await response.json();
+    if (!data) {
+      throw new Error("Server returned a malformed response");
+    }
 
     if (!data.success) {
-      if (data.errorMessages && data.errorMessages.length > 0) {
-        throw new Error(data.errorMessages[0]);
-      } else {
-        throw new Error("Server Error");
-      }
+      throw new Error(serverMessage ?? "Server Error");
     }
 
     return data.data!;
