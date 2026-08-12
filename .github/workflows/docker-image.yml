@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Build and Deploy
 
 on:
   workflow_dispatch:
@@ -8,41 +8,66 @@ on:
     branches: [ "main" ]
 
 env:
-  BUILD_PLATFORM: ${{ vars.BUILD_PLATFORM }}
   BUILD_CONFIGURATION: ${{ vars.BUILD_CONFIGURATION }}
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
     permissions:
       contents: read
       packages: write
 
+    strategy:
+      # Both images build from the same repo now, but they are independent — a failure in one
+      # should not hide the result of the other.
+      fail-fast: false
+      matrix:
+        include:
+          - name: api
+            context: ./apps/server
+            dockerfile: apps/server/WerewolfParty-Server/Dockerfile
+            image: werewolfparty-api
+          - name: web
+            context: ./apps/web
+            dockerfile: apps/web/Dockerfile
+            image: werewolfparty-web
+
     steps:
       - uses: actions/checkout@v4
-      - name: Build image
-        run: docker build --build-arg BUILD_PLATFORM=$BUILD_PLATFORM --build-arg BUILD_CONFIGURATION=$BUILD_CONFIGURATION . -f WerewolfParty-Server/Dockerfile --tag ${{vars.IMAGE_NAME}}
-      - name: Log in to registry
-        run: | 
-          docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
 
-          
-      - name: Push image
+      - name: Build image
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{vars.IMAGE_NAME}}
+          docker build \
+            --build-arg BUILD_CONFIGURATION=${BUILD_CONFIGURATION:-Release} \
+            -f ${{ matrix.dockerfile }} \
+            --tag ${{ matrix.image }} \
+            ${{ matrix.context }}
+
+      - name: Log in to registry
+        if: github.event_name != 'pull_request'
+        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Push image
+        if: github.event_name != 'pull_request'
+        run: |
+          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
           IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
-
           [ "$VERSION" == "main" ] && VERSION=latest
+
           echo IMAGE_ID=$IMAGE_ID
           echo VERSION=$VERSION
-          docker tag ${{vars.IMAGE_NAME}} $IMAGE_ID:$VERSION
+          docker tag ${{ matrix.image }} $IMAGE_ID:$VERSION
           docker push $IMAGE_ID:$VERSION
-      - name: Updates server docker service
+
+  deploy:
+    needs: build
+    if: github.event_name != 'pull_request'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Update server
         uses: appleboy/ssh-action@v1.2.0
         with:
           host: ${{ secrets.ORACLE_HOST }}
@@ -50,6 +75,6 @@ jobs:
           key: ${{ secrets.ORACLE_KEY }}
           port: ${{ secrets.ORACLE_PORT }}
           script: |
-            docker pull ghcr.io/terhano/werewolfparty-api:latest
             cd /home/ubuntu/docker_projects/werewolf-party
+            docker compose pull
             docker compose up -d

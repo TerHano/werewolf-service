@@ -1,0 +1,21 @@
+.swiper_slide {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    transition: scale 200ms, opacity 200ms;
+}
+
+
+.active_slide {
+    transition: scale 500ms, opacity 500ms;
+    opacity: 1;
+    scale: 1;
+}
+
+
+.inactive_slide {
+    transition: scale 500ms, opacity 500ms;
+    opacity: 0.4;
+    scale: 0.5;
+}

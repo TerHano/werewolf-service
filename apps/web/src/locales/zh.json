@@ -1,0 +1,372 @@
+{
+  "global_error": {
+    "title": "糟糕！",
+    "description": "处理您的请求时发生错误。请稍后重试。"
+  },
+  "roleSettings": {
+    "numberOfWerewolves": "狼人数量",
+    "traditionalRoles": "传统角色",
+    "specialRoles": "特殊角色",
+    "updated": {
+      "title": "角色设置已更新",
+      "description": "角色设置已成功更新。"
+    },
+    "error": {
+      "title": "更新角色设置时出错",
+      "description": "更新角色设置时出现错误。请重试。"
+    },
+    "viewSettings": {
+      "active": "激活",
+      "all": "全部"
+    },
+    "roles": "角色",
+    "settings": "设置",
+    "allowSelfHealsSwitch": {
+      "label": "允许连续自我治疗",
+      "description": "关闭时，医生不能连续多次治疗自己。"
+    },
+    "gameSummarySwitch": {
+      "label": "显示游戏总结",
+      "description": "开启时，游戏结束时将显示游戏总结。"
+    },
+    "button": {
+      "updateSettings": "更新角色设置",
+      "view": "查看角色设置"
+    },
+    "selfModeratedSwitch": {
+      "label": "Let the app run the night",
+      "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
+    }
+  },
+  "winCondition": {
+    "title": {
+      "werewolvesWin": "狼人获胜",
+      "villagersWin": "村民获胜"
+    },
+    "moderator": {
+      "werewolvesWin": "狼人赢得了游戏。你可以开始新游戏或结束游戏。",
+      "villagersWin": "村民赢得了游戏。你可以开始新游戏或结束游戏。"
+    },
+    "isWerewolf": {
+      "werewolvesWin": "恭喜！狼人消灭了所有村民。",
+      "villagersWin": "糟糕！你们未能保护村民！狼人赢得了游戏。"
+    },
+    "isVillager": {
+      "werewolvesWin": "糟糕！狼人消灭了所有村民。",
+      "villagersWin": "恭喜！村民成功保护了村庄。"
+    },
+    "button": {
+      "playAgain": "再玩一次",
+      "endGame": "结束游戏"
+    }
+  },
+  "addEditPlayerModal": {
+    "updateDetails": "更新玩家信息",
+    "addDetails": "你是谁？",
+    "avatar": "头像",
+    "nickname": "昵称",
+    "nicknameHelper": "其他人将如何看到你！",
+    "playerDetailsUpdated": "玩家信息已更新",
+    "nicknameRequired": "昵称为必填项",
+    "nicknameLength": "昵称必须为3-10个字符",
+    "nicknamePattern": "昵称只能包含字母/数字"
+  },
+  "lobby": {
+    "gameInProgress": "游戏进行中",
+    "waitingRoomMsg": "你将在等候室等待，直到当前游戏结束。",
+    "inviteFriends": "邀请好友",
+    "copyRoomCode": "复制并发送房间代码给你的朋友！",
+    "roomIdCopied": "房间ID已复制！",
+    "kickedToast": {
+      "title": "你被踢出了",
+      "description": "你被主持人踢出了房间。"
+    },
+    "playersWaiting": "{{count}}个玩家等待中",
+    "leaveRoomModal": {
+      "title": "离开房间？",
+      "description": "如果游戏正在进行中，你将无法再次加入房间参与游戏。",
+      "moderatorWarning": {
+        "title": "你是主持人",
+        "description": "如果你离开，另一个玩家将被指定为主持人。"
+      },
+      "button": {
+        "leaveRoom": "离开房间",
+        "cancel": "留下"
+      }
+    },
+    "managePlayer": {
+      "title": "管理 {{nickname}}",
+      "manage": "管理",
+      "button": {
+        "kick": "踢出玩家",
+        "makeModerator": "设为主持人"
+      }
+    },
+    "button": {
+      "startGame": "开始游戏",
+      "leaveRoom": "离开"
+    }
+  },
+  "game": {
+    "time": {
+      "firstDayOrNight": "第一个{{time}}",
+      "day": "白天",
+      "night": "夜晚"
+    },
+    "roleAction": {
+      "werewolfKill": {
+        "title": "选择要杀死的玩家",
+        "label": "攻击"
+      },
+      "kill": {
+        "title": "选择要杀死的玩家",
+        "label": "杀死"
+      },
+      "heal": {
+        "title": "选择要治疗的玩家",
+        "label": "治疗"
+      },
+      "investigate": {
+        "werewolf": {
+          "title": "我们认为谁是狼人？"
+        },
+        "label": "调查"
+      }
+    },
+    "actions": {
+      "werewolfKill": "攻击",
+      "kill": "杀死",
+      "investigate": "调查",
+      "heal": "治疗",
+      "pastTense": {
+        "werewolfKill": "已攻击",
+        "kill": "已杀死",
+        "investigate": "已调查",
+        "heal": "已治疗"
+      },
+      "unknown": "未知"
+    },
+    "settings": {
+      "buttonLabel": "设置",
+      "title": "游戏设置",
+      "endGame": "结束游戏"
+    },
+    "everyoneCloseEyes": "所有人闭上眼睛",
+    "readyForNextDay": "现在是夜晚。准备好进入下一天了吗？",
+    "wakeUpRole": "醒来，{{role}}",
+    "roleCloseEyes": "{{role}}，闭上眼睛",
+    "chooseAPlayerTo": "选择一个玩家来...",
+    "button": {
+      "wakeUp": "醒来"
+    },
+    "choppingBlock": {
+      "previousNightDeaths": {
+        "title": "死亡",
+        "noDeathsDescription": "昨晚没有玩家被杀死。",
+        "description": "太阳升起时，村民发现以下死者："
+      },
+      "vote": {
+        "title": "村民们，你们认为谁是狼人？",
+        "helper": "所有玩家现在应该讨论谁是狼人。一旦达成共识，玩家们将投票处决该玩家。如果玩家无法达成共识，可以选择弃权。",
+        "button": {
+          "lynch": "处决玩家",
+          "abstain": "弃权"
+        }
+      }
+    },
+    "night": {
+      "begin": "Begin the night",
+      "undo": "Change my mind",
+      "chosen": "You chose {{player}}",
+      "canChangeUntilStepEnds": "You can change this until the step ends.",
+      "actionUnavailable": "You cannot use this right now.",
+      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
+      "waitingToBegin": {
+        "title": "Waiting for the night to begin",
+        "description": "Look at your card. The night starts when the moderator says so."
+      },
+      "notYourTurn": {
+        "title": "Eyes closed",
+        "description": "Someone else is acting. Your phone will buzz when it is your turn."
+      },
+      "dead": {
+        "title": "You are out of the game",
+        "description": "You can watch, but you no longer act at night."
+      },
+      "yourTurn": {
+        "title": "It's your turn",
+        "description": "Open the app and take your action."
+      },
+      "investigation": {
+        "isWerewolf": "Reads as a werewolf",
+        "isNotWerewolf": "Does not read as a werewolf",
+        "keepItToYourself": "Keep it to yourself until morning."
+      },
+      "step": {
+        "WerewolfKill": "The werewolves are choosing",
+        "DoctorHeal": "The doctor is choosing",
+        "DetectiveInvestigate": "The detective is choosing",
+        "WitchAct": "The witch is choosing",
+        "VigilanteShoot": "The vigilante is choosing",
+        "Resolving": "Working out what happened"
+      }
+    },
+    "day": {
+      "waitingForModerator": "The moderator is recording the village's decision."
+    },
+    "notifications": {
+      "enable": {
+        "title": "Get a buzz on your turn",
+        "description": "Your phone will vibrate when it is your turn, even with the screen off.",
+        "button": "Turn on"
+      },
+      "install": {
+        "title": "Add to your home screen",
+        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+      },
+      "denied": {
+        "title": "Notifications are blocked",
+        "description": "Allow notifications for this site in your browser settings, or keep this page open to see your turn."
+      }
+    },
+    "badge": {
+      "title": "You're running the game",
+      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "extend": "Give this step more time"
+    },
+    "spectator": {
+      "title": "You're out of the game",
+      "description": "Watch the rest play out. Don't give anything away.",
+      "youWere": "You were the {{role}}",
+      "stillAlive": "Still in ({{count}})",
+      "out": "Out ({{count}})"
+    }
+  },
+  "mainMenu": {
+    "title": "狼人派对",
+    "subTitle": "一个充满谎言、欺骗和指控的派对游戏卡牌。你够狡猾吗？",
+    "joinRoomInput": {
+      "label": "加入房间",
+      "helper": "输入5个字符的房间ID",
+      "required": "房间ID为必填项",
+      "minLength": "房间ID必须至少5个字符",
+      "roomIdError": "无效的房间ID。请输入有效ID。"
+    },
+    "joinRoomToast": {
+      "roomNotFound": {
+        "title": "未找到房间",
+        "description": "ID为{{roomId}}的房间不存在。请检查ID并重试。"
+      }
+    },
+    "or": "或",
+    "createNewRoom": "创建新房间",
+    "developedBy": "由Terry Hanoman开发",
+    "iconsBy": "图标来自",
+    "and": "和"
+  },
+  "gameSummary": {
+    "title": "游戏总结",
+    "description": "以下是刚结束的游戏总结。",
+    "werewolves": "狼人",
+    "villagers": "村民",
+    "specialRoles": "特殊角色",
+    "events": {
+      "title": "事件",
+      "description": "以下是游戏中发生的事件。"
+    },
+    "noEventsForGame": "本局游戏中没有发生任何事件。",
+    "noEventsForDay": "这一天没有发生任何事件。",
+    "noEventsForNight": "这一夜没有发生任何事件。",
+    "showGameSummary": "显示游戏总结"
+  },
+  "common": {
+    "name": "狼人派对",
+    "leave": "离开",
+    "roomId": "房间ID",
+    "moderator": "主持人",
+    "you": "你",
+    "roleSettings": "角色设置",
+    "roleInformation": "角色信息",
+    "comingSoon": "即将推出",
+    "updateSettings": "更新设置"
+  },
+  "button": {
+    "reload": "重新加载",
+    "cancel": "取消",
+    "joinRoom": "加入房间",
+    "leaveRoom": "离开房间",
+    "startGame": "开始游戏",
+    "endGame": "结束游戏",
+    "editSettings": "编辑设置",
+    "viewSettings": "查看设置",
+    "copyRoomUrl": "复制房间链接",
+    "copied": "已复制！"
+  },
+  "room": {
+    "joinRoomError": {
+      "title": "无法加入房间",
+      "description": "加入房间时出现问题，请重试。"
+    }
+  },
+  "socket": {
+    "status": {
+      "connecting": "正在连接服务器",
+      "reconnecting": "正在重新连接服务器",
+      "disconnected": "已断开与服务器的连接",
+      "error": "连接服务器时出错"
+    },
+    "button": {
+      "reconnect": "重新连接"
+    }
+  },
+  "toast": {
+    "ok": "确定"
+  },
+  "roles": {
+    "moderator": {
+      "label": "主持人",
+      "description": "游戏的进行完全取决于主持人。他们是唯一知道每个玩家角色的人，引导其他玩家度过白天、夜晚和第二天早上的死亡。他们的工作是让游戏继续进行，所以一些主持人选择在白天限时5分钟让大家决定要杀死谁。当有人被提名处决时，他们也负责发起投票。如果玩家人数较多，主持人可以使用应用程序来记录每个角色和当晚被杀的人。",
+      "shortDescription": "游戏主持！"
+    },
+    "werewolf": {
+      "label": "狼人",
+      "description": "狼人的目标是在夜晚秘密决定杀死一个村民，同时在白天伪装成村民以避免被杀。",
+      "shortDescription": "占领村庄！"
+    },
+    "villager": {
+      "label": "村民",
+      "description": "村民的目标是在被杀死之前找出并消灭所有狼人。他们没有特殊能力，但可以在白天投票处决一名玩家。",
+      "shortDescription": "保卫村庄！"
+    },
+    "doctor": {
+      "label": "医生",
+      "description": "医生每晚可以选择一名玩家进行治疗，防止他们被狼人杀死。",
+      "shortDescription": "治愈无辜者！"
+    },
+    "detective": {
+      "label": "侦探",
+      "description": "侦探每晚可以调查一名玩家，确定他们是否是狼人。",
+      "shortDescription": "揭露狼人！"
+    },
+    "witch": {
+      "label": "女巫",
+      "description": "女巫有一瓶解药和一瓶毒药的额外能力，可以在游戏中的任何时候使用。每晚只能使用一种，直到两种都用完，她可以选择在认为合适的时候使用。",
+      "shortDescription": "治愈无辜者，杀死狼人！"
+    },
+    "drunk": {
+      "label": "醉汉",
+      "description": "作为村民，醉汉还有一个额外的负担，就是只能用手势或声音交流。他们在白天完全不能说话，如果说话了，当晚就会自动死亡。",
+      "shortDescription": "不要说话！"
+    },
+    "vigilante": {
+      "label": "义警",
+      "description": "义警每晚都可以杀死另一个村民，但如果你杀死的村民不是狼人，你将在第二天晚上因内疚而自杀。",
+      "shortDescription": "保护村庄！"
+    },
+    "cursed": {
+      "label": "被诅咒者",
+      "description": "被诅咒者以为自己是普通村民，但他们生来就被狼的印记诅咒，被侦探视为狼群的成员。",
+      "shortDescription": "证明你的清白！"
+    }
+  }
+}

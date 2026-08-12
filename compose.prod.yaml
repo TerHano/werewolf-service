@@ -1,0 +1,17 @@
+# Production overlay: run the images published by CI instead of building from source.
+#
+#   docker compose -f compose.yaml -f compose.prod.yaml pull
+#   docker compose -f compose.yaml -f compose.prod.yaml up -d
+#
+# Set every secret in the host's .env — the committed one holds development values only.
+
+services:
+  api:
+    image: ghcr.io/terhano/werewolfparty-api:latest
+    build: !reset null
+    environment:
+      ASPNETCORE_ENVIRONMENT: Production
+
+  web:
+    image: ghcr.io/terhano/werewolfparty-web:latest
+    build: !reset null
