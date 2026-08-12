@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WerewolfParty_Server.DbContext;
@@ -11,9 +12,11 @@ using WerewolfParty_Server.DbContext;
 namespace WerewolfParty_Server.Migrations
 {
     [DbContext(typeof(WerewolfDbContext))]
-    partial class WerewolfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812024308_AddPushSubscriptions")]
+    partial class AddPushSubscriptions
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -168,10 +171,6 @@ namespace WerewolfParty_Server.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_date");
-
-                    b.Property<bool>("ModeratorBadgeAssigned")
-                        .HasColumnType("boolean")
-                        .HasColumnName("moderator_badge_assigned");
 
                     b.Property<int?>("NightStep")
                         .HasColumnType("integer")

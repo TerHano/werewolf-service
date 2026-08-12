@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WerewolfParty_Server.DbContext;
@@ -11,9 +12,11 @@ using WerewolfParty_Server.DbContext;
 namespace WerewolfParty_Server.Migrations
 {
     [DbContext(typeof(WerewolfDbContext))]
-    partial class WerewolfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812025709_AddModeratorBadge")]
+    partial class AddModeratorBadge
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

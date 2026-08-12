@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Npgsql.EntityFrameworkCore.PostgreSQL.Metadata;
 using WerewolfParty_Server.DbContext;
@@ -11,9 +12,11 @@ using WerewolfParty_Server.DbContext;
 namespace WerewolfParty_Server.Migrations
 {
     [DbContext(typeof(WerewolfDbContext))]
-    partial class WerewolfDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260812022049_AddSelfModeratedNightEngine")]
+    partial class AddSelfModeratedNightEngine
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -101,52 +104,6 @@ namespace WerewolfParty_Server.Migrations
                     b.ToTable("player_room");
                 });
 
-            modelBuilder.Entity("WerewolfParty_Server.Entities.PushSubscriptionEntity", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("integer")
-                        .HasColumnName("id");
-
-                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
-
-                    b.Property<string>("Auth")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("auth");
-
-                    b.Property<DateTime>("CreatedDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("created_date");
-
-                    b.Property<string>("Endpoint")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("endpoint");
-
-                    b.Property<DateTime>("LastSeenDate")
-                        .HasColumnType("timestamp with time zone")
-                        .HasColumnName("last_seen_date");
-
-                    b.Property<string>("P256dh")
-                        .IsRequired()
-                        .HasColumnType("text")
-                        .HasColumnName("p256dh");
-
-                    b.Property<Guid>("PlayerId")
-                        .HasColumnType("uuid")
-                        .HasColumnName("player_id");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("Endpoint")
-                        .IsUnique();
-
-                    b.HasIndex("PlayerId");
-
-                    b.ToTable("push_subscription");
-                });
-
             modelBuilder.Entity("WerewolfParty_Server.Entities.RoomEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -168,10 +125,6 @@ namespace WerewolfParty_Server.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_date");
-
-                    b.Property<bool>("ModeratorBadgeAssigned")
-                        .HasColumnType("boolean")
-                        .HasColumnName("moderator_badge_assigned");
 
                     b.Property<int?>("NightStep")
                         .HasColumnType("integer")

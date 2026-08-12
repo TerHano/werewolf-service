@@ -9,4 +9,6 @@ public class RoomSettingsDto
     public List<RoleName> SelectedRoles { get; set; } = new();
     public bool ShowGameSummary { get; set; }
     public bool AllowMultipleSelfHeals { get; set; }
+    public bool SelfModerated { get; set; }
+    public int NightStepSeconds { get; set; }
 }

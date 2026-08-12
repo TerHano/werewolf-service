@@ -9,4 +9,6 @@ public class UpdateRoleSettingsRequest : RoomIdRequest
     public List<RoleName> SelectedRoles { get; set; }
     public bool ShowGameSummary { get; set; }
     public bool AllowMultipleSelfHeals { get; set; }
+    public bool SelfModerated { get; set; }
+    public int NightStepSeconds { get; set; }
 }

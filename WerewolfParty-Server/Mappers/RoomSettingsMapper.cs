@@ -13,6 +13,8 @@ public class RoomSettingsMapper : Profile
             .ForMember(dest => dest.NumberOfWerewolves, opt => opt.MapFrom(src => src.NumberOfWerewolves))
             .ForMember(dest => dest.SelectedRoles, opt => opt.MapFrom(src => src.SelectedRoles))
             .ForMember(dest => dest.ShowGameSummary, opt => opt.MapFrom(src => src.ShowGameSummary))
-            .ForMember(dest => dest.AllowMultipleSelfHeals, opt => opt.MapFrom(src => src.AllowMultipleSelfHeals));
+            .ForMember(dest => dest.AllowMultipleSelfHeals, opt => opt.MapFrom(src => src.AllowMultipleSelfHeals))
+            .ForMember(dest => dest.SelfModerated, opt => opt.MapFrom(src => src.SelfModerated))
+            .ForMember(dest => dest.NightStepSeconds, opt => opt.MapFrom(src => src.NightStepSeconds));
     }
 }
