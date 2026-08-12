@@ -4,6 +4,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
+using Lib.Net.Http.WebPush;
+using Lib.Net.Http.WebPush.Authentication;
 using WerewolfParty_Server.API;
 using WerewolfParty_Server.DbContext;
 using WerewolfParty_Server.DTO;
@@ -52,11 +54,28 @@ public abstract class Program
         builder.Services.AddScoped<RoleSettingsRepository>();
         builder.Services.AddScoped<RoomGameActionRepository>();
         builder.Services.AddScoped<PlayerRoleRepository>();
+        builder.Services.AddScoped<PushSubscriptionRepository>();
 
 
         builder.Services.AddScoped<JwtService>();
         builder.Services.AddScoped<RoomService>();
         builder.Services.AddScoped<GameService>();
+        builder.Services.AddScoped<NightEngineService>();
+        builder.Services.AddScoped<GameAuthorizationService>();
+        builder.Services.AddScoped<PushService>();
+        // PushServiceClient wraps an HttpClient, so it is registered once rather than built per
+        // notification. VAPID details are read here; a deployment with no keys still resolves
+        // the client, and PushService simply never uses it.
+        builder.Services.AddSingleton<PushServiceClient>(_ => new PushServiceClient
+        {
+            DefaultAuthentication = new VapidAuthentication(
+                builder.Configuration.GetValue<string>("Push:PublicKey") ?? "",
+                builder.Configuration.GetValue<string>("Push:PrivateKey") ?? "")
+            {
+                Subject = builder.Configuration.GetValue<string>("Push:Subject") ?? "mailto:admin@localhost"
+            }
+        });
+        builder.Services.AddHostedService<NightClockService>();
         builder.Services.AddScoped<RoleFactory>();
         builder.Services.AddSignalR((options) => { options.EnableDetailedErrors = true; });
         builder.Services.AddSingleton<IUserIdProvider, NameUserIdProvider>();
@@ -162,6 +181,7 @@ public abstract class Program
         app.RegisterRoomEndpoints();
         app.RegisterPlayerEndpoints();
         app.RegisterGameEndpoints();
+        app.RegisterPushEndpoints();
 
         app.UseExceptionHandler(_ => { });
 

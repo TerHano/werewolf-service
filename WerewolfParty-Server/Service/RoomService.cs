@@ -66,6 +66,8 @@ public class RoomService(
         oldRoleSettings.SelectedRoles = updateRoleSettingsRequest.SelectedRoles;
         oldRoleSettings.ShowGameSummary = updateRoleSettingsRequest.ShowGameSummary;
         oldRoleSettings.AllowMultipleSelfHeals = updateRoleSettingsRequest.AllowMultipleSelfHeals;
+        oldRoleSettings.SelfModerated = updateRoleSettingsRequest.SelfModerated;
+        oldRoleSettings.NightStepSeconds = updateRoleSettingsRequest.NightStepSeconds;
         await roleSettingsRepository.UpdateRoleSettings(oldRoleSettings);
     }
 
@@ -106,7 +108,9 @@ public class RoomService(
             NumberOfWerewolves = 1,
             SelectedRoles = [RoleName.Doctor, RoleName.Detective, RoleName.Witch],
             ShowGameSummary = true,
-            AllowMultipleSelfHeals = true
+            AllowMultipleSelfHeals = true,
+            SelfModerated = true,
+            NightStepSeconds = 45
         };
         await roleSettingsRepository.AddRoleSettings(defaultRoleSettings);
 
@@ -214,12 +218,25 @@ public class RoomService(
         await playerRoomRepository.RemovePlayerFromRoom(roomId, playerRoomId);
         //Replace Mod if player was mod
         var room = await roomRepository.GetRoom(roomId);
-        var otherPlayers = await playerRoomRepository.GetPlayersInRoom(roomId);
-        var newModerator = otherPlayers.FirstOrDefault()?.Id;
-        if (room.CurrentModeratorId == null)
+        if (room.CurrentModeratorId != null)
         {
-            room.CurrentModeratorId = newModerator;
+            await roomRepository.UpdateRoom(room);
+            return;
         }
+
+        var otherPlayers = await playerRoomRepository.GetPlayersInRoom(roomId);
+
+        // The badge belongs to the first player eliminated, so when its holder leaves it should
+        // pass to the next one out rather than to an arbitrary player — who might still be
+        // alive and would then be running the day they are playing in.
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var nextDead = playerRoles
+            .Where(playerRole => !playerRole.IsAlive)
+            .OrderBy(playerRole => playerRole.Id)
+            .Select(playerRole => (int?)playerRole.PlayerRoomId)
+            .FirstOrDefault();
+
+        room.CurrentModeratorId = nextDead ?? otherPlayers.FirstOrDefault()?.Id;
         await roomRepository.UpdateRoom(room);
     }
 
@@ -232,6 +249,13 @@ public class RoomService(
     {
         var room = await roomRepository.GetRoom(roomId);
         room.GameState = gameState;
+        if (gameState == GameState.Lobby)
+        {
+            // Ending a game must stop the night clock working on this room.
+            room.NightStep = null;
+            room.NightStepDeadline = null;
+        }
+
         await roomRepository.UpdateRoom(room);
     }
 

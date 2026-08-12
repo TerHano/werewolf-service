@@ -101,6 +101,52 @@ namespace WerewolfParty_Server.Migrations
                     b.ToTable("player_room");
                 });
 
+            modelBuilder.Entity("WerewolfParty_Server.Entities.PushSubscriptionEntity", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasColumnName("id");
+
+                    NpgsqlPropertyBuilderExtensions.UseIdentityByDefaultColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Auth")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("auth");
+
+                    b.Property<DateTime>("CreatedDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("created_date");
+
+                    b.Property<string>("Endpoint")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("endpoint");
+
+                    b.Property<DateTime>("LastSeenDate")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("last_seen_date");
+
+                    b.Property<string>("P256dh")
+                        .IsRequired()
+                        .HasColumnType("text")
+                        .HasColumnName("p256dh");
+
+                    b.Property<Guid>("PlayerId")
+                        .HasColumnType("uuid")
+                        .HasColumnName("player_id");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("Endpoint")
+                        .IsUnique();
+
+                    b.HasIndex("PlayerId");
+
+                    b.ToTable("push_subscription");
+                });
+
             modelBuilder.Entity("WerewolfParty_Server.Entities.RoomEntity", b =>
                 {
                     b.Property<string>("Id")
@@ -122,6 +168,18 @@ namespace WerewolfParty_Server.Migrations
                     b.Property<DateTime>("LastModifiedDate")
                         .HasColumnType("timestamp with time zone")
                         .HasColumnName("last_modified_date");
+
+                    b.Property<bool>("ModeratorBadgeAssigned")
+                        .HasColumnType("boolean")
+                        .HasColumnName("moderator_badge_assigned");
+
+                    b.Property<int?>("NightStep")
+                        .HasColumnType("integer")
+                        .HasColumnName("night_step");
+
+                    b.Property<DateTime?>("NightStepDeadline")
+                        .HasColumnType("timestamp with time zone")
+                        .HasColumnName("night_step_deadline");
 
                     b.Property<int>("WinCondition")
                         .HasColumnType("integer")
@@ -196,6 +254,12 @@ namespace WerewolfParty_Server.Migrations
                         .HasColumnType("boolean")
                         .HasColumnName("allow_multiple_self_heals");
 
+                    b.Property<int>("NightStepSeconds")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("integer")
+                        .HasDefaultValue(45)
+                        .HasColumnName("night_step_seconds");
+
                     b.Property<int>("NumberOfWerewolves")
                         .HasColumnType("integer")
                         .HasColumnName("number_of_werewolves");
@@ -210,6 +274,12 @@ namespace WerewolfParty_Server.Migrations
                         .IsRequired()
                         .HasColumnType("integer[]")
                         .HasColumnName("selected_roles");
+
+                    b.Property<bool>("SelfModerated")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("boolean")
+                        .HasDefaultValue(true)
+                        .HasColumnName("self_moderated");
 
                     b.Property<bool>("ShowGameSummary")
                         .HasColumnType("boolean")

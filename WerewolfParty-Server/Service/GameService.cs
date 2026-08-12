@@ -138,8 +138,81 @@ public class GameService(
         await ProgressToNextPoint(roomId);
     }
 
-    public async Task LynchChosenPlayer(string roomId, int? playerId)
+    /// <summary>
+    /// Hands the moderator badge to the first player eliminated, once per game.
+    ///
+    /// Being first out is boring, so the badge gives that person a job: they narrate the table
+    /// and run the day. It carries no role information and no power over the night's timing —
+    /// see the design doc for why a "skip step" control would leak.
+    ///
+    /// Returns the new badge holder, or null when nothing changed. Callers broadcast.
+    /// </summary>
+    public async Task<PlayerDTO?> AssignModeratorBadgeIfFirstDeath(string roomId)
     {
+        var room = await roomRepository.GetRoom(roomId);
+        if (room.ModeratorBadgeAssigned) return null;
+
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+
+        // Deaths resolve as a set — a werewolf kill and a Witch poison land together with the
+        // same NightKilled — so "first" needs a tie-break. Lowest player role id: arbitrary,
+        // deterministic, and not traceable to anything in the game state.
+        var firstDead = playerRoles
+            .Where(playerRole => !playerRole.IsAlive)
+            .OrderBy(playerRole => playerRole.Id)
+            .FirstOrDefault();
+
+        if (firstDead == null) return null;
+
+        room.CurrentModeratorId = firstDead.PlayerRoomId;
+        room.ModeratorBadgeAssigned = true;
+        await roomRepository.UpdateRoom(room);
+
+        var newModerator = await playerRoomRepository.GetPlayerInRoom(roomId, firstDead.PlayerRoomId);
+        return mapper.Map<PlayerDTO>(newModerator);
+    }
+
+    /// <summary>
+    /// Adds another step's worth of time to the current night step, for a player who is
+    /// visibly still fumbling with their phone.
+    ///
+    /// Extending is safe where shortening is not: it is a visible response to someone who has
+    /// not finished, whereas ending a step early would make the length of the step a tell.
+    /// </summary>
+    public async Task<(bool Extended, DateTime? Deadline, NightStep? Step)> ExtendCurrentNightStep(string roomId)
+    {
+        var room = await roomRepository.GetRoom(roomId);
+        var settings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+
+        // Nothing to extend outside a live step, and Resolving is not a step anyone acts in.
+        if (room.NightStep == null || room.NightStep == NightStep.Resolving ||
+            room.NightStepDeadline == null)
+        {
+            return (false, null, null);
+        }
+
+        var newDeadline = room.NightStepDeadline.Value.AddSeconds(settings.NightStepSeconds);
+
+        // Guarded like every other write to these columns, so an extension cannot race the
+        // clock advancing the step it was extending.
+        var extended = await roomRepository.TryMoveToNightStep(roomId, room.NightStep, room.NightStep,
+            newDeadline);
+
+        return extended ? (true, newDeadline, room.NightStep) : (false, null, null);
+    }
+
+    /// <summary>
+    /// Records the village's decision and moves the game on to the next night.
+    ///
+    /// Returns false when it is not day. <see cref="ProgressToNextPoint"/> simply toggles the
+    /// phase, so a lynch arriving during the night would flip the room into day mid-night-call
+    /// and leave the engine advancing steps for a phase that is no longer running.
+    /// </summary>
+    public async Task<bool> LynchChosenPlayer(string roomId, int? playerId)
+    {
+        var currentRoom = await roomRepository.GetRoom(roomId);
+        if (!currentRoom.isDay) return false;
+
         if (playerId.HasValue)
         {
             var playerIdVal = playerId.Value;
@@ -161,6 +234,7 @@ public class GameService(
         }
 
         await ProgressToNextPoint(roomId);
+        return true;
     }
 
 
@@ -171,6 +245,12 @@ public class GameService(
         room.CurrentNight = 0;
         room.isDay = false;
         room.WinCondition = WinCondition.None;
+        // A restart must not leave a half-finished night call running, or the clock would keep
+        // advancing steps for a game that no longer exists.
+        room.NightStep = null;
+        room.NightStepDeadline = null;
+        // A new game means a new first death, so the badge is up for grabs again.
+        room.ModeratorBadgeAssigned = false;
         await roomRepository.UpdateRoom(room);
         await playerRoleRepository.RemoveAllPlayerRolesForRoom(roomId);
     }
@@ -179,9 +259,14 @@ public class GameService(
     {
         var playersInLobby = await playerRoomRepository.GetPlayersInRoom(roomId);
         var roleSettingsForRoom = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
-        var playerCountWithoutMod = playersInLobby.Count - 1;
+        // In a self-moderated room the moderator is dealt in like anyone else, so every player
+        // in the lobby counts towards the deck. Otherwise the moderator sits the game out and
+        // one seat has to be subtracted.
+        var playersToDealTo = roleSettingsForRoom.SelfModerated
+            ? playersInLobby.Count
+            : playersInLobby.Count - 1;
         var playersNeededForGame = roleSettingsForRoom.SelectedRoles.Count + roleSettingsForRoom.NumberOfWerewolves;
-        return playerCountWithoutMod >= playersNeededForGame;
+        return playersToDealTo >= playersNeededForGame;
     }
 
     public async Task StartGame(string roomId)
@@ -264,6 +349,54 @@ public class GameService(
         }
 
         return roleActionList;
+    }
+
+    /// <summary>
+    /// The caller's own card, including the player role id every game action is addressed by.
+    /// Returns null for someone in the room who was never dealt in.
+    /// </summary>
+    public async Task<MyRoleDto?> GetMyRole(string roomId, Guid playerGuid)
+    {
+        var doesPlayerHaveRole = await playerRoleRepository.DoesPlayerHaveRoleInRoom(roomId, playerGuid);
+        if (!doesPlayerHaveRole) return null;
+
+        var playerRole = await playerRoleRepository.GetPlayerRoleInRoomUsingPlayerGuid(roomId, playerGuid);
+        return new MyRoleDto
+        {
+            PlayerRoleId = playerRole.Id,
+            Role = playerRole.Role,
+            IsAlive = playerRole.IsAlive,
+            NightKilled = playerRole.NightKilled
+        };
+    }
+
+    /// <summary>
+    /// Everyone dealt into this game, by player role id, with no roles attached. This is what
+    /// lets a player put names to the target ids their own action list gives them.
+    /// </summary>
+    public async Task<List<GamePlayerDto>> GetPlayersInGame(string roomId)
+    {
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        return playerRoles
+            .Select(playerRole => new GamePlayerDto
+            {
+                Id = playerRole.Id,
+                Nickname = playerRole.PlayerRoom.NickName,
+                AvatarIndex = playerRole.PlayerRoom.AvatarIndex,
+                IsAlive = playerRole.IsAlive
+            })
+            .ToList();
+    }
+
+    /// <summary>
+    /// The werewolves in this game, alive or dead. Only ever served to a werewolf — the pack
+    /// has to recognise each other to share a single kill.
+    /// </summary>
+    public async Task<List<PlayerRoleDTO>> GetWerewolfPack(string roomId)
+    {
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var pack = playerRoles.Where(player => player.Role == RoleName.WereWolf).ToList();
+        return mapper.Map<List<PlayerRoleDTO>>(pack);
     }
 
     public async Task<PlayerQueuedActionDTO?> GetPlayerQueuedAction(string roomId, int playerRoleId)
@@ -357,10 +490,20 @@ public class GameService(
 
     private async Task ShuffleAndAssignRoles(string roomId)
     {
-        var roomModerator =  await roomRepository.GetModeratorForRoom(roomId);
-        var playersInRoomWithoutMod = await playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
-        playersInRoomWithoutMod = playersInRoomWithoutMod.Shuffle();
         var roomSettings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
+
+        // A self-moderated room has no human calling the night, so the moderator is a normal
+        // player and gets a card. In a moderator-run room they are excluded from the deal.
+        List<PlayerRoomEntity> playersToDealTo;
+        if (roomSettings.SelfModerated)
+        {
+            playersToDealTo = await playerRoomRepository.GetPlayersInRoom(roomId);
+        }
+        else
+        {
+            var roomModerator = await roomRepository.GetModeratorForRoom(roomId);
+            playersToDealTo = await playerRoomRepository.GetPlayersInRoomWithoutModerator(roomId, roomModerator);
+        }
 
         var roleCards = new List<RoleName>(roomSettings.SelectedRoles);
         for (int i = 0; i < roomSettings.NumberOfWerewolves; i++)
@@ -368,11 +511,11 @@ public class GameService(
             roleCards.Add(RoleName.WereWolf);
         }
 
-        playersInRoomWithoutMod = playersInRoomWithoutMod.Shuffle();
+        playersToDealTo = playersToDealTo.Shuffle();
         var playerRolesToAdd = new List<PlayerRoleEntity>();
-        for (int i = 0; i < playersInRoomWithoutMod.Count; i++)
+        for (int i = 0; i < playersToDealTo.Count; i++)
         {
-            var player = playersInRoomWithoutMod[i];
+            var player = playersToDealTo[i];
             var role = i > roleCards.Count - 1 ? RoleName.Villager : roleCards[i];
 
             var newPlayerRole = new PlayerRoleEntity()
@@ -418,11 +561,12 @@ public class GameService(
     {
         var room = await roomRepository.GetRoom(roomId);
         var currentNight = room.CurrentNight;
-        var playersInGameTask = playerRoomRepository.GetPlayersInRoom(roomId);
-        var gameDeathsTask = playerRoleRepository.GetPlayerRolesForRoom(roomId);
-        await Task.WhenAll(playersInGameTask, gameDeathsTask);
-        var playersInGame = await playersInGameTask;
-        var gameDeaths = await gameDeathsTask;
+        // Sequential, not Task.WhenAll: both repositories share this scope's DbContext, which
+        // is not thread-safe. Running them together throws "A second operation was started on
+        // this context instance", which surfaced as a 500 on the morning deaths banner and a
+        // silent "nobody died" in the UI.
+        var playersInGame = await playerRoomRepository.GetPlayersInRoom(roomId);
+        var gameDeaths = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
 
         var playersDeadThisNight = playersInGame.Where((player) => gameDeaths
                 .Any((x) => x.PlayerRoom.PlayerId == player.PlayerId && x.NightKilled == currentNight && !x.IsAlive))
