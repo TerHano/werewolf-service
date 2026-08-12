@@ -1,0 +1,115 @@
+import { Card, Separator, Stack, Text } from "@chakra-ui/react";
+import { Button } from "@/components/ui/button";
+import { lazy, Suspense, useState } from "react";
+import { useTranslation } from "react-i18next";
+import { useRoomId } from "@/hooks/useRoomId";
+import { GamePlayerDto } from "@/dto/GamePlayerDto";
+import { MyRoleDto } from "@/dto/MyRoleDto";
+import { useVotePlayerOut } from "@/hooks/useVotePlayerOut";
+import { useStartNight } from "@/hooks/useStartNight";
+import { PlayerList } from "@/components/GameRoom/ModeratorView/NightView/ActionModals/PlayerList";
+import { Skeleton } from "@/components/ui-addons/skeleton";
+
+const KilledPlayersBanner = lazy(
+  () => import("@/components/GameRoom/ModeratorView/DayView/KilledPlayersBanner")
+);
+
+interface SelfModeratedDayProps {
+  players: GamePlayerDto[];
+  myRole: MyRoleDto | null;
+  /** The badge holder runs the lynch; everyone else watches. */
+  canRunTheDay: boolean;
+  onChanged: () => void;
+}
+
+/**
+ * The day in a self-moderated room.
+ *
+ * The village argues out loud and the app only records the outcome, so this is deliberately
+ * thin — a list of the living and one button. It cannot reuse the moderator's ChoppingBlock,
+ * which reads `all-player-roles`; that endpoint is closed during play now, and this view is
+ * built from the roleless player list instead.
+ */
+export const SelfModeratedDay = ({
+  players,
+  canRunTheDay,
+  onChanged,
+}: SelfModeratedDayProps) => {
+  const { t } = useTranslation();
+  const roomId = useRoomId();
+  const [selectedPlayer, setSelectedPlayer] = useState<number | undefined>();
+
+  const { mutate: votePlayerOut, isPending: isVoting } = useVotePlayerOut({
+    onSuccess: async () => {
+      setSelectedPlayer(undefined);
+      onChanged();
+    },
+  });
+
+  const { mutate: startNight, isPending: isStartingNight } = useStartNight({
+    onSuccess: async () => onChanged(),
+  });
+
+  const alivePlayers = players.filter((player) => player.isAlive);
+
+  return (
+    <Stack gap={6}>
+      <Suspense fallback={<Skeleton loading height={80} />}>
+        <KilledPlayersBanner />
+      </Suspense>
+      <Separator flex="1" />
+
+      <Card.Root className="animate-fade-in-from-bottom">
+        <Card.Body>
+          <Stack gap={4}>
+            <Text textStyle="accent" fontSize="xl">
+              {t("game.choppingBlock.vote.title")}
+            </Text>
+
+            {canRunTheDay ? (
+              <>
+                <PlayerList
+                  players={alivePlayers}
+                  selectedPlayer={selectedPlayer}
+                  onPlayerSelect={setSelectedPlayer}
+                />
+                <Stack direction={{ base: "column", sm: "row" }} gap={3}>
+                  <Button
+                    flex="1"
+                    colorPalette="red"
+                    disabled={selectedPlayer === undefined}
+                    loading={isVoting}
+                    onClick={() =>
+                      votePlayerOut({ roomId, playerRoleId: selectedPlayer })
+                    }
+                  >
+                    {t("game.choppingBlock.vote.button.lynch")}
+                  </Button>
+                  <Button
+                    flex="1"
+                    variant="subtle"
+                    loading={isVoting}
+                    onClick={() => votePlayerOut({ roomId })}
+                  >
+                    {t("game.choppingBlock.vote.button.abstain")}
+                  </Button>
+                </Stack>
+                <Button
+                  colorPalette="blue"
+                  loading={isStartingNight}
+                  onClick={() => startNight({ roomId })}
+                >
+                  {t("game.night.begin")}
+                </Button>
+              </>
+            ) : (
+              <Text color="dimmed" textAlign="center">
+                {t("game.day.waitingForModerator")}
+              </Text>
+            )}
+          </Stack>
+        </Card.Body>
+      </Card.Root>
+    </Stack>
+  );
+};

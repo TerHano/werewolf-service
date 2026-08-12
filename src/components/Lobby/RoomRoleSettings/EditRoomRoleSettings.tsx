@@ -49,6 +49,7 @@ interface EditRoomRoleSettingsForm {
   specialRoles: string[];
   showGameSummary: boolean;
   allowMultipleSelfHeals: boolean;
+  selfModerated: boolean;
 }
 
 export const EditRoomRoleSettings = ({
@@ -100,6 +101,10 @@ export const EditRoomRoleSettings = ({
         ],
         showGameSummary: data.showGameSummary,
         allowMultipleSelfHeals: data.allowMultipleSelfHeals,
+        selfModerated: data.selfModerated,
+        // Not editable here, but the update replaces every setting — omitting it would reset
+        // the room's step length to zero.
+        nightStepSeconds: savedRoleSettings.nightStepSeconds,
       };
       void mutate(request, {
         onSuccess: () => {
@@ -334,6 +339,36 @@ export const EditRoomRoleSettings = ({
                 value="settings"
               >
                 <Stack gap={4}>
+                  <ChakraField.Root>
+                    <ChakraField.Label>
+                      <Text>{t("roleSettings.selfModeratedSwitch.label")}</Text>
+                    </ChakraField.Label>
+                    <Skeleton
+                      height={6}
+                      width={12}
+                      loading={isRoomRoleSettingsLoading}
+                    >
+                      <Controller
+                        name="selfModerated"
+                        control={control}
+                        defaultValue={savedRoleSettings?.selfModerated}
+                        render={({ field }) => (
+                          <Switch
+                            size="lg"
+                            name={field.name}
+                            checked={field.value}
+                            onCheckedChange={({ checked }) =>
+                              field.onChange(checked)
+                            }
+                            inputProps={{ onBlur: field.onBlur }}
+                          />
+                        )}
+                      />
+                    </Skeleton>
+                    <ChakraField.HelperText>
+                      {t("roleSettings.selfModeratedSwitch.description")}
+                    </ChakraField.HelperText>
+                  </ChakraField.Root>
                   <ChakraField.Root>
                     <ChakraField.Label>
                       <Text>{t("roleSettings.gameSummarySwitch.label")}</Text>

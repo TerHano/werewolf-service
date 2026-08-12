@@ -9,10 +9,13 @@ import { useCheckRoom } from "@/hooks/useCheckRoom";
 import { useGameState } from "@/hooks/useGameState";
 import { useIsPlayerInRoom } from "@/hooks/useIsPlayerInRoom";
 import { useSocketConnection } from "@/hooks/useSocketConnection";
+import { useToaster } from "@/hooks/ui/useToaster";
+import { SocketResponse } from "@/dto/SocketResponse";
 import { getApi } from "@/util/api";
 import { createFileRoute, redirect, useNavigate } from "@tanstack/react-router";
 import { useDocumentTitle } from "@uidotdev/usehooks";
 import { useCallback, useEffect } from "react";
+import { useTranslation } from "react-i18next";
 
 export const Route = createFileRoute("/room/$roomId")({
   component: RouteComponent,
@@ -44,13 +47,38 @@ function RouteComponent() {
   useDocumentTitle(`Werewolf Party | Room ${roomId}`);
   const _isPlayerAlreadyInRoomInitialData = Route.useLoaderData();
   const navigate = useNavigate();
+  const { t } = useTranslation();
+  const { showToast } = useToaster();
+
+  // The hub reports join failures (missing/unknown room) in its response rather than by
+  // faulting the invocation, so every JoinRoom call has to inspect the result itself.
+  const handleJoinResponse = useCallback(
+    (response: SocketResponse) => {
+      if (response.success) {
+        return true;
+      }
+      showToast({
+        type: "error",
+        title: t("room.joinRoomError.title"),
+        description:
+          response.errorMessage ?? t("room.joinRoomError.description"),
+        withDismissButton: true,
+      });
+      navigate({ to: "/" });
+      return false;
+    },
+    [navigate, showToast, t],
+  );
+
   const { mutate: checkRoomMutate } = useCheckRoom({
     onSuccess: async (data) => {
       if (!data) {
         navigate({ to: "/" });
       } else {
-        joinRoom({ roomId }).then(() => {
-          void refetchIsPlayerInRoom();
+        joinRoom({ roomId }).then((response) => {
+          if (handleJoinResponse(response)) {
+            void refetchIsPlayerInRoom();
+          }
         });
       }
     },
@@ -74,19 +102,22 @@ function RouteComponent() {
 
   useEffect(() => {
     if (isPlayerAlreadyInRoom) {
-      joinRoom({ roomId });
+      void joinRoom({ roomId }).then(handleJoinResponse);
     }
-  }, [isPlayerAlreadyInRoom, joinRoom, roomId]);
+  }, [handleJoinResponse, isPlayerAlreadyInRoom, joinRoom, roomId]);
 
   const joinRoomCb = useCallback(
     async (playerDetails: AddEditPlayerDetailsDto) => {
-      return joinRoom(playerDetails).then(() => {
+      return joinRoom(playerDetails).then((response) => {
+        if (!handleJoinResponse(response)) {
+          return;
+        }
         return refetchIsPlayerInRoom().then(() => {
           return;
         });
       });
     },
-    [joinRoom, refetchIsPlayerInRoom]
+    [handleJoinResponse, joinRoom, refetchIsPlayerInRoom],
   );
 
   return (

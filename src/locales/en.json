@@ -32,6 +32,10 @@
     "button": {
       "updateSettings": "Update Role Settings",
       "view": "View Role Settings"
+    },
+    "selfModeratedSwitch": {
+      "label": "Let the app run the night",
+      "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
     }
   },
   "winCondition": {
@@ -142,7 +146,6 @@
       },
       "unknown": "Unknown"
     },
-
     "settings": {
       "buttonLabel": "Settings",
       "title": "Game Settings",
@@ -170,6 +173,73 @@
           "abstain": "Abstain Vote"
         }
       }
+    },
+    "night": {
+      "begin": "Begin the night",
+      "undo": "Change my mind",
+      "chosen": "You chose {{player}}",
+      "canChangeUntilStepEnds": "You can change this until the step ends.",
+      "actionUnavailable": "You cannot use this right now.",
+      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
+      "waitingToBegin": {
+        "title": "Waiting for the night to begin",
+        "description": "Look at your card. The night starts when the moderator says so."
+      },
+      "notYourTurn": {
+        "title": "Eyes closed",
+        "description": "Someone else is acting. Your phone will buzz when it is your turn."
+      },
+      "dead": {
+        "title": "You are out of the game",
+        "description": "You can watch, but you no longer act at night."
+      },
+      "yourTurn": {
+        "title": "It's your turn",
+        "description": "Open the app and take your action."
+      },
+      "investigation": {
+        "isWerewolf": "Reads as a werewolf",
+        "isNotWerewolf": "Does not read as a werewolf",
+        "keepItToYourself": "Keep it to yourself until morning."
+      },
+      "step": {
+        "WerewolfKill": "The werewolves are choosing",
+        "DoctorHeal": "The doctor is choosing",
+        "DetectiveInvestigate": "The detective is choosing",
+        "WitchAct": "The witch is choosing",
+        "VigilanteShoot": "The vigilante is choosing",
+        "Resolving": "Working out what happened"
+      }
+    },
+    "day": {
+      "waitingForModerator": "The moderator is recording the village's decision."
+    },
+    "notifications": {
+      "enable": {
+        "title": "Get a buzz on your turn",
+        "description": "Your phone will vibrate when it is your turn, even with the screen off.",
+        "button": "Turn on"
+      },
+      "install": {
+        "title": "Add to your home screen",
+        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+      },
+      "denied": {
+        "title": "Notifications are blocked",
+        "description": "Allow notifications for this site in your browser settings, or keep this page open to see your turn."
+      }
+    },
+    "badge": {
+      "title": "You're running the game",
+      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "extend": "Give this step more time"
+    },
+    "spectator": {
+      "title": "You're out of the game",
+      "description": "Watch the rest play out. Don't give anything away.",
+      "youWere": "You were the {{role}}",
+      "stillAlive": "Still in ({{count}})",
+      "out": "Out ({{count}})"
     }
   },
   "mainMenu": {
@@ -232,6 +302,12 @@
     "copyRoomUrl": "Copy Room URL",
     "copied": "Copied!"
   },
+  "room": {
+    "joinRoomError": {
+      "title": "Could Not Join Room",
+      "description": "Something went wrong while joining the room. Please try again."
+    }
+  },
   "socket": {
     "status": {
       "connecting": "Connecting to Server",
@@ -255,7 +331,6 @@
     "werewolf": {
       "label": "Werewolf",
       "description": "The goal of the werewolves is to decide on one villager to secretly kill off during the night, while posing as villagers during the day so they're not killed off themselves.",
-
       "shortDescription": "Take over the Village!"
     },
     "villager": {
@@ -276,7 +351,6 @@
     "witch": {
       "label": "Witch",
       "description": "The Witch has the additional powers of one potion and one poison, which they may use at any point throughout the game. They can only use one per evening until both are gone, and have the ability to save them until a point in the game they deem fit.",
-
       "shortDescription": "Heal the Innocent, Kill the Werewolves!"
     },
     "drunk": {
@@ -287,13 +361,11 @@
     "vigilante": {
       "label": "Vigilante",
       "description": "The Vigilante has the ability to kill another villager each night, but if the villager you kill is not a Werewolf, you will commit suicide the next night out of guilt",
-
       "shortDescription": "Protect The Village!"
     },
     "cursed": {
       "label": "Cursed",
       "description": "The Cursed think they are regular villagers, but they were cursed with the mark of the wolf at birth and are seen as members of the wolfpack by the detective.",
-
       "shortDescription": "Prove Your Innocence!"
     }
   },
