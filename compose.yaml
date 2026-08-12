@@ -1,0 +1,65 @@
+# One command to run the whole game:
+#
+#   docker compose up --build     -> http://localhost:8080
+#
+# Everything is served from a single origin. nginx in the `web` service serves the built app and
+# proxies /api and /Events through to the server, so there is no CORS to configure and no
+# backend URL compiled into the frontend bundle.
+
+name: werewolf-party
+
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${DB_USERNAME:-werewolf}
+      POSTGRES_PASSWORD: ${DB_PASSWORD:-werewolf}
+      POSTGRES_DB: ${DB_NAME:-werewolf}
+    volumes:
+      - db_data:/var/lib/postgresql/data
+    # The API waits for this rather than for the container merely existing — postgres accepts
+    # connections a second or two after start, and without the check the API races it and dies.
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${DB_USERNAME:-werewolf} -d ${DB_NAME:-werewolf}"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    restart: unless-stopped
+
+  api:
+    build:
+      context: ./apps/server
+      dockerfile: WerewolfParty-Server/Dockerfile
+      args:
+        BUILD_CONFIGURATION: ${BUILD_CONFIGURATION:-Release}
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      ASPNETCORE_URLS: http://+:8080
+      ASPNETCORE_ENVIRONMENT: ${ASPNETCORE_ENVIRONMENT:-Production}
+      ConnectionStrings__DefaultConnection: "Host=db;Username=${DB_USERNAME:-werewolf};Password=${DB_PASSWORD:-werewolf};Database=${DB_NAME:-werewolf}"
+      # The API applies EF migrations on startup, so a brand-new database works with no setup.
+      Database__MigrateOnStartup: "true"
+      # Same-origin through the proxy, so no cross-origin requests are made at all.
+      AllowedOrigins: ${ALLOWED_ORIGINS:-http://localhost:8080}
+      Auth__Issuer: ${AUTH_ISSUER:-werewolf-party}
+      Auth__Audience: ${AUTH_AUDIENCE:-werewolf-party}
+      Auth__PrivateKey: ${AUTH_PRIVATE_KEY:?set AUTH_PRIVATE_KEY in .env}
+      # Optional. Without these, turn notifications fall back to the in-app prompt.
+      Push__Subject: ${PUSH_SUBJECT:-}
+      Push__PublicKey: ${PUSH_PUBLIC_KEY:-}
+      Push__PrivateKey: ${PUSH_PRIVATE_KEY:-}
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./apps/web
+    depends_on:
+      - api
+    ports:
+      - "${WEB_PORT:-8080}:80"
+    restart: unless-stopped
+
+volumes:
+  db_data:

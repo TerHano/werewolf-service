@@ -1,0 +1,37 @@
+# Development overrides, applied automatically by `docker compose up`.
+#
+# Runs the Vite dev server with hot reload instead of the static nginx build, and exposes
+# postgres so you can inspect it. Delete or rename this file to run the production-shaped stack
+# locally.
+
+services:
+  # Postgres is deliberately NOT published to the host. A bound port is the one thing here
+  # that can fail before anything starts, and 5432 is usually already taken by a local install
+  # or another project. Inspect it without a port:
+  #
+  #   docker compose exec db psql -U werewolf -d werewolf
+  #
+  # If you do want it reachable from the host, uncomment and pick a free port:
+  #
+  # db:
+  #   ports:
+  #     - "${DB_PORT:-55432}:5432"
+
+  api:
+    environment:
+      ASPNETCORE_ENVIRONMENT: Development
+
+  web:
+    build:
+      # Stop at the build stage so we get the Node image with the toolchain, not nginx.
+      target: build
+    command: npm run dev -- --host 0.0.0.0 --port 80
+    environment:
+      # Empty keeps requests relative; Vite's dev proxy forwards them to the api service,
+      # mirroring what nginx does in production.
+      WEREWOLF_SERVER_URL: ""
+      WEREWOLF_API_TARGET: "http://api:8080"
+    volumes:
+      - ./apps/web/src:/src/src
+      - ./apps/web/public:/src/public
+      - ./apps/web/index.html:/src/index.html

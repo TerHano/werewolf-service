@@ -165,6 +165,20 @@ public abstract class Program
 
         var app = builder.Build();
 
+        // Bring the schema up to date before serving anything. Without this a fresh database —
+        // which is exactly what `docker compose up` hands you — leaves the API talking to empty
+        // tables, and every request fails on a missing relation.
+        //
+        // Safe here because the app runs as a single instance (NightClockService already assumes
+        // that). If it is ever scaled out, move this to a one-shot job that runs before the API
+        // starts, so two instances cannot migrate concurrently.
+        if (builder.Configuration.GetValue("Database:MigrateOnStartup", true))
+        {
+            using var migrationScope = app.Services.CreateScope();
+            var dbContext = migrationScope.ServiceProvider.GetRequiredService<WerewolfDbContext>();
+            dbContext.Database.Migrate();
+        }
+
         // Configure the HTTP request pipeline.
         if (app.Environment.IsDevelopment())
         {

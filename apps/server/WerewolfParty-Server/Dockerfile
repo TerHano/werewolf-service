@@ -1,9 +1,9 @@
-﻿ARG BUILD_PLATFORM
-FROM --platform=$BUILD_PLATFORM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
+﻿# Builds for the host's architecture. Use `docker buildx --platform` when a specific target
+# is needed, rather than pinning it here — an unset BUILD_PLATFORM made `--platform=` fail.
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 USER $APP_UID
 WORKDIR /app
 EXPOSE 8080
-EXPOSE 8081
 
 FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 ARG BUILD_CONFIGURATION
