@@ -1,0 +1,18 @@
+{
+  "name": "Werewolf Party",
+  "short_name": "Werewolf",
+  "description": "Cards for a party game full of lies, deceit, & accusations.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0a0a0a",
+  "theme_color": "#0a0a0a",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "/site-icon-dark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    }
+  ]
+}

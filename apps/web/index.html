@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&display=swap"
+    rel="stylesheet">
+
+  <!-- Default favicon (for browsers that don't support media queries in link tags) -->
+  <link rel="icon" href="/site-icon-dark.svg" type="image/svg+xml">
+
+  <!-- Light mode favicon -->
+  <link rel="icon" href="/site-icon-light.svg" type="image/svg+xml" media="(prefers-color-scheme: light)">
+
+  <!-- Dark mode favicon -->
+  <link rel="icon" href="/site-icon-dark.svg" type="image/svg+xml" media="(prefers-color-scheme: dark)">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+
+  <!-- Required for Web Push. On iOS, notifications are only delivered when the site has been
+       added to the home screen, which needs both the manifest and apple-mobile-web-app-capable. -->
+  <link rel="manifest" href="/manifest.webmanifest" />
+  <meta name="theme-color" content="#0a0a0a" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="Werewolf" />
+  <link rel="apple-touch-icon" href="/site-icon-dark.svg" />
+  <title>Werewolf Party</title>
+  <meta property="og:title" content="Werewolf Party" />
+  <meta property="og:image" content="/rich-preview.png" />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
+</html>

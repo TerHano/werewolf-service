@@ -1,0 +1,372 @@
+{
+  "global_error": {
+    "title": "¡Ups!",
+    "description": "Ocurrió un error al procesar tu solicitud. Por favor intenta de nuevo más tarde."
+  },
+  "roleSettings": {
+    "numberOfWerewolves": "Número de Hombres Lobo",
+    "traditionalRoles": "Roles Tradicionales",
+    "specialRoles": "Roles Especiales",
+    "updated": {
+      "title": "Configuración de Roles Actualizada",
+      "description": "La configuración de roles ha sido actualizada exitosamente."
+    },
+    "error": {
+      "title": "Error al Actualizar la Configuración",
+      "description": "Hubo un error al actualizar la configuración de roles. Por favor intenta de nuevo."
+    },
+    "viewSettings": {
+      "active": "Activo",
+      "all": "Todos"
+    },
+    "roles": "Roles",
+    "settings": "Configuración",
+    "allowSelfHealsSwitch": {
+      "label": "Permitir Autocuraciones Continuas",
+      "description": "Cuando está desactivado, impide que los curanderos se curen a sí mismos varias veces seguidas."
+    },
+    "gameSummarySwitch": {
+      "label": "Mostrar Resumen del Juego",
+      "description": "Cuando está activado, se mostrará un resumen del juego al final."
+    },
+    "button": {
+      "updateSettings": "Actualizar Configuración",
+      "view": "Ver Configuración"
+    },
+    "selfModeratedSwitch": {
+      "label": "Let the app run the night",
+      "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
+    }
+  },
+  "winCondition": {
+    "title": {
+      "werewolvesWin": "¡Ganan los Hombres Lobo!",
+      "villagersWin": "¡Ganan los Aldeanos!"
+    },
+    "moderator": {
+      "werewolvesWin": "Los hombres lobo han ganado el juego. Puedes comenzar un nuevo juego o terminarlo.",
+      "villagersWin": "Los aldeanos han ganado el juego. Puedes comenzar un nuevo juego o terminarlo."
+    },
+    "isWerewolf": {
+      "werewolvesWin": "¡Felicitaciones! Los hombres lobo eliminaron a todos los aldeanos.",
+      "villagersWin": "¡Oh no! ¡No pudieron proteger a los aldeanos! Los hombres lobo han ganado."
+    },
+    "isVillager": {
+      "werewolvesWin": "¡Oh no! Los aldeanos han sido eliminados.",
+      "villagersWin": "¡Felicitaciones! Los aldeanos han protegido su aldea."
+    },
+    "button": {
+      "playAgain": "Jugar de Nuevo",
+      "endGame": "Terminar Juego"
+    }
+  },
+  "addEditPlayerModal": {
+    "updateDetails": "Actualizar Detalles del Jugador",
+    "addDetails": "¿Quién eres?",
+    "avatar": "Avatar",
+    "nickname": "Apodo",
+    "nicknameHelper": "¡Así te verán los demás!",
+    "playerDetailsUpdated": "Detalles del Jugador Actualizados",
+    "nicknameRequired": "El apodo es requerido",
+    "nicknameLength": "El apodo debe tener entre 3 y 10 caracteres",
+    "nicknamePattern": "El apodo solo puede contener letras y números"
+  },
+  "lobby": {
+    "gameInProgress": "Juego en Curso",
+    "waitingRoomMsg": "Te unirás al juego en la sala de espera hasta que termine el juego actual.",
+    "inviteFriends": "Invita a tus Amigos",
+    "copyRoomCode": "¡Copia y envía el código de sala a tus amigos!",
+    "roomIdCopied": "¡Código de Sala Copiado!",
+    "kickedToast": {
+      "title": "Has Sido Expulsado",
+      "description": "Has sido expulsado de la sala por el moderador."
+    },
+    "playersWaiting": "{{count}} Jugador(es) Esperando",
+    "leaveRoomModal": {
+      "title": "¿Abandonar Sala?",
+      "description": "No podrás participar si te unes de nuevo mientras hay un juego en curso.",
+      "moderatorWarning": {
+        "title": "Eres el Moderador",
+        "description": "Otro jugador será asignado como moderador si te vas."
+      },
+      "button": {
+        "leaveRoom": "Abandonar Sala",
+        "cancel": "Quedarse"
+      }
+    },
+    "managePlayer": {
+      "title": "Gestionar {{nickname}}",
+      "manage": "Gestionar",
+      "button": {
+        "kick": "Expulsar Jugador",
+        "makeModerator": "Hacer Moderador"
+      }
+    },
+    "button": {
+      "startGame": "Comenzar Juego",
+      "leaveRoom": "Salir"
+    }
+  },
+  "game": {
+    "time": {
+      "firstDayOrNight": "Primera {{time}}",
+      "day": "Día",
+      "night": "Noche"
+    },
+    "roleAction": {
+      "werewolfKill": {
+        "title": "Elige un jugador para matar",
+        "label": "Atacar"
+      },
+      "kill": {
+        "title": "Elige un jugador para matar",
+        "label": "Matar"
+      },
+      "heal": {
+        "title": "Elige un jugador para curar",
+        "label": "Curar"
+      },
+      "investigate": {
+        "werewolf": {
+          "title": "¿Quién creemos que es un hombre lobo?"
+        },
+        "label": "Investigar"
+      }
+    },
+    "actions": {
+      "werewolfKill": "Atacar",
+      "kill": "Matar",
+      "investigate": "Investigar",
+      "heal": "Curar",
+      "pastTense": {
+        "werewolfKill": "Atacado",
+        "kill": "Matado",
+        "investigate": "Investigado",
+        "heal": "Curado"
+      },
+      "unknown": "Desconocido"
+    },
+    "settings": {
+      "buttonLabel": "Configuración",
+      "title": "Configuración del Juego",
+      "endGame": "Terminar Juego"
+    },
+    "everyoneCloseEyes": "Todos Cierren los Ojos",
+    "readyForNextDay": "Ya es de noche. ¿Listos para ir al siguiente día?",
+    "wakeUpRole": "Despierta, {{role}}",
+    "roleCloseEyes": "{{role}}, Cierra los Ojos",
+    "chooseAPlayerTo": "Elige un jugador para...",
+    "button": {
+      "wakeUp": "Despertar"
+    },
+    "choppingBlock": {
+      "previousNightDeaths": {
+        "title": "Muertes",
+        "noDeathsDescription": "Ningún jugador murió anoche.",
+        "description": "Al amanecer, los aldeanos encontraron los siguientes muertos:"
+      },
+      "vote": {
+        "title": "Aldeanos, ¿quién creen que es el hombre lobo?",
+        "helper": "Todos los jugadores deben discutir ahora quién creen que es el hombre lobo. Una vez que se llegue a un acuerdo, los jugadores votarán para linchar al jugador. Si los jugadores no pueden llegar a un acuerdo, pueden abstenerse de votar por la noche.",
+        "button": {
+          "lynch": "Linchar Jugador",
+          "abstain": "Abstenerse"
+        }
+      }
+    },
+    "night": {
+      "begin": "Begin the night",
+      "undo": "Change my mind",
+      "chosen": "You chose {{player}}",
+      "canChangeUntilStepEnds": "You can change this until the step ends.",
+      "actionUnavailable": "You cannot use this right now.",
+      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
+      "waitingToBegin": {
+        "title": "Waiting for the night to begin",
+        "description": "Look at your card. The night starts when the moderator says so."
+      },
+      "notYourTurn": {
+        "title": "Eyes closed",
+        "description": "Someone else is acting. Your phone will buzz when it is your turn."
+      },
+      "dead": {
+        "title": "You are out of the game",
+        "description": "You can watch, but you no longer act at night."
+      },
+      "yourTurn": {
+        "title": "It's your turn",
+        "description": "Open the app and take your action."
+      },
+      "investigation": {
+        "isWerewolf": "Reads as a werewolf",
+        "isNotWerewolf": "Does not read as a werewolf",
+        "keepItToYourself": "Keep it to yourself until morning."
+      },
+      "step": {
+        "WerewolfKill": "The werewolves are choosing",
+        "DoctorHeal": "The doctor is choosing",
+        "DetectiveInvestigate": "The detective is choosing",
+        "WitchAct": "The witch is choosing",
+        "VigilanteShoot": "The vigilante is choosing",
+        "Resolving": "Working out what happened"
+      }
+    },
+    "day": {
+      "waitingForModerator": "The moderator is recording the village's decision."
+    },
+    "notifications": {
+      "enable": {
+        "title": "Get a buzz on your turn",
+        "description": "Your phone will vibrate when it is your turn, even with the screen off.",
+        "button": "Turn on"
+      },
+      "install": {
+        "title": "Add to your home screen",
+        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+      },
+      "denied": {
+        "title": "Notifications are blocked",
+        "description": "Allow notifications for this site in your browser settings, or keep this page open to see your turn."
+      }
+    },
+    "badge": {
+      "title": "You're running the game",
+      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "extend": "Give this step more time"
+    },
+    "spectator": {
+      "title": "You're out of the game",
+      "description": "Watch the rest play out. Don't give anything away.",
+      "youWere": "You were the {{role}}",
+      "stillAlive": "Still in ({{count}})",
+      "out": "Out ({{count}})"
+    }
+  },
+  "mainMenu": {
+    "title": "Fiesta de Hombres Lobo",
+    "subTitle": "Cartas para un juego de fiesta lleno de mentiras, engaños y acusaciones. ¿Eres lo suficientemente astuto?",
+    "joinRoomInput": {
+      "label": "Unirse a Sala",
+      "helper": "Ingresa tu ID de Sala de 5 caracteres",
+      "required": "El ID de sala es requerido",
+      "minLength": "El ID de sala debe tener al menos 5 caracteres",
+      "roomIdError": "ID de sala inválido. Por favor ingresa un ID válido."
+    },
+    "joinRoomToast": {
+      "roomNotFound": {
+        "title": "Sala No Encontrada",
+        "description": "La sala con ID {{roomId}} no existe. Por favor verifica el ID e intenta de nuevo."
+      }
+    },
+    "or": "O",
+    "createNewRoom": "Crear Nueva Sala",
+    "developedBy": "Desarrollado por Terry Hanoman",
+    "iconsBy": "Íconos por",
+    "and": "y"
+  },
+  "gameSummary": {
+    "title": "Resumen del Juego",
+    "description": "Aquí está el resumen del juego que acaba de terminar.",
+    "werewolves": "Hombres Lobo",
+    "villagers": "Aldeanos",
+    "specialRoles": "Roles Especiales",
+    "events": {
+      "title": "Eventos",
+      "description": "Aquí están los eventos que ocurrieron durante el juego."
+    },
+    "noEventsForGame": "No han ocurrido eventos en este juego.",
+    "noEventsForDay": "No han ocurrido eventos en este día.",
+    "noEventsForNight": "No han ocurrido eventos en esta noche.",
+    "showGameSummary": "Mostrar Resumen del Juego"
+  },
+  "common": {
+    "name": "Fiesta de Hombres Lobo",
+    "leave": "Salir",
+    "roomId": "ID de Sala",
+    "moderator": "Moderador",
+    "you": "Tú",
+    "roleSettings": "Configuración de Roles",
+    "roleInformation": "Información del Rol",
+    "comingSoon": "Próximamente",
+    "updateSettings": "Actualizar Configuración"
+  },
+  "button": {
+    "reload": "Recargar",
+    "cancel": "Cancelar",
+    "joinRoom": "Unirse a Sala",
+    "leaveRoom": "Salir de Sala",
+    "startGame": "Comenzar Juego",
+    "endGame": "Terminar Juego",
+    "editSettings": "Editar Configuración",
+    "viewSettings": "Ver Configuración",
+    "copyRoomUrl": "Copiar URL de Sala",
+    "copied": "¡Copiado!"
+  },
+  "room": {
+    "joinRoomError": {
+      "title": "No se Pudo Unir a la Sala",
+      "description": "Algo salió mal al unirse a la sala. Por favor, inténtalo de nuevo."
+    }
+  },
+  "socket": {
+    "status": {
+      "connecting": "Conectando al Servidor",
+      "reconnecting": "Reconectando al Servidor",
+      "disconnected": "Desconectado del Servidor",
+      "error": "Error al Conectar al Servidor"
+    },
+    "button": {
+      "reconnect": "Reconectar"
+    }
+  },
+  "toast": {
+    "ok": "Aceptar"
+  },
+  "roles": {
+    "moderator": {
+      "label": "Moderador",
+      "description": "El flujo del juego depende del Moderador. Es el único jugador que conoce el rol de cada uno y guía al resto a través del día, la noche y las muertes de la mañana siguiente. Su trabajo es mantener el juego en movimiento, por lo que algunos Moderadores optan por un límite de 5 minutos durante el día para que todos decidan a quién eliminar. También son quienes llaman a votación cuando surge un nominado para ser eliminado. El Moderador puede encontrar útil usar la aplicación para llevar un registro de cada rol y quién ha sido eliminado esa noche si hay una gran cantidad de jugadores.",
+      "shortDescription": "¡Maestro del Juego!"
+    },
+    "werewolf": {
+      "label": "Hombre Lobo",
+      "description": "El objetivo de los hombres lobo es decidir qué aldeano matar secretamente durante la noche, mientras se hacen pasar por aldeanos durante el día para no ser eliminados.",
+      "shortDescription": "¡Toma el Control de la Aldea!"
+    },
+    "villager": {
+      "label": "Aldeano",
+      "description": "El objetivo de los aldeanos es identificar y eliminar a todos los hombres lobo antes de ser eliminados. No tienen habilidades especiales, pero pueden votar para eliminar a un jugador durante el día.",
+      "shortDescription": "¡Defiende la Aldea!"
+    },
+    "doctor": {
+      "label": "Doctor",
+      "description": "El doctor puede elegir a un jugador para curar cada noche, evitando que sea eliminado por los hombres lobo.",
+      "shortDescription": "¡Cura a los Inocentes!"
+    },
+    "detective": {
+      "label": "Detective",
+      "description": "El detective puede investigar a un jugador cada noche para determinar si es un hombre lobo o no.",
+      "shortDescription": "¡Descubre a los Hombres Lobo!"
+    },
+    "witch": {
+      "label": "Bruja",
+      "description": "La Bruja tiene poderes adicionales de una poción y un veneno, que puede usar en cualquier momento durante el juego. Solo puede usar uno por noche hasta que ambos se agoten, y tiene la capacidad de guardarlos hasta un momento del juego que considere adecuado.",
+      "shortDescription": "¡Cura a los Inocentes, Mata a los Hombres Lobo!"
+    },
+    "drunk": {
+      "label": "Borracho",
+      "description": "También un aldeano, el Borracho tiene la carga adicional de solo poder comunicarse con gestos o ruidos. No puede hablar durante el día en absoluto, y si lo hace, muere automáticamente esa noche.",
+      "shortDescription": "¡No Hables!"
+    },
+    "vigilante": {
+      "label": "Vigilante",
+      "description": "El Vigilante tiene la capacidad de matar a otro aldeano cada noche, pero si el aldeano que matas no es un Hombre Lobo, te suicidarás la noche siguiente por culpa.",
+      "shortDescription": "¡Protege la Aldea!"
+    },
+    "cursed": {
+      "label": "Maldito",
+      "description": "Los Malditos piensan que son aldeanos normales, pero fueron maldecidos con la marca del lobo al nacer y son vistos como miembros de la manada por el detective.",
+      "shortDescription": "¡Demuestra tu Inocencia!"
+    }
+  }
+}

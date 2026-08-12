@@ -1,0 +1,375 @@
+{
+  "global_error": {
+    "title": "Oops!",
+    "description": "An error occurred while processing your request. Please try again later."
+  },
+  "roleSettings": {
+    "numberOfWerewolves": "Number of Werewolves",
+    "traditionalRoles": "Traditional Roles",
+    "specialRoles": "Special Roles",
+    "updated": {
+      "title": "Role Settings Updated",
+      "description": "The role settings have been successfully updated."
+    },
+    "error": {
+      "title": "Error Updating Role Settings",
+      "description": "There was an error updating the role settings. Please try again."
+    },
+    "viewSettings": {
+      "active": "Active",
+      "all": "All"
+    },
+    "roles": "Roles",
+    "settings": "Settings",
+    "allowSelfHealsSwitch": {
+      "label": "Allow Continuous Self-Heals",
+      "description": "When off, this restricts healers from healing themselves multiple times in a row. "
+    },
+    "gameSummarySwitch": {
+      "label": "Show Game Summary",
+      "description": "When on, a summary of the game will be shown at the end of the game."
+    },
+    "button": {
+      "updateSettings": "Update Role Settings",
+      "view": "View Role Settings"
+    },
+    "selfModeratedSwitch": {
+      "label": "Let the app run the night",
+      "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
+    }
+  },
+  "winCondition": {
+    "title": {
+      "werewolvesWin": "Werewolves Win",
+      "villagersWin": "Villagers Win"
+    },
+    "moderator": {
+      "werewolvesWin": "The werewolves have won the game. You can start a new game or end it.",
+      "villagersWin": "The villagers have won the game. You can start a new game or end it."
+    },
+    "isWerewolf": {
+      "werewolvesWin": "Congratulations! The werewolves eliminated all villagers.",
+      "villagersWin": "Oh no! You were not able to protect the villagers! The werewolves have won the game."
+    },
+    "isVillager": {
+      "werewolvesWin": "Oh no! The villagers have eliminated all werewolves.",
+      "villagersWin": "Congratulations! The villagers have protected their village."
+    },
+    "button": {
+      "playAgain": "Play Again",
+      "endGame": "End Game"
+    }
+  },
+  "addEditPlayerModal": {
+    "updateDetails": "Update Player Details",
+    "addDetails": "Who are you?",
+    "avatar": "Avatar",
+    "nickname": "Nickname",
+    "nicknameHelper": "How others will see you!",
+    "playerDetailsUpdated": "Player Details Updated",
+    "nicknameRequired": "Nickname is required",
+    "nicknameLength": "Nickname must be 3 - 10 characters",
+    "nicknamePattern": "Nickname can only contains letters/numbers"
+  },
+  "lobby": {
+    "gameInProgress": "Game In Progress",
+    "waitingRoomMsg": "You will join the game in the waiting room until the current game ends. ",
+    "inviteFriends": "Invite Some Friends",
+    "copyRoomCode": "Copy and send the room code to your friends!",
+    "roomIdCopied": "Room ID Copied!",
+    "kickedToast": {
+      "title": "You Were Kicked",
+      "description": "You have been kicked from the room by the moderator."
+    },
+    "playersWaiting": "{{count}} Player(s) Waiting",
+    "leaveRoomModal": {
+      "title": "Leave Room?",
+      "description": "You will not be able to participate if you join the room again while a game is in progress.",
+      "moderatorWarning": {
+        "title": "You are the Moderator",
+        "description": "Another player will be assigned as the moderator if you leave."
+      },
+      "button": {
+        "leaveRoom": "Leave Room",
+        "cancel": "Stay"
+      }
+    },
+    "managePlayer": {
+      "title": "Manage {{nickname}}",
+      "manage": "Manage",
+      "button": {
+        "kick": "Kick Player",
+        "makeModerator": "Make Moderator"
+      }
+    },
+    "button": {
+      "startGame": "Start Game",
+      "leaveRoom": "Leave"
+    }
+  },
+  "game": {
+    "time": {
+      "firstDayOrNight": "First {{time}}",
+      "day": "Day",
+      "night": "Night"
+    },
+    "roleAction": {
+      "werewolfKill": {
+        "title": "Choose a player to kill",
+        "label": "Attack"
+      },
+      "kill": {
+        "title": "Choose a player to kill",
+        "label": "Kill"
+      },
+      "heal": {
+        "title": "Choose a player to heal",
+        "label": "Heal"
+      },
+      "investigate": {
+        "werewolf": {
+          "title": "Who do we think is a werewolf?"
+        },
+        "label": "Investigate"
+      }
+    },
+    "actions": {
+      "werewolfKill": "Attack",
+      "kill": "Kill",
+      "investigate": "Investigate",
+      "heal": "Heal",
+      "pastTense": {
+        "werewolfKill": "Attacked",
+        "kill": "Killed",
+        "investigate": "Investigated",
+        "heal": "Healed"
+      },
+      "unknown": "Unknown"
+    },
+    "settings": {
+      "buttonLabel": "Settings",
+      "title": "Game Settings",
+      "endGame": "End Game"
+    },
+    "everyoneCloseEyes": "Everyone Close Your Eyes",
+    "readyForNextDay": "It is now nightfall. Ready to go to the next day?",
+    "wakeUpRole": "Wake Up, {{role}}",
+    "roleCloseEyes": "{{role}}, Close Your Eyes",
+    "chooseAPlayerTo": "Choose a player to...",
+    "button": {
+      "wakeUp": "Wake Up"
+    },
+    "choppingBlock": {
+      "previousNightDeaths": {
+        "title": "Deaths",
+        "noDeathsDescription": "No players were killed last night.",
+        "description": "Once the sun had risen, the villagers found the following dead:"
+      },
+      "vote": {
+        "title": "Villagers, who do you think is a werewolf?",
+        "helper": "All the players should now be discussing who they think is the werewolf. Once an agreement is reached, the players will vote to lynch the player. If the players are unable to reach an agreement, the players can abstain from voting for the night.",
+        "button": {
+          "lynch": "Lynch Player",
+          "abstain": "Abstain Vote"
+        }
+      }
+    },
+    "night": {
+      "begin": "Begin the night",
+      "undo": "Change my mind",
+      "chosen": "You chose {{player}}",
+      "canChangeUntilStepEnds": "You can change this until the step ends.",
+      "actionUnavailable": "You cannot use this right now.",
+      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
+      "waitingToBegin": {
+        "title": "Waiting for the night to begin",
+        "description": "Look at your card. The night starts when the moderator says so."
+      },
+      "notYourTurn": {
+        "title": "Eyes closed",
+        "description": "Someone else is acting. Your phone will buzz when it is your turn."
+      },
+      "dead": {
+        "title": "You are out of the game",
+        "description": "You can watch, but you no longer act at night."
+      },
+      "yourTurn": {
+        "title": "It's your turn",
+        "description": "Open the app and take your action."
+      },
+      "investigation": {
+        "isWerewolf": "Reads as a werewolf",
+        "isNotWerewolf": "Does not read as a werewolf",
+        "keepItToYourself": "Keep it to yourself until morning."
+      },
+      "step": {
+        "WerewolfKill": "The werewolves are choosing",
+        "DoctorHeal": "The doctor is choosing",
+        "DetectiveInvestigate": "The detective is choosing",
+        "WitchAct": "The witch is choosing",
+        "VigilanteShoot": "The vigilante is choosing",
+        "Resolving": "Working out what happened"
+      }
+    },
+    "day": {
+      "waitingForModerator": "The moderator is recording the village's decision."
+    },
+    "notifications": {
+      "enable": {
+        "title": "Get a buzz on your turn",
+        "description": "Your phone will vibrate when it is your turn, even with the screen off.",
+        "button": "Turn on"
+      },
+      "install": {
+        "title": "Add to your home screen",
+        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+      },
+      "denied": {
+        "title": "Notifications are blocked",
+        "description": "Allow notifications for this site in your browser settings, or keep this page open to see your turn."
+      }
+    },
+    "badge": {
+      "title": "You're running the game",
+      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "extend": "Give this step more time"
+    },
+    "spectator": {
+      "title": "You're out of the game",
+      "description": "Watch the rest play out. Don't give anything away.",
+      "youWere": "You were the {{role}}",
+      "stillAlive": "Still in ({{count}})",
+      "out": "Out ({{count}})"
+    }
+  },
+  "mainMenu": {
+    "title": "Werewolf Party",
+    "subTitle": "Cards for a party game full of lies, deceit, & accusations. Are you devious enough?",
+    "joinRoomInput": {
+      "label": "Join Room",
+      "helper": "Enter your 5 character Room ID",
+      "required": "Room ID is required",
+      "minLength": "Room ID must be at least 5 characters",
+      "roomIdError": "Invalid Room ID. Please enter a valid ID."
+    },
+    "joinRoomToast": {
+      "roomNotFound": {
+        "title": "Room Not Found",
+        "description": "Room with ID {{roomId}} does not exist. Please check the ID and try again."
+      }
+    },
+    "or": "OR",
+    "createNewRoom": "Create New Room",
+    "developedBy": "Developed By Terry Hanoman",
+    "iconsBy": "Icons by ",
+    "and": "and"
+  },
+  "gameSummary": {
+    "title": "Game Summary",
+    "description": "Here is a summary of the game that just ended.",
+    "werewolves": "Werewolves",
+    "villagers": "Villagers",
+    "specialRoles": "Special Roles",
+    "events": {
+      "title": "Events",
+      "description": "Here are the events that occurred during the game."
+    },
+    "noEventsForGame": "No events have occurred in this game.",
+    "noEventsForDay": "No events have occurred on this day.",
+    "noEventsForNight": "No events have occurred on this night.",
+    "showGameSummary": "Show Game Summary"
+  },
+  "common": {
+    "name": "Werewolf Party",
+    "leave": "Leave",
+    "roomId": "Room ID",
+    "moderator": "Moderator",
+    "you": "You",
+    "roleSettings": "Role Settings",
+    "roleInformation": "Role Information",
+    "comingSoon": "Coming Soon",
+    "updateSettings": "Update Settings"
+  },
+  "button": {
+    "reload": "Reload",
+    "cancel": "Cancel",
+    "joinRoom": "Join Room",
+    "leaveRoom": "Leave Room",
+    "startGame": "Start Game",
+    "endGame": "End Game",
+    "editSettings": "Edit Settings",
+    "viewSettings": "View Settings",
+    "copyRoomUrl": "Copy Room URL",
+    "copied": "Copied!"
+  },
+  "room": {
+    "joinRoomError": {
+      "title": "Could Not Join Room",
+      "description": "Something went wrong while joining the room. Please try again."
+    }
+  },
+  "socket": {
+    "status": {
+      "connecting": "Connecting to Server",
+      "reconnecting": "Reconnecting to Server",
+      "disconnected": "Disconnected from Server",
+      "error": "Error Connecting to Server"
+    },
+    "button": {
+      "reconnect": "Reconnect"
+    }
+  },
+  "toast": {
+    "ok": "OK"
+  },
+  "roles": {
+    "moderator": {
+      "label": "Moderator",
+      "description": "The flow of the game lives and dies by the Moderator's hand. They are the sole player that knows the role of each player, and walks the rest of the players through day, night and death the following morning. It's their job to keep the game moving, so some Moderators opt for a 5 minute time limit during the day for everyone to decide who to kill off. They also are the one who calls for a vote when a nominee to be killed off has arisen. The Moderator may find it helpful to use the app to keep track of each role and who has been killed that night should there be a large quantity of players.",
+      "shortDescription": "Game Master!"
+    },
+    "werewolf": {
+      "label": "Werewolf",
+      "description": "The goal of the werewolves is to decide on one villager to secretly kill off during the night, while posing as villagers during the day so they're not killed off themselves.",
+      "shortDescription": "Take over the Village!"
+    },
+    "villager": {
+      "label": "Villager",
+      "description": "The goal of the villagers is to identify and eliminate all werewolves before they are killed off themselves. They have no special abilities, but can vote to eliminate a player during the day.",
+      "shortDescription": "Defend the Village!"
+    },
+    "doctor": {
+      "label": "Doctor",
+      "description": "The doctor can choose one player to heal each night, preventing them from being killed by the werewolves.",
+      "shortDescription": "Heal the Innocent!"
+    },
+    "detective": {
+      "label": "Detective",
+      "description": "The detective can investigate one player each night to determine if they are a werewolf or not.",
+      "shortDescription": "Uncover the Werewolves!"
+    },
+    "witch": {
+      "label": "Witch",
+      "description": "The Witch has the additional powers of one potion and one poison, which they may use at any point throughout the game. They can only use one per evening until both are gone, and have the ability to save them until a point in the game they deem fit.",
+      "shortDescription": "Heal the Innocent, Kill the Werewolves!"
+    },
+    "drunk": {
+      "label": "Drunk",
+      "description": "Also a villager, the Drunk has the additional burden of only being able to communicate with gestures or noises. They may not talk during the day at all, and if they do, automatically die during that night.",
+      "shortDescription": "Don't Speak!"
+    },
+    "vigilante": {
+      "label": "Vigilante",
+      "description": "The Vigilante has the ability to kill another villager each night, but if the villager you kill is not a Werewolf, you will commit suicide the next night out of guilt",
+      "shortDescription": "Protect The Village!"
+    },
+    "cursed": {
+      "label": "Cursed",
+      "description": "The Cursed think they are regular villagers, but they were cursed with the mark of the wolf at birth and are seen as members of the wolfpack by the detective.",
+      "shortDescription": "Prove Your Innocence!"
+    }
+  },
+  "languageSelect": {
+    "placeholder": "Select language"
+  }
+}

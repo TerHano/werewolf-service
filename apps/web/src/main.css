@@ -1,0 +1,166 @@
+@import url("https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,100;0,200;0,300;0,400;0,500;0,600;0,700;0,800;0,900;1,100;1,200;1,300;1,400;1,500;1,600;1,700;1,800;1,900&display=swap");
+
+@font-face {
+  font-family: "Poor Story";
+  src:
+    local("Poor Story"),
+    url(/src/assets/fonts/Poor_Story/PoorStory-Regular.woff2) format("woff2");
+  font-display: swap;
+}
+
+/* * {
+    font-family: 'Inter', sans-serif;
+} */
+
+@-webkit-keyframes fade-in-from-bottom {
+  0% {
+    -webkit-transform: translateY(10px);
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-from-bottom {
+  0% {
+    -webkit-transform: translateY(10px);
+    transform: translateY(10px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateY(0);
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@-webkit-keyframes fade-in-from-left {
+  0% {
+    -webkit-transform: translateX(-10px);
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-from-left {
+  0% {
+    -webkit-transform: translateX(-10px);
+    transform: translateX(-10px);
+    opacity: 0;
+  }
+
+  100% {
+    -webkit-transform: translateX(0);
+    transform: translateX(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in-and-rotate-from-right {
+  0% {
+    transform: rotate(30deg);
+    opacity: 0;
+  }
+
+  50% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+
+  80% {
+    transform: rotate(10deg);
+    opacity: 1;
+  }
+
+  100% {
+    transform: rotate(0);
+    opacity: 1;
+  }
+}
+
+@keyframes fade-out {
+  from {
+    opacity: 1;
+  }
+
+  to {
+    opacity: 0;
+  }
+}
+
+@-webkit-keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.animate-fade-in-from-bottom {
+  opacity: 0;
+  -webkit-animation: fade-in-from-bottom 0.5s ease-in-out forwards;
+  animation: fade-in-from-bottom 0.5s ease-in-out forwards;
+  -webkit-animation-fill-mode: forwards;
+  animation-fill-mode: forwards;
+  transform: translateZ(0);
+}
+
+.animate-fade-in-from-left {
+  opacity: 0;
+  -webkit-animation: fade-in-from-left 0.5s ease-in-out forwards;
+  animation: fade-in-from-left 0.5s ease-in-out forwards;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+}
+
+.animate-fade-in-and-rotate-from-right {
+  opacity: 0;
+  animation: fade-in-and-rotate-from-right 1s ease-in-out forwards;
+}
+
+.animate-fade-in {
+  opacity: 0;
+  -webkit-animation: fade-in 0.5s ease-in-out forwards;
+  animation: fade-in 0.5s ease-in-out forwards;
+  -webkit-animation-fill-mode: both;
+  animation-fill-mode: both;
+  transform: translateZ(0);
+}
+
+@keyframes slide-in-from-bottom {
+  from {
+    transform: translateY(60px);
+  }
+
+  to {
+    transform: translateY(0);
+  }
+}
+
+.animate-slide-in-from-bottom {
+  animation: slide-in-from-bottom 1s ease-out forwards;
+}
