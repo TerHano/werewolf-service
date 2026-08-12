@@ -8,9 +8,14 @@ import { querysToInvalidateOnNewGame } from "@/hooks/useStartGame";
 import { Skeleton } from "@/components/ui-addons/skeleton";
 import { lazy } from "react";
 import { useWinCondition } from "@/hooks/useWinCondition";
+import { useRoomRoleSettings } from "@/hooks/useRoomRoleSettings";
 
 const WinConditionPage = lazy(
   () => import("@/components/GameRoom/WinConditionPage")
+);
+
+const SelfModeratedView = lazy(
+  () => import("@/components/GameRoom/SelfModeratedView/SelfModeratedView")
 );
 
 export const GameRoom = () => {
@@ -24,6 +29,8 @@ export const GameRoom = () => {
 
   const { data: isModerator, isLoading: isModeratorLoading } =
     useIsModerator(roomId);
+  const { data: roleSettings, isLoading: areSettingsLoading } =
+    useRoomRoleSettings(roomId);
   const queryClient = useQueryClient();
 
   useSocketConnection({
@@ -37,13 +44,18 @@ export const GameRoom = () => {
     },
   });
 
-  if (isWinConditionLoading || isModeratorLoading) {
+  if (isWinConditionLoading || isModeratorLoading || areSettingsLoading) {
     return <Skeleton loading={true} height={100} />;
   }
   if (winCondition) {
     return (
       <WinConditionPage winCondition={winCondition} isModerator={isModerator} />
     );
+  }
+  // In a self-moderated room there is no moderator screen: the server runs the night and
+  // everyone, host included, plays.
+  if (roleSettings?.selfModerated) {
+    return <SelfModeratedView />;
   }
   if (isModerator) {
     return <ModeratorView />;

@@ -1,9 +1,10 @@
 import { useCallback, useContext, useEffect, useRef } from "react";
 import { AddEditPlayerDetailsDto } from "@/dto/AddEditPlayerDetailsDto";
-import { APIResponse } from "@/dto/APIResponse";
+import { SocketResponse } from "@/dto/SocketResponse";
 import { SocketContext } from "@/context/SocketContext";
 import { HubConnectionState } from "@microsoft/signalr";
 import { PlayerDto } from "@/dto/PlayerDto";
+import { NightStep } from "@/enum/NightStep";
 
 interface UseSocketConnection {
   onLobbyUpdated?: () => void;
@@ -15,6 +16,12 @@ interface UseSocketConnection {
   onDayOrTimeUpdated?: () => void;
   onWinConditionMet?: () => void;
   onGameRestart?: () => void;
+  onNightStarted?: (night: number) => void;
+  onNightStepChanged?: (step: NightStep, deadline: string) => void;
+  onNightResolved?: () => void;
+  onStepExtended?: (step: NightStep, deadline: string) => void;
+  /** Sent only to the players who act in the step that just began. */
+  onYourTurn?: (step: NightStep) => void;
 }
 
 export const useSocketConnection = ({
@@ -27,6 +34,11 @@ export const useSocketConnection = ({
   onDayOrTimeUpdated,
   onWinConditionMet,
   onGameRestart,
+  onNightStarted,
+  onNightStepChanged,
+  onNightResolved,
+  onStepExtended,
+  onYourTurn,
 }: UseSocketConnection) => {
   const connection = useContext(SocketContext);
   if (connection == null) {
@@ -59,6 +71,21 @@ export const useSocketConnection = ({
     if (onGameRestart) {
       connection.on("GameRestart", onGameRestart);
     }
+    if (onNightStarted) {
+      connection.on("NightStarted", onNightStarted);
+    }
+    if (onNightStepChanged) {
+      connection.on("NightStepChanged", onNightStepChanged);
+    }
+    if (onNightResolved) {
+      connection.on("NightResolved", onNightResolved);
+    }
+    if (onStepExtended) {
+      connection.on("StepExtended", onStepExtended);
+    }
+    if (onYourTurn) {
+      connection.on("YourTurn", onYourTurn);
+    }
 
     return () => {
       if (onLobbyUpdated) {
@@ -85,6 +112,21 @@ export const useSocketConnection = ({
       if (onGameRestart) {
         connection.off("GameRestart", onGameRestart);
       }
+      if (onNightStarted) {
+        connection.off("NightStarted", onNightStarted);
+      }
+      if (onNightStepChanged) {
+        connection.off("NightStepChanged", onNightStepChanged);
+      }
+      if (onNightResolved) {
+        connection.off("NightResolved", onNightResolved);
+      }
+      if (onStepExtended) {
+        connection.off("StepExtended", onStepExtended);
+      }
+      if (onYourTurn) {
+        connection.off("YourTurn", onYourTurn);
+      }
     };
   }, [
     connection,
@@ -97,6 +139,11 @@ export const useSocketConnection = ({
     onPlayerKicked,
     onRoomRoleSettingsUpdated,
     onWinConditionMet,
+    onNightStarted,
+    onNightStepChanged,
+    onNightResolved,
+    onStepExtended,
+    onYourTurn,
   ]);
 
   // SignalR has no way to remove an onreconnected handler, so registering the caller's
@@ -119,7 +166,7 @@ export const useSocketConnection = ({
 
   const joinRoom = useCallback(
     (addEditPlayerDetails: AddEditPlayerDetailsDto) => {
-      return connection.invoke<APIResponse>("JoinRoom", addEditPlayerDetails);
+      return connection.invoke<SocketResponse>("JoinRoom", addEditPlayerDetails);
     },
     [connection]
   );

@@ -32,6 +32,10 @@
     "button": {
       "updateSettings": "Actualizar Configuración",
       "view": "Ver Configuración"
+    },
+    "selfModeratedSwitch": {
+      "label": "Let the app run the night",
+      "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
     }
   },
   "winCondition": {
@@ -169,6 +173,73 @@
           "abstain": "Abstenerse"
         }
       }
+    },
+    "night": {
+      "begin": "Begin the night",
+      "undo": "Change my mind",
+      "chosen": "You chose {{player}}",
+      "canChangeUntilStepEnds": "You can change this until the step ends.",
+      "actionUnavailable": "You cannot use this right now.",
+      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
+      "waitingToBegin": {
+        "title": "Waiting for the night to begin",
+        "description": "Look at your card. The night starts when the moderator says so."
+      },
+      "notYourTurn": {
+        "title": "Eyes closed",
+        "description": "Someone else is acting. Your phone will buzz when it is your turn."
+      },
+      "dead": {
+        "title": "You are out of the game",
+        "description": "You can watch, but you no longer act at night."
+      },
+      "yourTurn": {
+        "title": "It's your turn",
+        "description": "Open the app and take your action."
+      },
+      "investigation": {
+        "isWerewolf": "Reads as a werewolf",
+        "isNotWerewolf": "Does not read as a werewolf",
+        "keepItToYourself": "Keep it to yourself until morning."
+      },
+      "step": {
+        "WerewolfKill": "The werewolves are choosing",
+        "DoctorHeal": "The doctor is choosing",
+        "DetectiveInvestigate": "The detective is choosing",
+        "WitchAct": "The witch is choosing",
+        "VigilanteShoot": "The vigilante is choosing",
+        "Resolving": "Working out what happened"
+      }
+    },
+    "day": {
+      "waitingForModerator": "The moderator is recording the village's decision."
+    },
+    "notifications": {
+      "enable": {
+        "title": "Get a buzz on your turn",
+        "description": "Your phone will vibrate when it is your turn, even with the screen off.",
+        "button": "Turn on"
+      },
+      "install": {
+        "title": "Add to your home screen",
+        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+      },
+      "denied": {
+        "title": "Notifications are blocked",
+        "description": "Allow notifications for this site in your browser settings, or keep this page open to see your turn."
+      }
+    },
+    "badge": {
+      "title": "You're running the game",
+      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "extend": "Give this step more time"
+    },
+    "spectator": {
+      "title": "You're out of the game",
+      "description": "Watch the rest play out. Don't give anything away.",
+      "youWere": "You were the {{role}}",
+      "stillAlive": "Still in ({{count}})",
+      "out": "Out ({{count}})"
     }
   },
   "mainMenu": {
@@ -230,6 +301,12 @@
     "viewSettings": "Ver Configuración",
     "copyRoomUrl": "Copiar URL de Sala",
     "copied": "¡Copiado!"
+  },
+  "room": {
+    "joinRoomError": {
+      "title": "No se Pudo Unir a la Sala",
+      "description": "Algo salió mal al unirse a la sala. Por favor, inténtalo de nuevo."
+    }
   },
   "socket": {
     "status": {

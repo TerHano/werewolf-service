@@ -3,9 +3,12 @@ import { usePlayerAvatar } from "@/hooks/usePlayerAvatar";
 import { PlayerDto } from "@/dto/PlayerDto";
 import { Avatar } from "@/components/ui/avatar";
 import { PlayerRoleActionDto } from "@/dto/PlayerRoleActionDto";
+import { GamePlayerDto } from "@/dto/GamePlayerDto";
 
 export interface PlayerListProps {
-  players: PlayerDto[] | PlayerRoleActionDto[];
+  // GamePlayerDto is the self-moderated equivalent: same id/nickname/avatarIndex shape, keyed
+  // by player role id, with no role attached.
+  players: PlayerDto[] | PlayerRoleActionDto[] | GamePlayerDto[];
   selectedPlayer: number | undefined;
   onPlayerSelect: (selectedPlayerId: number | undefined) => void;
 }
