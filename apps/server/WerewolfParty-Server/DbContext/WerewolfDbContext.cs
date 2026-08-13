@@ -37,7 +37,7 @@ public class WerewolfDbContext(DbContextOptions<WerewolfDbContext> options)
         // instant it starts — the night would race through every step in one clock tick.
         modelBuilder.Entity<RoomSettingsEntity>()
             .Property(e => e.NightStepSeconds)
-            .HasDefaultValue(45);
+            .HasDefaultValue(20);
 
         modelBuilder.Entity<RoomGameActionEntity>()
             .HasOne(e => e.PlayerRole)

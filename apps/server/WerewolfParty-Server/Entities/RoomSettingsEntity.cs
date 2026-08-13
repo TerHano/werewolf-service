@@ -27,9 +27,15 @@ public class RoomSettingsEntity
     /// <summary>
     /// How long each step of the server-run night call lasts. Every step runs for exactly this
     /// long, including steps nobody can act in — uniform timing is what stops the length of a
-    /// step revealing whether its role is still alive.
+    /// step revealing whether its role is still alive. That is also why a player cannot end
+    /// their own step early: a short step would mean somebody acted, and a full-length one
+    /// would mean the role is dead.
+    ///
+    /// Since nothing can shorten a step, this number alone decides how long a night takes:
+    /// steps in the deck × this. 45s made a four-role night about three minutes of sitting in
+    /// the dark, so the default is 20.
     /// </summary>
-    [Column("night_step_seconds")] public int NightStepSeconds { get; set; } = 45;
+    [Column("night_step_seconds")] public int NightStepSeconds { get; set; } = 20;
 
     public RoomEntity? Room { get; set; }
 }

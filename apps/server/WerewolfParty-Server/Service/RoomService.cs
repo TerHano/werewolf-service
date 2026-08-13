@@ -110,7 +110,7 @@ public class RoomService(
             ShowGameSummary = true,
             AllowMultipleSelfHeals = true,
             SelfModerated = true,
-            NightStepSeconds = 45
+            NightStepSeconds = 20
         };
         await roleSettingsRepository.AddRoleSettings(defaultRoleSettings);
 

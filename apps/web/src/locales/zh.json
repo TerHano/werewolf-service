@@ -36,6 +36,10 @@
     "selfModeratedSwitch": {
       "label": "Let the app run the night",
       "description": "Everyone plays, including you. The app calls each role in turn and each player takes their action on their own phone. Turn this off to run the night yourself."
+    },
+    "nightStepSeconds": {
+      "label": "Seconds per turn",
+      "description": "How long each role gets at night. Every role takes the same time whether or not they are still alive, so the night always lasts the same length — that is what stops the timing giving away who has died."
     }
   },
   "winCondition": {

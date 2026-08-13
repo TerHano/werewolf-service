@@ -50,6 +50,7 @@ interface EditRoomRoleSettingsForm {
   showGameSummary: boolean;
   allowMultipleSelfHeals: boolean;
   selfModerated: boolean;
+  nightStepSeconds: string;
 }
 
 export const EditRoomRoleSettings = ({
@@ -102,9 +103,7 @@ export const EditRoomRoleSettings = ({
         showGameSummary: data.showGameSummary,
         allowMultipleSelfHeals: data.allowMultipleSelfHeals,
         selfModerated: data.selfModerated,
-        // Not editable here, but the update replaces every setting — omitting it would reset
-        // the room's step length to zero.
-        nightStepSeconds: savedRoleSettings.nightStepSeconds,
+        nightStepSeconds: parseInt(data.nightStepSeconds),
       };
       void mutate(request, {
         onSuccess: () => {
@@ -367,6 +366,30 @@ export const EditRoomRoleSettings = ({
                     </Skeleton>
                     <ChakraField.HelperText>
                       {t("roleSettings.selfModeratedSwitch.description")}
+                    </ChakraField.HelperText>
+                  </ChakraField.Root>
+                  <ChakraField.Root>
+                    <ChakraField.Label>
+                      <Text>{t("roleSettings.nightStepSeconds.label")}</Text>
+                    </ChakraField.Label>
+                    <Skeleton height={10} loading={isRoomRoleSettingsLoading}>
+                      <Controller
+                        name="nightStepSeconds"
+                        control={control}
+                        defaultValue={savedRoleSettings?.nightStepSeconds.toString()}
+                        render={({ field }) => (
+                          <SegmentedControl
+                            name={field.name}
+                            value={field.value}
+                            onChange={field.onChange}
+                            size="lg"
+                            items={["10", "15", "20", "30", "45"]}
+                          />
+                        )}
+                      />
+                    </Skeleton>
+                    <ChakraField.HelperText>
+                      {t("roleSettings.nightStepSeconds.description")}
                     </ChakraField.HelperText>
                   </ChakraField.Root>
                   <ChakraField.Root>
