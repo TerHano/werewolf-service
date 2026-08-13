@@ -6,6 +6,7 @@ import { GamePlayerDto } from "@/dto/GamePlayerDto";
 import { NightStateDto } from "@/dto/NightStateDto";
 import { useStepCountdown } from "./useStepCountdown";
 import { Skeleton } from "@/components/ui-addons/skeleton";
+import { NightInProgress } from "./NightInProgress";
 
 const NightActionPrompt = lazy(() => import("./NightActionPrompt"));
 
@@ -59,20 +60,14 @@ export const NightPhaseView = ({
   if (!isMyTurn) {
     const isDead = myRole !== null && !myRole.isAlive;
     return (
-      <Card.Root className="animate-fade-in-from-bottom">
-        <Card.Body>
-          <Stack align="center" gap={3} py={6}>
-            <Text textStyle="accent" fontSize="xl">
-              {isDead ? t("game.night.dead.title") : t("game.night.inProgress.title")}
-            </Text>
-            <Text color="dimmed" textAlign="center">
-              {isDead
-                ? t("game.night.dead.description")
-                : t("game.night.inProgress.description")}
-            </Text>
-          </Stack>
-        </Card.Body>
-      </Card.Root>
+      <NightInProgress
+        title={isDead ? t("game.night.dead.title") : t("game.night.inProgress.title")}
+        description={
+          isDead
+            ? t("game.night.dead.description")
+            : t("game.night.inProgress.description")
+        }
+      />
     );
   }
 

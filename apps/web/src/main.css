@@ -164,3 +164,51 @@
 .animate-slide-in-from-bottom {
   animation: slide-in-from-bottom 1s ease-out forwards;
 }
+
+/*
+ * The night screen for players who are not acting.
+ *
+ * A continuous loop on purpose, with nothing driven by game state: it must never restart, speed
+ * up or otherwise mark a step boundary. A visual that reset each time the night moved on would
+ * hand back exactly the per-step timing the opaque night exists to hide.
+ */
+@keyframes night-breathe {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.97);
+  }
+
+  50% {
+    opacity: 0.85;
+    transform: scale(1.03);
+  }
+}
+
+.animate-night-breathe {
+  animation: night-breathe 4s ease-in-out infinite;
+}
+
+@keyframes night-dot {
+  0%,
+  100% {
+    opacity: 0.2;
+  }
+
+  50% {
+    opacity: 0.9;
+  }
+}
+
+.animate-night-dot {
+  animation: night-dot 1.8s ease-in-out infinite;
+}
+
+/* Respect a reduced-motion preference: the point is only to look alive, not to move. */
+@media (prefers-reduced-motion: reduce) {
+  .animate-night-breathe,
+  .animate-night-dot {
+    animation: none;
+    opacity: 0.7;
+  }
+}
