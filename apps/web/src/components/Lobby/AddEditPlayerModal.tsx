@@ -129,7 +129,7 @@ export const AddEditPlayerModal = ({
       <DialogRootProvider size="xs" value={dialog}>
         <DialogBackdrop />
         {isEdit && (
-          <DialogTrigger>
+          <DialogTrigger asChild>
             <IconButton size="xs" variant="outline">
               <IconPencil />
             </IconButton>

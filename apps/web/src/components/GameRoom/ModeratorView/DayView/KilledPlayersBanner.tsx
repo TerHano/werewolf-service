@@ -48,13 +48,8 @@ export const KilledPlayersBanner = () => {
         </Card.Description>
         <Group mt="1rem">
           {latestPlayerDeaths.map((death) => (
-            <Stack gap={1} align="center">
-              <Avatar.Root
-                borderRadius="xl"
-                variant="subtle"
-                size="md"
-                key={death.id}
-              >
+            <Stack gap={1} align="center" key={death.id}>
+              <Avatar.Root borderRadius="xl" variant="subtle" size="md">
                 <Avatar.Image
                   marginTop={1}
                   src={getAvatarImageSrcForIndex(death.avatarIndex)}

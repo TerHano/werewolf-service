@@ -84,7 +84,7 @@ export const ManagePlayersButton = ({ player }: { player: PlayerDto }) => {
       placement={DrawerPlacementForMobileDesktop}
     >
       <DrawerBackdrop />
-      <DrawerTrigger>
+      <DrawerTrigger asChild>
         <IconButton
           size="sm"
           borderRadius="full"

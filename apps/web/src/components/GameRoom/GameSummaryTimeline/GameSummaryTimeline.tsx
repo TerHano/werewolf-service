@@ -20,7 +20,7 @@ export const GameSummaryTimeline = () => {
       <Stack mt={4} gap={3} justify="start" w="full">
         <Text fontSize="md">{t("gameSummary.title")}</Text>
         <Text fontSize="sm" color="gray.500">
-          {t("gameSummary.noEvents")}
+          {t("gameSummary.noEventsForGame")}
         </Text>
       </Stack>
     );

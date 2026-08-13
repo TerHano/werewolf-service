@@ -21,7 +21,7 @@ export const useRoleActionHelper = () => {
         case ActionType.WerewolfKill:
         case ActionType.Kill:
           return {
-            label: t("game.actions.attack"),
+            label: t("game.actions.werewolfKill"),
             pastTenseLabel: t("game.actions.pastTense.kill"),
             color: "red",
             icon: <IconSword />,

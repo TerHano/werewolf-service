@@ -124,7 +124,7 @@ export const InvestigationModal = ({
   return (
     <DialogRoot placement="center" onExitComplete={onModalExit}>
       <DialogBackdrop />
-      <DialogTrigger>
+      <DialogTrigger asChild>
         <Button disabled={!action.enabled} size="sm" colorPalette="blue">
           <IconSearch size={14} />
           {t("Investigate")}

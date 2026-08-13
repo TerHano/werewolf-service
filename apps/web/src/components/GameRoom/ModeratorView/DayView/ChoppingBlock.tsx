@@ -71,7 +71,7 @@ export const ChoppingBlock = () => {
                   });
                 }}
               >
-                {t("game.choppingBlock.vote.abstain")}
+                {t("game.choppingBlock.vote.button.abstain")}
               </Button>
               <Button
                 w="100%"
@@ -84,7 +84,7 @@ export const ChoppingBlock = () => {
                   });
                 }}
               >
-                {t("game.choppingBlock.vote.lynch")}
+                {t("game.choppingBlock.vote.button.lynch")}
               </Button>
             </SimpleGrid>
           </Stack>
