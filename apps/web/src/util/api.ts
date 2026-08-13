@@ -1,13 +1,35 @@
 import { APIResponse } from "@/dto/APIResponse";
-import { getSessionCookie } from "./cookie";
+import { clearSessionCookie, getSessionCookie, setSessionCookie } from "./cookie";
+
+const PLAYER_ID_URL = `${import.meta.env.WEREWOLF_SERVER_URL}/api/player/get-id`;
+
+/**
+ * Exchanges whatever token we currently hold for a fresh one.
+ *
+ * The server returns a token for the same player when the old one is valid, and mints a new
+ * player when it is not — so this both keeps an identity alive and recovers from a token the
+ * server will no longer accept.
+ */
+export async function refreshSessionToken(): Promise<string> {
+  const token = await getApi<string>({ url: PLAYER_ID_URL, method: "POST", isRetry: true });
+  setSessionCookie(token);
+  return token;
+}
 
 interface apiOptions {
   url: string;
   method: "GET" | "PUT" | "POST" | "DELETE";
   body?: string;
+  /** Set internally to stop a refreshed request from refreshing again. */
+  isRetry?: boolean;
 }
 
-export async function getApi<T>({ url, method, body }: apiOptions): Promise<T> {
+export async function getApi<T>({
+  url,
+  method,
+  body,
+  isRetry,
+}: apiOptions): Promise<T> {
   const token = getSessionCookie();
 
   // Create AbortController for timeout
@@ -41,6 +63,17 @@ export async function getApi<T>({ url, method, body }: apiOptions): Promise<T> {
       } catch {
         data = null;
       }
+    }
+
+    // A 401 means the stored token is no longer accepted — it was signed with a different key,
+    // or issued for a different issuer/audience, both of which happen whenever the server's auth
+    // configuration changes. Nothing else clears it, so without this the browser would keep
+    // sending the dead token forever and every request would fail until cookies were cleared by
+    // hand. Swap it for a fresh one and retry once.
+    if (response.status === 401 && !isRetry) {
+      clearSessionCookie();
+      await refreshSessionToken();
+      return getApi<T>({ url, method, body, isRetry: true });
     }
 
     const serverMessage = data?.errorMessages?.[0];

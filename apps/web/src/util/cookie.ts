@@ -2,6 +2,10 @@ export function getSessionCookie() {
   return getCookie("session");
 }
 
+export function clearSessionCookie() {
+  document.cookie = "session=;max-age=0;path=/;";
+}
+
 export function setSessionCookie(token: string) {
   document.cookie = "session=" + token + ";max-age=2147483647;path=/;";
 }

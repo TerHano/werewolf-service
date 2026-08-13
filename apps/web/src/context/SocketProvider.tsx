@@ -1,5 +1,4 @@
-import { getApi } from "@/util/api";
-import { getSessionCookie, setSessionCookie } from "@/util/cookie";
+import { refreshSessionToken } from "@/util/api";
 import {
   HubConnectionState,
   HubConnectionBuilder,
@@ -33,16 +32,12 @@ export const SocketProvider = ({ children }: PropsWithChildren) => {
     return new HubConnectionBuilder()
       .withUrl(`${import.meta.env.WEREWOLF_SERVER_URL}/Events`, {
         accessTokenFactory: async () => {
-          const token = getSessionCookie();
-          if (token == "") {
-            const token = await getApi<string>({
-              url: `${import.meta.env.WEREWOLF_SERVER_URL}/api/player/get-id`,
-              method: "POST",
-            });
-            setSessionCookie(token);
-            return token;
-          }
-          return token;
+          // Always exchange the current token rather than reusing it blindly. The server hands
+          // back a token for the same player when ours is still valid, and mints a new one when
+          // it is not — so a token the server has stopped accepting (after a signing key or
+          // issuer change) heals itself instead of leaving the hub connected anonymously, where
+          // user-targeted events like YourTurn would silently reach nobody.
+          return await refreshSessionToken();
         },
       })
       .configureLogging(LogLevel.Error)
