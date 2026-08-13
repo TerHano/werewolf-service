@@ -22,6 +22,12 @@ services:
       ASPNETCORE_ENVIRONMENT: Development
 
   web:
+    # A distinct tag is essential, not cosmetic. Compose derives the image name from the project
+    # and service, so without this both the dev and production builds are called
+    # `werewolf-party-web` — whichever was built last wins, and a plain `docker compose up`
+    # reuses it rather than rebuilding. Running the nginx image with the dev command below is
+    # how you get "/docker-entrypoint.sh: exec: npm: not found".
+    image: werewolf-party-web-dev
     build:
       # Stop at the build stage so we get the Node image with the toolchain, not nginx.
       target: build
