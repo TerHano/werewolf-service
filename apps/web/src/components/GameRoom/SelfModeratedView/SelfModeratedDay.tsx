@@ -6,7 +6,7 @@ import { useRoomId } from "@/hooks/useRoomId";
 import { GamePlayerDto } from "@/dto/GamePlayerDto";
 import { MyRoleDto } from "@/dto/MyRoleDto";
 import { useVotePlayerOut } from "@/hooks/useVotePlayerOut";
-import { useStartNight } from "@/hooks/useStartNight";
+import { useToaster } from "@/hooks/ui/useToaster";
 import { PlayerList } from "@/components/GameRoom/ModeratorView/NightView/ActionModals/PlayerList";
 import { Skeleton } from "@/components/ui-addons/skeleton";
 
@@ -37,6 +37,7 @@ export const SelfModeratedDay = ({
 }: SelfModeratedDayProps) => {
   const { t } = useTranslation();
   const roomId = useRoomId();
+  const { showToast } = useToaster();
   const [selectedPlayer, setSelectedPlayer] = useState<number | undefined>();
 
   const { mutate: votePlayerOut, isPending: isVoting } = useVotePlayerOut({
@@ -44,10 +45,17 @@ export const SelfModeratedDay = ({
       setSelectedPlayer(undefined);
       onChanged();
     },
-  });
-
-  const { mutate: startNight, isPending: isStartingNight } = useStartNight({
-    onSuccess: async () => onChanged(),
+    // A refused vote used to fail in silence, which is how a stale badge could look like a
+    // dead button. Say what the server said, and resync — the usual reason is that the badge
+    // has moved on and this screen has not caught up yet.
+    onError: async (error) => {
+      showToast({
+        title: t("game.day.voteFailed"),
+        description: error.message,
+        type: "error",
+      });
+      onChanged();
+    },
   });
 
   const alivePlayers = players.filter((player) => player.isAlive);
@@ -94,13 +102,6 @@ export const SelfModeratedDay = ({
                     {t("game.choppingBlock.vote.button.abstain")}
                   </Button>
                 </Stack>
-                <Button
-                  colorPalette="blue"
-                  loading={isStartingNight}
-                  onClick={() => startNight({ roomId })}
-                >
-                  {t("game.night.begin")}
-                </Button>
               </>
             ) : (
               <Text color="dimmed" textAlign="center">

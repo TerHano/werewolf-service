@@ -180,6 +180,7 @@
     },
     "night": {
       "begin": "Begin the night",
+      "startFailed": "The night could not be started",
       "undo": "Change my mind",
       "chosen": "You chose {{player}}",
       "canChangeUntilStepEnds": "You can change this until the step ends.",
@@ -214,7 +215,8 @@
       }
     },
     "day": {
-      "waitingForModerator": "The moderator is recording the village's decision."
+      "waitingForModerator": "The moderator is recording the village's decision.",
+      "voteFailed": "The vote could not be recorded"
     },
     "notifications": {
       "enable": {

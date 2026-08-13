@@ -9,6 +9,7 @@ import { useMyRole, myRoleQueryKey } from "@/hooks/useMyRole";
 import { useGamePlayers, gamePlayersQueryKey } from "@/hooks/useGamePlayers";
 import { useNightState, nightStateQueryKey } from "@/hooks/useNightState";
 import { useIsModerator } from "@/hooks/useIsModerator";
+import { moderatorQueryKey } from "@/hooks/useModerator";
 import { useStartNight } from "@/hooks/useStartNight";
 import { useSocketConnection } from "@/hooks/useSocketConnection";
 import { useToaster } from "@/hooks/ui/useToaster";
@@ -43,6 +44,10 @@ export const SelfModeratedView = () => {
 
   const refreshNight = useCallback(() => {
     queryClient.invalidateQueries({ queryKey: [nightStateQueryKey, roomId] });
+    // Who holds the badge decides who is shown the day's controls, and it changes hands on the
+    // first death — mid-day, when the lynch lands. Leaving it out of this list left the old
+    // holder pressing buttons the server had already stopped accepting.
+    queryClient.invalidateQueries({ queryKey: [moderatorQueryKey, roomId] });
     queryClient.invalidateQueries({ queryKey: [gamePlayersQueryKey, roomId] });
     queryClient.invalidateQueries({ queryKey: [myRoleQueryKey, roomId] });
     queryClient.invalidateQueries({
@@ -54,6 +59,16 @@ export const SelfModeratedView = () => {
 
   const { mutate: startNight, isPending: isStartingNight } = useStartNight({
     onSuccess: async () => refreshNight(),
+    // Same reason as the vote: a night that refuses to start should say so rather than leave
+    // the room staring at a button that does nothing.
+    onError: async (error) => {
+      showToast({
+        title: t("game.night.startFailed"),
+        description: error.message,
+        type: "error",
+      });
+      refreshNight();
+    },
   });
 
   // Audio needs a user gesture to become usable, so get it ready well before the first night
