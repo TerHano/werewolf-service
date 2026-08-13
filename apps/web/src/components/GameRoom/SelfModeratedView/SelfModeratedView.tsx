@@ -1,6 +1,6 @@
 import { Stack } from "@chakra-ui/react";
 import { Button } from "@/components/ui/button";
-import { useCallback } from "react";
+import { useCallback, useEffect } from "react";
 import { useTranslation } from "react-i18next";
 import { useQueryClient } from "@tanstack/react-query";
 import { IconBell } from "@tabler/icons-react";
@@ -17,6 +17,7 @@ import { Skeleton } from "@/components/ui-addons/skeleton";
 import { NightPhaseView } from "@/components/GameRoom/PlayerView/NightPhaseView";
 import { PlayerRoleCard } from "@/components/GameRoom/PlayerView/PlayerRoleCard";
 import { SelfModeratedDay } from "./SelfModeratedDay";
+import { playNightOverCue, primeNightCue } from "@/util/nightCue";
 import { EnableNotificationsCard } from "./EnableNotificationsCard";
 import { ModeratorBadgeCard } from "./ModeratorBadgeCard";
 import { SpectatorCard } from "./SpectatorCard";
@@ -55,10 +56,23 @@ export const SelfModeratedView = () => {
     onSuccess: async () => refreshNight(),
   });
 
+  // Audio needs a user gesture to become usable, so get it ready well before the first night
+  // ends rather than discovering at daybreak that the browser will not play anything.
+  useEffect(() => {
+    const prime = () => primeNightCue();
+    window.addEventListener("pointerdown", prime, { once: true });
+    return () => window.removeEventListener("pointerdown", prime);
+  }, []);
+
   useSocketConnection({
     onNightStarted: refreshNight,
     onNightAdvanced: refreshNight,
-    onNightResolved: refreshNight,
+    onNightResolved: () => {
+      // Everyone learns daybreak at the same instant, so a shared cue gives nothing away — and
+      // it is the only way to know the night is over without looking at your screen.
+      playNightOverCue();
+      refreshNight();
+    },
     onStepExtended: refreshNight,
     onDayOrTimeUpdated: refreshNight,
     // The badge changes hands on the first death, so the holder's controls have to appear

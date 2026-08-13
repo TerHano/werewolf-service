@@ -233,7 +233,7 @@
     },
     "badge": {
       "title": "You're running the game",
-      "description": "Call each role out loud so the table stays together, and record the village's decision each day.",
+      "description": "Say \"eyes closed\" and start the night, then record the village's decision each day. You don't need to call the roles — each player's phone tells them privately when it is their turn, and everyone's phone chimes when the night ends.",
       "extend": "Give this step more time"
     },
     "spectator": {
