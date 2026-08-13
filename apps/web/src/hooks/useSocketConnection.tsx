@@ -17,11 +17,12 @@ interface UseSocketConnection {
   onWinConditionMet?: () => void;
   onGameRestart?: () => void;
   onNightStarted?: (night: number) => void;
-  onNightStepChanged?: (step: NightStep, deadline: string) => void;
+  /** Bare signal that the night moved on. Carries no step — see NightStateDto. */
+  onNightAdvanced?: () => void;
   onNightResolved?: () => void;
   onStepExtended?: (step: NightStep, deadline: string) => void;
   /** Sent only to the players who act in the step that just began. */
-  onYourTurn?: (step: NightStep) => void;
+  onYourTurn?: (step: NightStep, deadline: string) => void;
 }
 
 export const useSocketConnection = ({
@@ -35,7 +36,7 @@ export const useSocketConnection = ({
   onWinConditionMet,
   onGameRestart,
   onNightStarted,
-  onNightStepChanged,
+  onNightAdvanced,
   onNightResolved,
   onStepExtended,
   onYourTurn,
@@ -74,8 +75,8 @@ export const useSocketConnection = ({
     if (onNightStarted) {
       connection.on("NightStarted", onNightStarted);
     }
-    if (onNightStepChanged) {
-      connection.on("NightStepChanged", onNightStepChanged);
+    if (onNightAdvanced) {
+      connection.on("NightAdvanced", onNightAdvanced);
     }
     if (onNightResolved) {
       connection.on("NightResolved", onNightResolved);
@@ -115,8 +116,8 @@ export const useSocketConnection = ({
       if (onNightStarted) {
         connection.off("NightStarted", onNightStarted);
       }
-      if (onNightStepChanged) {
-        connection.off("NightStepChanged", onNightStepChanged);
+      if (onNightAdvanced) {
+        connection.off("NightAdvanced", onNightAdvanced);
       }
       if (onNightResolved) {
         connection.off("NightResolved", onNightResolved);
@@ -140,7 +141,7 @@ export const useSocketConnection = ({
     onRoomRoleSettingsUpdated,
     onWinConditionMet,
     onNightStarted,
-    onNightStepChanged,
+    onNightAdvanced,
     onNightResolved,
     onStepExtended,
     onYourTurn,

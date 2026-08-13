@@ -57,7 +57,7 @@ export const SelfModeratedView = () => {
 
   useSocketConnection({
     onNightStarted: refreshNight,
-    onNightStepChanged: refreshNight,
+    onNightAdvanced: refreshNight,
     onNightResolved: refreshNight,
     onStepExtended: refreshNight,
     onDayOrTimeUpdated: refreshNight,
@@ -81,7 +81,7 @@ export const SelfModeratedView = () => {
     return <Skeleton loading height={240} />;
   }
 
-  const isNightCallRunning = nightState.currentStep != null;
+  const isNightCallRunning = nightState.isNightCallRunning;
   const isDead = myRole != null && !myRole.isAlive;
   const hasBadge = isModerator === true;
   const roleInfo = myRole ? getRole(myRole.role) : undefined;

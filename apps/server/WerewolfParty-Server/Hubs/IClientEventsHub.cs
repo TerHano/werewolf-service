@@ -20,11 +20,12 @@ public interface IClientEventsHub
     Task NightStarted(int night);
 
     /// <summary>
-    /// The night call has moved on to <paramref name="step"/>, ending at
-    /// <paramref name="deadline"/> (UTC). Sent to the whole room: which step is running, and how
-    /// long it lasts, is public information at any table — what was chosen during it is not.
+    /// The night call has moved on. Deliberately carries nothing — not the step, not a
+    /// deadline, not a position in the order — so the room learns only that something changed
+    /// and can refresh. Naming the step here is what would let the table read off who has died,
+    /// from how long each step lasts.
     /// </summary>
-    Task NightStepChanged(NightStep step, DateTime deadline);
+    Task NightAdvanced();
 
     /// <summary>
     /// Sent to a single player when the step they act in begins. The in-app twin of the push
@@ -32,10 +33,11 @@ public interface IClientEventsHub
     /// learns <i>which</i> step is running, but only the people who act in it are told it is
     /// their turn.
     /// </summary>
-    Task YourTurn(NightStep step);
+    Task YourTurn(NightStep step, DateTime deadline);
 
     /// <summary>
-    /// The badge holder gave the current step more time. Broadcast so every countdown agrees.
+    /// The badge holder gave the current step more time. Sent to the acting players, who are
+    /// the only ones with a countdown to correct.
     /// </summary>
     Task StepExtended(NightStep step, DateTime deadline);
 

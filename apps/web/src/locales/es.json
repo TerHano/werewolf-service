@@ -184,14 +184,9 @@
       "chosen": "You chose {{player}}",
       "canChangeUntilStepEnds": "You can change this until the step ends.",
       "actionUnavailable": "You cannot use this right now.",
-      "stepProgress": "Step {{position}} of {{count}} — {{seconds}}s left",
       "waitingToBegin": {
         "title": "Waiting for the night to begin",
         "description": "Look at your card. The night starts when the moderator says so."
-      },
-      "notYourTurn": {
-        "title": "Eyes closed",
-        "description": "Someone else is acting. Your phone will buzz when it is your turn."
       },
       "dead": {
         "title": "You are out of the game",
@@ -206,13 +201,16 @@
         "isNotWerewolf": "Does not read as a werewolf",
         "keepItToYourself": "Keep it to yourself until morning."
       },
-      "step": {
-        "WerewolfKill": "The werewolves are choosing",
-        "DoctorHeal": "The doctor is choosing",
-        "DetectiveInvestigate": "The detective is choosing",
-        "WitchAct": "The witch is choosing",
-        "VigilanteShoot": "The vigilante is choosing",
-        "Resolving": "Working out what happened"
+      "lockIn": "Lock in",
+      "lockInWithoutActing": "Do nothing tonight",
+      "secondsLeft": "{{seconds}}s left",
+      "inProgress": {
+        "title": "Night in progress",
+        "description": "Eyes closed. You will be told if it is your turn."
+      },
+      "lockedIn": {
+        "title": "Locked in",
+        "description": "Waiting for the night to move on."
       }
     },
     "day": {

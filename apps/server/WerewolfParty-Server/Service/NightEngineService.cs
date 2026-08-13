@@ -11,19 +11,26 @@ namespace WerewolfParty_Server.Service;
 /// <summary>
 /// Runs the night call for self-moderated rooms, in place of a human moderator.
 ///
-/// Two rules shape everything here, and both exist to stop the shape of the night leaking who
-/// is still alive:
+/// The night is <b>opaque</b>: which step is running is told only to the players who act in it.
+/// Everyone else sees that a night is in progress and nothing more. That is what makes it safe
+/// for a step to end as soon as its actors have locked in.
+///
+/// The rules that keep it from leaking:
 ///
 /// <list type="number">
 /// <item>Every role in the deck gets a step every night, whether or not anyone can act in it.
 /// A missing Doctor step would announce that the Doctor is dead.</item>
-/// <item>A step always runs for its full duration. Nothing shortens it — not everyone having
-/// submitted, not an empty step, not a human. A step that ends in four seconds says as much as
-/// one that never happened.</item>
+/// <item>A step nobody can act in still takes a plausible amount of time — a random slice of
+/// the configured length, rather than always running to the full deadline. If empty steps were
+/// reliably the longest, the length of the night would still count the dead.</item>
+/// <item>No step name, deadline or position is ever broadcast to the room. Only
+/// <see cref="IClientEventsHub.YourTurn"/>, which is sent to the acting players alone, carries
+/// any of it.</item>
 /// </list>
 ///
-/// Consequently the deadline is the <i>only</i> thing that advances the night, which leaves a
-/// single advance path rather than several racing each other.
+/// An earlier version ran every step for a fixed full length and broadcast the step name and a
+/// countdown to everyone. That was safe but made a four-role night about three minutes of
+/// sitting in the dark; hiding the step is what buys the time back.
 /// </summary>
 public class NightEngineService(
     RoomRepository roomRepository,
@@ -50,22 +57,127 @@ public class NightEngineService(
     }
 
     /// <summary>
-    /// The public state of the night call, safe for any player in the room to read.
+    /// The night as this particular caller is allowed to see it.
+    ///
+    /// The step and its deadline are filled in <b>only</b> for a player who acts in the step
+    /// that is running. To everyone else the night is opaque: they learn that it is under way
+    /// and nothing else. Without that, a step ending early would tell the room that somebody
+    /// acted — and a step running to its deadline would tell them nobody did, which is to say
+    /// that the role is dead.
     /// </summary>
-    public async Task<NightStateDto> GetNightState(string roomId)
+    public async Task<NightStateDto> GetNightState(string roomId, Guid playerGuid)
     {
         var room = await roomRepository.GetRoom(roomId);
         var settings = await roleSettingsRepository.GetRoomSettingsByRoomId(roomId);
 
-        return new NightStateDto
+        var state = new NightStateDto
         {
             SelfModerated = settings.SelfModerated,
-            CurrentStep = room.NightStep,
-            StepDeadline = room.NightStepDeadline,
             CurrentNight = room.CurrentNight,
             IsDay = room.isDay,
-            Steps = settings.SelfModerated ? GetStepsForRoom(settings) : []
+            IsNightCallRunning = room.NightStep != null
         };
+
+        if (room.NightStep == null || room.NightStep == NightStep.Resolving) return state;
+
+        var callerRole = await TryGetActingRole(roomId, playerGuid, room.NightStep.Value);
+        if (callerRole == null) return state;
+
+        state.CurrentStep = room.NightStep;
+        state.StepDeadline = room.NightStepDeadline;
+        state.HasLockedIn = room.NightStepLockedIn.Contains(callerRole.Id);
+        return state;
+    }
+
+    /// <summary>
+    /// The caller's role, but only when they are alive and act in the given step. Null covers
+    /// everyone else — spectators, the dead, and players whose turn it simply is not.
+    /// </summary>
+    private async Task<PlayerRoleEntity?> TryGetActingRole(string roomId, Guid playerGuid, NightStep step)
+    {
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var callerRole = playerRoles.FirstOrDefault(playerRole =>
+            playerRole.PlayerRoom.PlayerId == playerGuid);
+
+        if (callerRole == null || !callerRole.IsAlive) return null;
+        return NightStepRoles.StepForRole(callerRole.Role) == step ? callerRole : null;
+    }
+
+    /// <summary>
+    /// Locks the caller in for the current step. Once every living player who acts in the step
+    /// has locked in, the step ends immediately rather than waiting out its deadline.
+    ///
+    /// Allowed whether or not they queued anything — a Witch who wants to save both her
+    /// potions still needs a way to say she is done.
+    /// </summary>
+    public async Task<bool> LockIn(string roomId, Guid playerGuid)
+    {
+        var room = await roomRepository.GetRoom(roomId);
+        if (room.NightStep == null || room.NightStep == NightStep.Resolving) return false;
+
+        var step = room.NightStep.Value;
+        var callerRole = await TryGetActingRole(roomId, playerGuid, step);
+        if (callerRole == null) return false;
+
+        await roomRepository.TryAddLockIn(roomId, step, callerRole.Id);
+
+        // Advance as soon as nobody is left to hear from. Re-read rather than trusting the copy
+        // above, since another actor may have locked in at the same moment.
+        var refreshed = await roomRepository.GetRoom(roomId);
+        if (refreshed.NightStep != step) return true;
+
+        var actors = await GetLivingActors(roomId, step);
+        if (actors.All(actor => refreshed.NightStepLockedIn.Contains(actor.Id)))
+        {
+            await AdvanceRoom(roomId);
+        }
+
+        return true;
+    }
+
+    /// <summary>
+    /// Tells the acting players their step now ends later. Not broadcast: they are the only
+    /// ones with a countdown, and the only ones allowed to know which step is running.
+    /// </summary>
+    public async Task NotifyStepExtended(string roomId, NightStep step, DateTime deadline)
+    {
+        var actors = await GetLivingActors(roomId, step);
+        foreach (var actor in actors)
+        {
+            var userId = actor.PlayerRoom.PlayerId.ToString();
+            await hubContext.Clients.User(userId).StepExtended(step, deadline);
+        }
+    }
+
+    private async Task<List<PlayerRoleEntity>> GetLivingActors(string roomId, NightStep step)
+    {
+        var actingRole = NightStepRoles.All.FirstOrDefault(entry => entry.Step == step).Role;
+        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        return playerRoles
+            .Where(playerRole => playerRole.Role == actingRole && playerRole.IsAlive)
+            .ToList();
+    }
+
+    /// <summary>
+    /// How long a step should last.
+    ///
+    /// A step somebody can act in gets the configured length. A step nobody can act in gets a
+    /// random slice of it instead — long enough to be plausible, never reliably the longest.
+    /// If empty steps always ran to the full deadline, the total length of the night would
+    /// still count how many roles had died.
+    /// </summary>
+    private static int StepSeconds(RoomSettingsEntity settings, bool hasLivingActor)
+    {
+        if (hasLivingActor) return settings.NightStepSeconds;
+
+        var shortest = Math.Max(3, settings.NightStepSeconds * 2 / 5);
+        return Random.Shared.Next(shortest, settings.NightStepSeconds + 1);
+    }
+
+    private async Task<DateTime> DeadlineFor(string roomId, RoomSettingsEntity settings, NightStep step)
+    {
+        var actors = await GetLivingActors(roomId, step);
+        return DateTime.UtcNow.AddSeconds(StepSeconds(settings, actors.Count > 0));
     }
 
     /// <summary>
@@ -87,7 +199,7 @@ public class NightEngineService(
         var steps = GetStepsForRoom(settings);
         if (steps.Count == 0) return StartNightResult.NoStepsConfigured;
 
-        var deadline = DateTime.UtcNow.AddSeconds(settings.NightStepSeconds);
+        var deadline = await DeadlineFor(roomId, settings, steps[0]);
 
         // Guarded like every other transition: if two people press "begin" together, only one
         // of them starts the night.
@@ -96,8 +208,7 @@ public class NightEngineService(
 
         var group = roomId.ToUpper();
         await hubContext.Clients.Group(group).NightStarted(room.CurrentNight);
-        await hubContext.Clients.Group(group).NightStepChanged(steps[0], deadline);
-        await NotifyActingPlayers(roomId, steps[0]);
+        await NotifyActingPlayers(roomId, steps[0], deadline);
         return StartNightResult.Started;
     }
 
@@ -141,12 +252,11 @@ public class NightEngineService(
 
         if (nextStep != null)
         {
-            var deadline = DateTime.UtcNow.AddSeconds(settings.NightStepSeconds);
+            var deadline = await DeadlineFor(roomId, settings, nextStep.Value);
             var moved = await roomRepository.TryMoveToNightStep(roomId, currentStep, nextStep, deadline);
             if (!moved) return;
 
-            await hubContext.Clients.Group(group).NightStepChanged(nextStep.Value, deadline);
-            await NotifyActingPlayers(roomId, nextStep.Value);
+            await NotifyActingPlayers(roomId, nextStep.Value, deadline);
             return;
         }
 
@@ -164,24 +274,23 @@ public class NightEngineService(
 
     /// <summary>
     /// Tells the living players who act in this step that it is their turn — and nobody else.
-    /// An empty step notifies no one, which is exactly why the step still has to run its full
-    /// length: silence is the only thing that distinguishes it.
+    ///
+    /// This is the only place the step is named to anyone. The room gets a bare
+    /// <see cref="IClientEventsHub.NightAdvanced"/> so clients can refresh, carrying no step,
+    /// no deadline and no position in the order.
     /// </summary>
-    private async Task NotifyActingPlayers(string roomId, NightStep step)
+    private async Task NotifyActingPlayers(string roomId, NightStep step, DateTime deadline)
     {
-        var actingRole = NightStepRoles.All.FirstOrDefault(entry => entry.Step == step).Role;
-        var playerRoles = await playerRoleRepository.GetPlayerRolesForRoom(roomId);
+        var actingPlayers = await GetLivingActors(roomId, step);
 
-        var actingPlayers = playerRoles
-            .Where(playerRole => playerRole.Role == actingRole && playerRole.IsAlive)
-            .ToList();
+        await hubContext.Clients.Group(roomId.ToUpper()).NightAdvanced();
 
         foreach (var playerRole in actingPlayers)
         {
             // Must match NameUserIdProvider's canonical lowercase form, or this reaches nobody
             // and does so silently.
             var userId = playerRole.PlayerRoom.PlayerId.ToString();
-            await hubContext.Clients.User(userId).YourTurn(step);
+            await hubContext.Clients.User(userId).YourTurn(step, deadline);
         }
 
         if (actingPlayers.Count == 0) return;

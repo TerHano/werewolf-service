@@ -62,19 +62,31 @@ public abstract class Program
         builder.Services.AddScoped<GameService>();
         builder.Services.AddScoped<NightEngineService>();
         builder.Services.AddScoped<GameAuthorizationService>();
-        builder.Services.AddScoped<PushService>();
+        builder.Services.AddScoped<PushService>(sp => new PushService(
+            sp.GetRequiredService<Repository.PushSubscriptionRepository>(),
+            sp.GetService<PushServiceClient>(),
+            sp.GetRequiredService<IConfiguration>(),
+            sp.GetRequiredService<ILogger<PushService>>()));
         // PushServiceClient wraps an HttpClient, so it is registered once rather than built per
-        // notification. VAPID details are read here; a deployment with no keys still resolves
-        // the client, and PushService simply never uses it.
-        builder.Services.AddSingleton<PushServiceClient>(_ => new PushServiceClient
+        // notification.
+        //
+        // Only registered when VAPID keys are configured: VapidAuthentication throws on an empty
+        // public key, so registering it unconditionally made resolving the client fail on every
+        // notification in the (default) deployment with push turned off. PushService takes it as
+        // optional and falls back to the in-app prompt.
+        var pushPublicKey = builder.Configuration.GetValue<string>("Push:PublicKey");
+        var pushPrivateKey = builder.Configuration.GetValue<string>("Push:PrivateKey");
+        if (!string.IsNullOrWhiteSpace(pushPublicKey) && !string.IsNullOrWhiteSpace(pushPrivateKey))
         {
-            DefaultAuthentication = new VapidAuthentication(
-                builder.Configuration.GetValue<string>("Push:PublicKey") ?? "",
-                builder.Configuration.GetValue<string>("Push:PrivateKey") ?? "")
+            builder.Services.AddSingleton<PushServiceClient>(_ => new PushServiceClient
             {
-                Subject = builder.Configuration.GetValue<string>("Push:Subject") ?? "mailto:admin@localhost"
-            }
-        });
+                DefaultAuthentication = new VapidAuthentication(pushPublicKey, pushPrivateKey)
+                {
+                    Subject = builder.Configuration.GetValue<string>("Push:Subject")
+                              ?? "mailto:admin@localhost"
+                }
+            });
+        }
         builder.Services.AddHostedService<NightClockService>();
         builder.Services.AddScoped<RoleFactory>();
         builder.Services.AddSignalR((options) => { options.EnableDetailedErrors = true; });

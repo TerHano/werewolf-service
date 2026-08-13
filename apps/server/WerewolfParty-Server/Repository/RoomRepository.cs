@@ -86,6 +86,10 @@ public class RoomRepository(WerewolfDbContext context)
             .ExecuteUpdateAsync(setters => setters
                 .SetProperty(room => room.NightStep, next)
                 .SetProperty(room => room.NightStepDeadline, deadline)
+                // Lock-ins belong to the step that is ending, so they are cleared as part of the
+                // same guarded write. Doing it separately would leave a window where the new
+                // step already counts the previous step's lock-ins and ends immediately.
+                .SetProperty(room => room.NightStepLockedIn, new List<int>())
                 .SetProperty(room => room.LastModifiedDate, DateTime.UtcNow));
 
         if (rowsChanged > 0)
@@ -97,6 +101,41 @@ public class RoomRepository(WerewolfDbContext context)
             // leaving an expired step that the clock resolves again on its next tick, and
             // again after that. Refresh the tracked copy so the rest of the scope agrees with
             // the database.
+            var tracked = context.ChangeTracker.Entries<RoomEntity>()
+                .FirstOrDefault(entry =>
+                    string.Equals(entry.Entity.Id, roomId, StringComparison.OrdinalIgnoreCase));
+            if (tracked != null)
+            {
+                await tracked.ReloadAsync();
+            }
+        }
+
+        return rowsChanged > 0;
+    }
+
+    /// <summary>
+    /// Records that a player has locked in for the step the room is currently on. Guarded on
+    /// the step so a lock-in that arrives just as the night moves on is discarded rather than
+    /// counting towards the next step.
+    /// </summary>
+    public async Task<bool> TryAddLockIn(string roomId, NightStep expectedStep, int playerRoleId)
+    {
+        // Raw SQL because EF cannot translate appending to a list inside SetProperty — it
+        // rejects `NightStepLockedIn.Concat(...)` as not a valid value expression. Postgres does
+        // it natively with array_append, and doing it in one statement keeps the append atomic,
+        // so two werewolves locking in at the same instant cannot overwrite each other.
+        var stepValue = (int)expectedStep;
+        var rowsChanged = await context.Database.ExecuteSqlInterpolatedAsync(
+            $"""
+             UPDATE room
+             SET night_step_locked_in = array_append(night_step_locked_in, {playerRoleId})
+             WHERE id ILIKE {roomId}
+               AND night_step = {stepValue}
+               AND NOT ({playerRoleId} = ANY(night_step_locked_in))
+             """);
+
+        if (rowsChanged > 0)
+        {
             var tracked = context.ChangeTracker.Entries<RoomEntity>()
                 .FirstOrDefault(entry =>
                     string.Equals(entry.Entity.Id, roomId, StringComparison.OrdinalIgnoreCase));

@@ -4,21 +4,10 @@ import { lazy, Suspense } from "react";
 import { MyRoleDto } from "@/dto/MyRoleDto";
 import { GamePlayerDto } from "@/dto/GamePlayerDto";
 import { NightStateDto } from "@/dto/NightStateDto";
-import { NightStep } from "@/enum/NightStep";
-import { Role } from "@/enum/Role";
 import { useStepCountdown } from "./useStepCountdown";
 import { Skeleton } from "@/components/ui-addons/skeleton";
 
 const NightActionPrompt = lazy(() => import("./NightActionPrompt"));
-
-/** Which role acts in which step. Must match Role/NightStepRoles.cs on the server. */
-const roleForStep: Partial<Record<NightStep, Role>> = {
-  [NightStep.WerewolfKill]: Role.WereWolf,
-  [NightStep.DoctorHeal]: Role.Doctor,
-  [NightStep.DetectiveInvestigate]: Role.Detective,
-  [NightStep.WitchAct]: Role.Witch,
-  [NightStep.VigilanteShoot]: Role.Vigilante,
-};
 
 interface NightPhaseViewProps {
   nightState: NightStateDto;
@@ -26,6 +15,18 @@ interface NightPhaseViewProps {
   players: GamePlayerDto[];
 }
 
+/**
+ * The night, from one player's seat.
+ *
+ * There is deliberately no shared view of which role is being called or how long is left. The
+ * server only tells a player about the step they act in, so this component cannot show more
+ * than it should even by accident — `currentStep` being non-null *is* the signal that it is
+ * your turn.
+ *
+ * That opacity is what allows a turn to be ended early. If the room could watch each step, a
+ * short step would mean somebody acted and a full-length one would mean nobody could — which
+ * is to say, that role has died.
+ */
 export const NightPhaseView = ({
   nightState,
   myRole,
@@ -34,14 +35,7 @@ export const NightPhaseView = ({
   const { t } = useTranslation();
   const secondsLeft = useStepCountdown(nightState.stepDeadline);
 
-  const currentStep = nightState.currentStep;
-  const isMyTurn =
-    currentStep != null &&
-    myRole != null &&
-    myRole.isAlive &&
-    roleForStep[currentStep] === myRole.role;
-
-  if (currentStep == null) {
+  if (!nightState.isNightCallRunning) {
     return (
       <Card.Root className="animate-fade-in-from-bottom">
         <Card.Body>
@@ -58,60 +52,68 @@ export const NightPhaseView = ({
     );
   }
 
-  const stepPosition = nightState.steps.indexOf(currentStep) + 1;
-  const stepCount = nightState.steps.length;
+  const isMyTurn = nightState.currentStep !== null;
+
+  // Everyone who is not acting sees exactly this, whether they are alive, dead, or simply not
+  // called tonight. No step, no clock, nothing to read the game from.
+  if (!isMyTurn) {
+    const isDead = myRole !== null && !myRole.isAlive;
+    return (
+      <Card.Root className="animate-fade-in-from-bottom">
+        <Card.Body>
+          <Stack align="center" gap={3} py={6}>
+            <Text textStyle="accent" fontSize="xl">
+              {isDead ? t("game.night.dead.title") : t("game.night.inProgress.title")}
+            </Text>
+            <Text color="dimmed" textAlign="center">
+              {isDead
+                ? t("game.night.dead.description")
+                : t("game.night.inProgress.description")}
+            </Text>
+          </Stack>
+        </Card.Body>
+      </Card.Root>
+    );
+  }
 
   return (
     <Stack gap={4}>
       <Card.Root>
         <Card.Body>
           <Stack gap={2}>
-            {/* Which step is running is public — it is called out loud at any table. What
-                was chosen during it is not, and never appears here. */}
             <Text textStyle="accent" fontSize="lg" textAlign="center">
-              {t(`game.night.step.${NightStep[currentStep]}`)}
+              {nightState.hasLockedIn
+                ? t("game.night.lockedIn.title")
+                : t("game.night.yourTurn.title")}
             </Text>
-            <Progress.Root
-              size="sm"
-              borderRadius="xl"
-              value={stepCount > 0 ? (stepPosition / stepCount) * 100 : null}
-            >
-              <Progress.Track>
-                <Progress.Range />
-              </Progress.Track>
-            </Progress.Root>
-            <Text color="dimmed" fontSize="sm" textAlign="center">
-              {t("game.night.stepProgress", {
-                position: stepPosition,
-                count: stepCount,
-                seconds: secondsLeft ?? 0,
-              })}
-            </Text>
+            {secondsLeft !== null && (
+              <>
+                <Progress.Root size="sm" borderRadius="xl" value={null} />
+                <Text color="dimmed" fontSize="sm" textAlign="center">
+                  {t("game.night.secondsLeft", { seconds: secondsLeft })}
+                </Text>
+              </>
+            )}
           </Stack>
         </Card.Body>
       </Card.Root>
 
-      {isMyTurn ? (
-        <Suspense fallback={<Skeleton loading height={200} />}>
-          <NightActionPrompt myRole={myRole} players={players} />
-        </Suspense>
-      ) : (
+      {nightState.hasLockedIn ? (
         <Card.Root>
           <Card.Body>
             <Stack align="center" gap={2} py={4}>
-              <Text textStyle="accent" fontSize="lg">
-                {myRole?.isAlive === false
-                  ? t("game.night.dead.title")
-                  : t("game.night.notYourTurn.title")}
-              </Text>
               <Text color="dimmed" textAlign="center">
-                {myRole?.isAlive === false
-                  ? t("game.night.dead.description")
-                  : t("game.night.notYourTurn.description")}
+                {t("game.night.lockedIn.description")}
               </Text>
             </Stack>
           </Card.Body>
         </Card.Root>
+      ) : (
+        myRole && (
+          <Suspense fallback={<Skeleton loading height={200} />}>
+            <NightActionPrompt myRole={myRole} players={players} />
+          </Suspense>
+        )
       )}
     </Stack>
   );

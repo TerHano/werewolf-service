@@ -20,13 +20,14 @@ namespace WerewolfParty_Server.Service;
 /// </summary>
 public class PushService(
     PushSubscriptionRepository pushSubscriptionRepository,
-    PushServiceClient pushServiceClient,
+    // Null when the deployment has no VAPID keys — see Program.cs.
+    PushServiceClient? pushServiceClient,
     IConfiguration configuration,
     ILogger<PushService> logger)
 {
     public string? GetPublicKey() => configuration.GetValue<string>("Push:PublicKey");
 
-    public bool IsConfigured() => !string.IsNullOrEmpty(GetPublicKey());
+    public bool IsConfigured() => pushServiceClient != null && !string.IsNullOrEmpty(GetPublicKey());
 
     /// <summary>
     /// Buzzes every device belonging to these players. Failures are swallowed on purpose — the
@@ -36,7 +37,7 @@ public class PushService(
     {
         // Push is optional: a deployment without VAPID keys still runs the whole game, it just
         // relies on the in-app prompt. Not an error worth throwing on.
-        if (!IsConfigured()) return;
+        if (!IsConfigured() || pushServiceClient == null) return;
 
         var subscriptions = await pushSubscriptionRepository.GetSubscriptionsForPlayers(playerIds);
         if (subscriptions.Count == 0) return;

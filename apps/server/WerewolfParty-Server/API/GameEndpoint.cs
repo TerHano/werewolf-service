@@ -268,9 +268,10 @@ public static class GameEndpoint
         .RequireAuthorization();
 
         app.MapGet("/api/game/{roomId}/night-state",
-            async (NightEngineService nightEngine, string roomId) =>
+            async (HttpContext httpContext, NightEngineService nightEngine, string roomId) =>
             {
-                var state = await nightEngine.GetNightState(roomId);
+                var playerGuid = httpContext.User.GetPlayerId();
+                var state = await nightEngine.GetNightState(roomId, playerGuid);
                 return TypedResults.Ok(new APIResponse<NightStateDto>()
                 {
                     Success = true,
@@ -281,7 +282,7 @@ public static class GameEndpoint
             .WithTags("Game")
             .WithSummary("Get the state of the server-run night call.")
             .WithDescription(
-                "Returns which night step is running, when it ends, and the room's running order. Contains no role information.")
+                "Whether a night call is running, plus the step and its deadline for the caller alone when it is their turn. Everyone else sees only that the night is under way.")
             .RequireRoomMembership();
 
         app.MapPost("/api/game/start-night", async (RoomIdRequest request, NightEngineService nightEngine) =>
@@ -316,8 +317,27 @@ public static class GameEndpoint
                 "Starts the first night step. The engine advances the rest on a timer. Self-moderated rooms only.")
             .RequireRoomModerator();
 
+        app.MapPost("/api/game/lock-in", async (RoomIdRequest request, HttpContext httpContext,
+                NightEngineService nightEngine) =>
+            {
+                var playerGuid = httpContext.User.GetPlayerId();
+                var lockedIn = await nightEngine.LockIn(request.RoomId, playerGuid);
+
+                return TypedResults.Ok(new APIResponse()
+                {
+                    Success = lockedIn,
+                    ErrorMessages = lockedIn ? null : new List<string> { "It is not your turn." }
+                });
+            })
+            .WithName("LockInNightAction")
+            .WithTags("Game")
+            .WithSummary("Finish your turn early.")
+            .WithDescription(
+                "Marks the caller as done for the running step. Once every living player who acts in that step has locked in, the night moves on without waiting out the clock. Allowed whether or not an action was queued.")
+            .RequireRoomMembership();
+
         app.MapPost("/api/game/extend-step", async (RoomIdRequest request,
-                IHubContext<EventsHub, IClientEventsHub> hubContext, GameService gameService) =>
+                NightEngineService nightEngine, GameService gameService) =>
             {
                 var (extended, deadline, step) = await gameService.ExtendCurrentNightStep(request.RoomId);
                 if (!extended || deadline == null || step == null)
@@ -329,10 +349,9 @@ public static class GameEndpoint
                     });
                 }
 
-                // Everyone's countdown has to agree, so this goes to the whole room. It reveals
-                // only that the step was extended, which the table can see anyway.
-                await hubContext.Clients.Group(request.RoomId.ToUpper())
-                    .StepExtended(step.Value, deadline.Value);
+                // Only the acting players have a countdown, and only they may know which step
+                // is running — so this is sent to them rather than broadcast.
+                await nightEngine.NotifyStepExtended(request.RoomId, step.Value, deadline.Value);
 
                 return TypedResults.Ok(new APIResponse() { Success = true });
             })

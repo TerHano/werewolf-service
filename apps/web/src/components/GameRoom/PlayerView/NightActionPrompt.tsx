@@ -11,6 +11,7 @@ import { InvestigationType } from "@/enum/InvestigationType";
 import { usePlayerRoleActions } from "@/hooks/usePlayerRoleActions";
 import { useQueuedAction } from "@/hooks/useQueuedAction";
 import { useCreateUpdateQueuedAction } from "@/hooks/useCreateUpdateQueuedAction";
+import { useLockIn } from "@/hooks/useLockIn";
 import { useDeleteQueuedAction } from "@/hooks/useDeleteQueuedAction";
 import { useInvestigatePlayer } from "@/hooks/useInvestigatePlayer";
 import { useRoleActionHelper } from "@/hooks/useRoleActionHelper";
@@ -64,6 +65,8 @@ export const NightActionPrompt = ({ myRole, players }: NightActionPromptProps) =
         await refetchQueuedAction();
       },
     });
+
+  const { mutate: lockIn, isPending: isLockingIn } = useLockIn();
 
   const { mutate: investigatePlayer, isPending: isInvestigating } =
     useInvestigatePlayer({
@@ -123,15 +126,25 @@ export const NightActionPrompt = ({ myRole, players }: NightActionPromptProps) =
               <Text color="dimmed" fontSize="sm" textAlign="center">
                 {t("game.night.canChangeUntilStepEnds")}
               </Text>
-              <Button
-                size="sm"
-                variant="subtle"
-                colorPalette="red"
-                loading={isWithdrawing}
-                onClick={() => withdrawAction(queuedAction.id)}
-              >
-                {t("game.night.undo")}
-              </Button>
+              <Stack direction="row" gap={3}>
+                <Button
+                  size="sm"
+                  variant="subtle"
+                  colorPalette="red"
+                  loading={isWithdrawing}
+                  onClick={() => withdrawAction(queuedAction.id)}
+                >
+                  {t("game.night.undo")}
+                </Button>
+                <Button
+                  size="sm"
+                  colorPalette="green"
+                  loading={isLockingIn}
+                  onClick={() => lockIn({ roomId })}
+                >
+                  {t("game.night.lockIn")}
+                </Button>
+              </Stack>
             </Stack>
           ) : (
             (actions ?? []).map((action: RoleActionDto) => {
@@ -192,6 +205,16 @@ export const NightActionPrompt = ({ myRole, players }: NightActionPromptProps) =
                 </Stack>
               );
             })
+          )}
+          {!isActionQueued && (
+            <Button
+              size="sm"
+              variant="subtle"
+              loading={isLockingIn}
+              onClick={() => lockIn({ roomId })}
+            >
+              {t("game.night.lockInWithoutActing")}
+            </Button>
           )}
         </Stack>
       </Card.Body>

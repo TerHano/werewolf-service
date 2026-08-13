@@ -3,25 +3,32 @@ using WerewolfParty_Server.Enum;
 namespace WerewolfParty_Server.DTO;
 
 /// <summary>
-/// The public state of the night call. Every player sees the same thing: which step is running
-/// and how long is left. What anybody chose during a step is not in here.
+/// The night as one particular caller may see it.
+///
+/// The night is opaque by design: everyone learns that a night call is under way, and only the
+/// players who act in the running step learn which step it is or when it ends. That is what
+/// lets a step finish as soon as its actors have locked in — if the room could see the step, a
+/// short one would mean somebody acted and a long one would mean the role is dead.
 /// </summary>
 public class NightStateDto
 {
     public bool SelfModerated { get; set; }
 
-    /// <summary>Null when no night call is in progress — day, lobby, or waiting to begin.</summary>
+    /// <summary>True while the server is walking the night. Safe for anyone to know.</summary>
+    public bool IsNightCallRunning { get; set; }
+
+    /// <summary>
+    /// The running step — <b>only</b> when the caller acts in it. Null for everyone else, which
+    /// is also how a client knows it is not their turn.
+    /// </summary>
     public NightStep? CurrentStep { get; set; }
 
-    /// <summary>UTC. Null whenever <see cref="CurrentStep"/> is null.</summary>
+    /// <summary>UTC. Set only alongside <see cref="CurrentStep"/>.</summary>
     public DateTime? StepDeadline { get; set; }
+
+    /// <summary>Whether the caller has already locked in for this step.</summary>
+    public bool HasLockedIn { get; set; }
 
     public int CurrentNight { get; set; }
     public bool IsDay { get; set; }
-
-    /// <summary>
-    /// The full running order for this room, so a client can show progress through the night
-    /// and, on reconnect, know where it is. Fixed for the whole game.
-    /// </summary>
-    public List<NightStep> Steps { get; set; } = new();
 }

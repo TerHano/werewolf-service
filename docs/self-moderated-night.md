@@ -11,7 +11,7 @@ Decisions taken up front:
 | --- | --- |
 | Who runs the night | The server. Fully automated. No human moderator during play. |
 | Alerts | Web Push (works with the phone locked / tab closed). |
-| Night order | Sequential by role, in the existing priority order, every step fixed-length. |
+| Night order | Sequential by role, in the existing priority order. The night is opaque — only the acting players learn which step is running — so a step can end as soon as they lock in. |
 | First to die | Takes a **social** moderator badge — narrates the table, runs the lynch. No role information, no power over the night's timing. |
 
 See [Dead players and the moderator badge](#7-dead-players-and-the-moderator-badge) for what
@@ -132,44 +132,43 @@ all the resolution rules (revive beats kill, Vigilante guilt, Suicide) already w
 exactly as documented in [game-flow.md](game-flow.md). The engine only changes *who queues the
 actions and when*.
 
-### Every step in the deck runs every night — including empty ones
+### The night is opaque, and that is what makes early exits safe
 
-**A step is never skipped, and never ends early.** If a role is in `selectedRoles`, its step
-runs on every night of the game, for the full `night_step_seconds`, whether or not anybody is
-alive to act in it.
+**Nobody outside a step learns anything about it.** The step name, its deadline and its position
+in the order go only to the players acting in it, over the user-targeted
+`YourTurn`. Everyone else gets a bare `NightAdvanced` signal and a screen that says the night is
+in progress.
 
-This is not a detail — it is the whole reason a live moderator still calls "Doctor, wake up"
-into a room where the Doctor died two nights ago. The sequence and timing of the night is
-public information broadcast to every client via `NightStepChanged`. If the engine skipped the
-Doctor step, the table would learn the Doctor is dead for free, without anyone having to deduce
-it. The same leak applies to any early exit: a step that ends in four seconds instead of
-forty-five says just as much as one that never happened.
+That opacity is load-bearing. It is the only reason a step may end early. An earlier version
+broadcast the step and a countdown to the whole room, and therefore had to run every step for
+its full length — because once the room can watch a specific step, a short one means somebody
+acted and a full-length one means nobody could, which is to say that role is dead. Hiding the
+step removes the observation, and with it the constraint.
 
 So:
 
-- **Empty steps are dummy steps.** No living holder of the role, or the role holds no enabled
-  action (Witch's potion spent, Vigilante disabled by guilt — `Role.GetActions()` already
-  reports both) → the step still runs, the countdown still ticks, no push is sent and no
-  client can submit anything.
-- **A step runs to its deadline even when everyone has acted.** Ending the werewolf step the
-  instant the pack submits would broadcast how quickly they agreed.
-- **Nobody can shorten a step.** See [the moderator badge](#the-moderator-badge-first-to-die)
-  for why this also rules out a human "skip" control.
+- **Every role in the deck still gets a step every night**, whether or not anyone is alive to
+  act. A missing step would announce a death just as loudly.
+- **A step ends as soon as every living actor has locked in** (`POST /api/game/lock-in`), or
+  when its deadline passes. Locking in is allowed whether or not an action was queued — a Witch
+  saving both potions still needs a way to say she is finished.
+- **Empty steps take a random slice of the configured length**, between 40% and 100%, rather
+  than always running to the deadline. If steps nobody could act in were reliably the longest,
+  the length of the night would still count the dead.
+- **Nothing else is broadcast.** `StepExtended` goes to the acting players only, for the same
+  reason — they are the only ones with a countdown to correct.
 
-The cost is that nights take a predictable `steps × night_step_seconds` regardless of how fast
-people are. That is the correct trade: uniform timing is what makes the timing carry no
-information. Tune `night_step_seconds` down if nights drag.
+The cost is atmosphere: there is no shared "the werewolves are choosing" screen any more. That
+is the badge holder's job to say out loud, which is the job the badge exists to give them.
 
 Werewolves are the one group step: all living wolves are prompted together and share the single
-queued `WerewolfKill`, matching today's behaviour. First submission wins; any wolf may then
-change it until the step ends. If your group wants unanimity instead, that is a later change —
-start with first-wins, it is what the app does now.
+queued `WerewolfKill`, and the step ends once **all** of them have locked in. First submission
+wins on the kill itself; any wolf may change it until the step ends.
 
 ### Who drives the clock
 
-Because every step runs to its deadline, the deadline is the *only* thing that advances the
-night. Nothing a client does moves the game on. That is a welcome simplification: there is one
-advance path, not two racing each other.
+The deadline advances the night when nobody acts, and a lock-in advances it when everyone has.
+Both funnel through the same guarded transition, so the two cannot both fire.
 
 **Implemented** as `NightClockService`, a `BackgroundService` that wakes every second, selects
 rooms where `night_step_deadline <= now()`, and advances them. Correct as long as you run
@@ -190,8 +189,9 @@ loop during implementation and the code is not obviously wrong without them:
   have one, so a room cannot be claimed for resolution twice while the first resolve is still
   in flight.
 
-Effective step length is `night_step_seconds` plus up to one second of clock granularity.
-That slop is uniform across steps, so it leaks nothing.
+Effective step length is at most `night_step_seconds` plus up to one second of clock
+granularity, and less whenever the actors lock in early. Since nobody outside the step can see
+its length, that variation reveals nothing.
 
 ### Night 0
 
@@ -416,8 +416,8 @@ Additions to `Hubs/IClientEventsHub.cs`:
 | Event | Target | Payload |
 | --- | --- | --- |
 | `NightStarted` | group | night number |
-| `NightStepChanged` | group | `NightStep`, deadline — drives everyone's "the werewolves are choosing…" screen |
-| `YourTurn` | user | `NightStep` — the in-app twin of the push |
+| `NightAdvanced` | group | nothing at all — just "refetch"; naming the step here is the leak |
+| `YourTurn` | user | `NightStep`, deadline — the only place a step is ever named |
 | `ActionAcknowledged` | user | confirms the queue write, so the UI can show "locked in" |
 | `NightResolved` | group | — clients refetch `latest-deaths` |
 | `StepExtended` | group | new deadline — everyone's countdown must agree |
@@ -426,8 +426,11 @@ Additions to `Hubs/IClientEventsHub.cs`:
 `DayTimeUpdated`, `WinConditionMet`, `ModeratorUpdated` and the rest stay as they are —
 `ModeratorUpdated` is what announces the badge changing hands after the first death.
 
-Note `NightStepChanged` goes to the whole group deliberately: everyone should see *that* the
-werewolves are acting, which is public information at any table, just not *what* they chose.
+`NightAdvanced` deliberately carries no payload. An earlier version broadcast the step name and
+deadline on the grounds that "everyone can see the werewolves are acting anyway" — true at a
+table with a human caller, but the app made it precise and permanent, and a step that visibly
+ran its full length then announced that its role was dead. Only `YourTurn` names the step, and
+only to the players acting in it.
 
 ---
 
@@ -503,10 +506,10 @@ Steps 1–5 are the actual feature. Step 6 is the buzz. Step 7 is the reward for
   tune it. A player who misses their window simply takes no action that night — make sure the
   UI says so plainly rather than failing silently. The badge holder's extend control is the
   pressure valve, but it only helps if they can see that someone is struggling.
-- **Fixed-length steps make nights longer.** `steps × night_step_seconds` every night,
-  including dummy steps for dead roles. A five-role deck at 45s is nearly four minutes of
-  eyes-closed per night. If that drags, cut `night_step_seconds` — do not reintroduce early
-  exits, which is where the information leaks were.
+- **Night length is now bounded, not fixed.** At most `steps × night_step_seconds`, less when
+  people lock in. The default is 20s per step. If it still drags, cut it further in room
+  settings rather than reintroducing any shared view of the step — that view is what made early
+  exits unsafe in the first place.
 - **The badge is thin on purpose.** Its mechanical content is one button per day phase plus
   two rarely-used controls; its real content is narration. If playtesting shows the first-out
   player still feels sidelined, the fix is a richer spectator view, not more powers — every

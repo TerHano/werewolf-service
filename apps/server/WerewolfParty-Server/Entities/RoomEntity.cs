@@ -30,6 +30,12 @@ public class RoomEntity
     [Column("night_step_deadline")] public DateTime? NightStepDeadline { get; set; }
 
     /// <summary>
+    /// The player role ids that have locked in for the current step. Cleared on every step
+    /// transition. When everyone who can act in a step has locked in, the step ends early.
+    /// </summary>
+    [Column("night_step_locked_in")] public List<int> NightStepLockedIn { get; set; } = new();
+
+    /// <summary>
     /// Whether the moderator badge has already been handed to the first player eliminated.
     /// Set once per game and never again — otherwise the badge would migrate with every death
     /// and nobody would settle into the job.
