@@ -169,7 +169,15 @@ function playNights(bot, roomId) {
   // The push and the poll do the same job. The poll is the one that has to be right: a bot
   // that misses its cue would stall the step until it times out.
   bot.connection.on("YourTurn", check);
-  return setInterval(check, 700);
+  const poller = setInterval(check, 700);
+
+  // Both have to be undone between games. An interval that is cleared but a hub handler that
+  // is left attached means the next game runs with two watchers per bot — each with its own
+  // idea of whether this step has been played — and the bot takes its turn twice.
+  return () => {
+    clearInterval(poller);
+    bot.connection.off("YourTurn", check);
+  };
 }
 
 async function badgeHolder(bots, roomId) {
@@ -179,7 +187,7 @@ async function badgeHolder(bots, roomId) {
 
 async function runGame(bots, roomId) {
   const host = bots[0];
-  const pollers = bots.map((bot) => playNights(bot, roomId));
+  const stopWatching = bots.map((bot) => playNights(bot, roomId));
 
   try {
     while (true) {
@@ -226,7 +234,7 @@ async function runGame(bots, roomId) {
       }
     }
   } finally {
-    pollers.forEach(clearInterval);
+    stopWatching.forEach((stop) => stop());
   }
 }
 
