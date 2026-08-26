@@ -212,3 +212,84 @@
     opacity: 0.7;
   }
 }
+
+/*
+ * Dealing a role card.
+ *
+ * Two movements, deliberately sequenced rather than blended: the card arrives face down and
+ * settles, and only once it has stopped moving does it turn over. Flipping while it is still
+ * travelling reads as one muddled gesture — the pause is what makes it a reveal.
+ *
+ * The face sits in normal flow and sets the height; the back is stretched over it. Both are
+ * backface-hidden, so the single rotation on the wrapper swaps which one is showing.
+ */
+@keyframes deal-card-in {
+  0% {
+    transform: translateY(64px) rotate(-6deg) scale(0.94);
+    opacity: 0;
+  }
+
+  60% {
+    opacity: 1;
+  }
+
+  100% {
+    transform: translateY(0) rotate(0deg) scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes deal-card-flip {
+  from {
+    transform: rotateY(180deg);
+  }
+
+  to {
+    transform: rotateY(0deg);
+  }
+}
+
+.deal-card {
+  perspective: 1400px;
+  animation: deal-card-in 0.5s cubic-bezier(0.22, 0.68, 0.3, 1) both;
+}
+
+.deal-card-inner {
+  position: relative;
+  transform: rotateY(180deg);
+  transform-style: preserve-3d;
+  /* Delay = slide (0.5s) + a beat to let it land. */
+  animation: deal-card-flip 0.65s cubic-bezier(0.45, 0.05, 0.25, 1) 0.75s both;
+}
+
+.deal-card-face {
+  -webkit-backface-visibility: hidden;
+  backface-visibility: hidden;
+}
+
+.deal-card-back {
+  position: absolute;
+  inset: 0;
+  transform: rotateY(180deg);
+  /* Decorative, and gone the moment the flip finishes — never in the way of the real card. */
+  pointer-events: none;
+}
+
+/*
+ * Reduced motion: no slide, no flip, no card back — just the role, which is the only part
+ * that carries information.
+ */
+@media (prefers-reduced-motion: reduce) {
+  .deal-card,
+  .deal-card-inner {
+    animation: none;
+  }
+
+  .deal-card-inner {
+    transform: none;
+  }
+
+  .deal-card-back {
+    display: none;
+  }
+}
