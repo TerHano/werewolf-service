@@ -33,6 +33,31 @@ cd apps/web    && npm install && npm run dev                  # http://localhost
 
 The dev server proxies `/api` to `localhost:5049`, so `WEREWOLF_SERVER_URL` can stay empty.
 
+### Watching it play itself
+
+A self-moderated game needs five players before it will deal, which makes "does this screen
+look right" an awkward question to ask on your own. `playtest` fills a room with bots that take
+their own turns:
+
+```bash
+cd apps/web && npm run playtest
+```
+
+It prints a room URL, deals, and plays the game out — nights, lynches and all — so you can open
+that URL and watch every screen the app can show. The bots ask the server what they are allowed
+to do each step rather than reasoning about roles, so they keep working as roles change.
+
+| Flag | Effect |
+| --- | --- |
+| `--loop` | Deal again when a game ends. Good for watching one screen over and over. |
+| `--watch-me` | Wait 30 seconds before dealing, so you can join and be dealt in. |
+| `--join ABC12` | Add bots to a room you already made, and let you start the game. |
+| `--players 7` | How many bots. Default 5, the minimum for a default room. |
+| `--url` | Point at something other than `http://localhost:8080`. |
+
+If the badge reaches you — it passes to the first player who dies — the bots stop and wait for
+you to run the day, because at that point it is your game to run.
+
 ### Configuration
 
 `.env` is committed with working development values. **Override every secret in production** —

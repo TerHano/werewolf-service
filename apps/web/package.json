@@ -5,6 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "playtest": "node scripts/playtest.mjs",
     "build": "tsc -b && vite build",
     "typegen": "npx chakra typegen ./src/theme.ts",
     "lint": "eslint .",
