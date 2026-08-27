@@ -238,6 +238,13 @@
       "hideHowItWorks": "Hide"
     },
     "badge": {
+      "endGame": {
+        "button": "End the game",
+        "title": "End the game?",
+        "description": "Everyone goes back to the lobby and this game's cards are cleared. It cannot be resumed.",
+        "confirm": "End game",
+        "cancel": "Keep playing"
+      },
       "title": "You're running the game",
       "description": "Say \"eyes closed\" and start the night, then record the village's decision each day. You don't need to call the roles — each player's phone tells them privately when it is their turn, and everyone's phone chimes when the night ends.",
       "extend": "Give this step more time"
