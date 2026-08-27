@@ -468,10 +468,19 @@ function startPhoneProxy(bots, port) {
     upstream.end();
   });
 
-  server.on("error", (error) => log(`  Phones: ${error.message}`));
+  server.on("error", (error) => log(`  Phones: ${busy(error)}`));
   server.listen(port);
   for (const bot of bots) bot.phoneUrl = `http://${hostFor(bot)}`;
 }
+
+/**
+ * A port in use almost always means another playtest is still running, and the pages it is
+ * already serving belong to that game — which looks like this one until you try to act.
+ */
+const busy = (error) =>
+  error.code === "EADDRINUSE"
+    ? `port ${WATCH_PORT} is taken, most likely by a playtest that is still running. Stop it, or pass --watch-port.`
+    : error.message;
 
 const WATCH_PAGE = `<!doctype html>
 <html lang="en"><head><meta charset="utf-8" />
@@ -668,7 +677,7 @@ function startWatchServer() {
   });
 
   server.on("error", (error) => {
-    log(`  Watch page could not start: ${error.message}`);
+    log(`  Watch page could not start: ${busy(error)}`);
   });
   server.listen(WATCH_PORT, () => {
     log(`  The whole table: http://localhost:${WATCH_PORT}`);
