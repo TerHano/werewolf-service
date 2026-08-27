@@ -3,6 +3,7 @@ import { useGameSummary } from "@/hooks/useGameSummary";
 import { Separator, Skeleton, Stack, Text } from "@chakra-ui/react";
 import { NightDaySummary } from "@/components/GameRoom/GameSummaryTimeline/NightDaySummary";
 import { useTranslation } from "react-i18next";
+import { Fragment } from "react";
 
 export const GameSummaryTimeline = () => {
   const { t } = useTranslation();
@@ -31,7 +32,7 @@ export const GameSummaryTimeline = () => {
       <Text fontSize="md">{t("gameSummary.title")}</Text>
       {gameSummary?.map((summary) => {
         return (
-          <>
+          <Fragment key={summary.night}>
             <Stack gap={2}>
               <NightDaySummary
                 night={summary.night}
@@ -44,7 +45,7 @@ export const GameSummaryTimeline = () => {
               />
               <Separator flex="1" />
             </Stack>
-          </>
+          </Fragment>
         );
       })}
     </Stack>

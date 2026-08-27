@@ -33,7 +33,7 @@ export const NightDaySummary = ({
             <NightNoActionsTaken />
           )
         ) : (
-          actions.map((a) => <GameSummaryTimelineItem action={a} />)
+          actions.map((a) => <GameSummaryTimelineItem key={a.id} action={a} />)
         )}
       </TimelineRoot>
     </Stack>

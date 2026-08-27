@@ -54,9 +54,26 @@ to do each step rather than reasoning about roles, so they keep working as roles
 | `--join ABC12` | Add bots to a room you already made, and let you start the game. |
 | `--players 7` | How many bots. Default 5, the minimum for a default room. |
 | `--url` | Point at something other than `http://localhost:8080`. |
+| `--watch` | Serve two dev pages (below) on `http://localhost:7777`. |
 
 If the badge reaches you — it passes to the first player who dies — the bots stop and wait for
 you to run the day, because at that point it is your game to run.
+
+#### Seeing all of it at once
+
+`--watch` adds two pages that no amount of joining a room can give you:
+
+- **`localhost:7777/phones`** — every player's screen side by side, live. Each frame is the
+  real app signed in as that player, so you see the werewolf choosing and the doctor waiting
+  at the same moment, and hot reload reaches all of them at once.
+- **`localhost:7777`** — the whole table: who holds which card, whose step is running, what
+  each of them just did, and a running log.
+
+Both are served by the playtest script and not by the app. They exist outside it on purpose:
+between them they show every card on the table, which is the one thing the game itself is
+built never to be able to do. The phones page works by giving each player their own hostname
+(`bea.localhost`, `cal.localhost`, …) so each frame gets its own session — the app needs no
+way to impersonate anyone, and gets none.
 
 ### Configuration
 
