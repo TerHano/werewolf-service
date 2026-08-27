@@ -224,6 +224,11 @@
  * printed on a card: the art and the role's name. The rules text belongs to the screen, not
  * to the card, so it sits underneath and arrives once the card has been turned.
  */
+:root {
+  /* The card's width, shared with anything that has to line up under it. */
+  --dealt-card-width: min(15rem, 66vw);
+}
+
 @keyframes deal-card-in {
   0% {
     transform: translateY(64px) rotate(-6deg) scale(0.94);
@@ -252,7 +257,7 @@
 
 /* The proportions of a playing card. Both faces take their size from this. */
 .deal-card-shape {
-  width: min(15rem, 66vw);
+  width: var(--dealt-card-width);
   aspect-ratio: 5 / 7;
   border-radius: 0.9rem;
 }
@@ -319,30 +324,45 @@
 /*
  * Showing and hiding what the role does.
  *
- * The row collapses rather than the text fading on the spot, so the card above it does not
- * jump — the space closes at the same rate the words go. Grid rows are what make that
- * possible: 0fr to 1fr animates to the content's own height, with nothing measured in script
- * and no guessed maximum to clip a long role description.
+ * Drawn out from under the card rather than unfolded below it: the row grows to the text's own
+ * height while the slip slides down inside it, so it reads as one object being pulled from
+ * behind another. Its top corners are square and its top edge has no border — the part that is
+ * still tucked under the card.
  *
- * The content stays in the DOM either way, or there would be nothing to animate out.
+ * The flip is left alone deliberately. A card turning over means one thing here, which is that
+ * you are seeing your own card for the first time; spending that gesture on a rules toggle
+ * would make the deal ordinary. Height comes from grid rows for the same reason as before —
+ * nothing measured in script, and no maximum to clip a role whose description runs long.
  */
-.role-help {
+.role-sheet {
   display: grid;
   grid-template-rows: 0fr;
-  opacity: 0;
-  transition:
-    grid-template-rows 260ms ease,
-    opacity 180ms ease;
+  /* Narrower than the card, so it emerges from behind it without catching on its rounded
+     corners — a drawer is narrower than the thing it sits in. */
+  width: calc(var(--dealt-card-width) - 1.5rem);
+  transition: grid-template-rows 300ms cubic-bezier(0.22, 0.68, 0.3, 1);
 }
 
-.role-help.is-open {
+.role-sheet.is-open {
   grid-template-rows: 1fr;
-  opacity: 1;
 }
 
-.role-help > * {
+.role-sheet-clip {
   overflow: hidden;
   min-height: 0;
+}
+
+.role-sheet-panel {
+  transform: translateY(-14%);
+  opacity: 0;
+  transition:
+    transform 300ms cubic-bezier(0.22, 0.68, 0.3, 1),
+    opacity 220ms ease;
+}
+
+.role-sheet.is-open .role-sheet-panel {
+  transform: translateY(0);
+  opacity: 1;
 }
 
 .role-help-chevron {
@@ -354,7 +374,8 @@
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .role-help,
+  .role-sheet,
+  .role-sheet-panel,
   .role-help-chevron {
     transition: none;
   }

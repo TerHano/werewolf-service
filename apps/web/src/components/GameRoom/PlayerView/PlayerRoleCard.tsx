@@ -46,6 +46,11 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
   const [isRevealed, setRevealed] = useState(false);
   const [showHelp, setShowHelp] = useState(readShowRoleHelp);
 
+  // Roles with no side of their own answer "lightgray", which is not a palette Chakra knows —
+  // a tint from it is no tint at all. Those get a plain lift off the card instead.
+  const rolePalette = getColorForRoleType(roleInfo?.roleType);
+  const hasRoleTint = rolePalette !== "lightgray";
+
   const face = (
     <VStack
       className="deal-card-shape"
@@ -86,6 +91,8 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
         {t("Your Role Is...")}
       </Text>
 
+      {/* The card and the slip beneath it are one object, so no gap may come between them. */}
+      <VStack gap={0} w="100%">
       {isRevealed ? (
         face
       ) : (
@@ -124,10 +131,15 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
         gap={0}
         w="100%"
       >
+
         <Button
           variant="ghost"
           size="sm"
           color="fg.muted"
+          mt={1}
+          // Sits below the slip, so nothing comes between the card and the thing sliding out
+          // from under it.
+          order={1}
           aria-expanded={showHelp}
           aria-controls="role-help"
           onClick={() => {
@@ -148,23 +160,39 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
 
         {/* Kept mounted whether open or not: a row that is removed has no height to animate. */}
         <Box
-          className={`role-help ${showHelp ? "is-open" : ""}`}
+          className={`role-sheet ${showHelp ? "is-open" : ""}`}
           aria-hidden={!showHelp}
-          w="100%"
         >
-          <Box>
-            <Text
-              id="role-help"
-              pt={3}
-              lineHeight="1.2em"
-              textAlign="center"
-              textStyle="accent"
-              fontSize="lg"
+          <Box className="role-sheet-clip">
+            {/*
+              * Coloured by the role rather than left grey: it gives the slip an edge against
+              * the card it slides out of, and the tint is the same one the role's name badge
+              * already wears, so the two read as belonging to each other.
+              */}
+            <Box
+              className="role-sheet-panel"
+              colorPalette={hasRoleTint ? rolePalette : undefined}
+              borderWidth="1px"
+              borderTopWidth="0"
+              borderColor={hasRoleTint ? "colorPalette.muted" : "border.emphasized"}
+              borderBottomRadius="0.9rem"
+              bg={hasRoleTint ? "colorPalette.subtle" : "bg.emphasized"}
+              px={4}
+              py={4}
             >
-              {roleInfo?.description}
-            </Text>
+              <Text
+                id="role-help"
+                lineHeight="1.35em"
+                textAlign="center"
+                textStyle="accent"
+                fontSize="md"
+              >
+                {roleInfo?.description}
+              </Text>
+            </Box>
           </Box>
         </Box>
+      </VStack>
       </VStack>
     </VStack>
   );
