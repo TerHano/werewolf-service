@@ -1,8 +1,34 @@
 import { getColorForRoleType, RoleInfo } from "@/hooks/useRoles";
 import { Badge, Box, Image, Text, VStack } from "@chakra-ui/react";
-import { IconMoon } from "@tabler/icons-react";
+import { Button } from "@/components/ui/button";
+import { IconChevronDown, IconMoon } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
+
+const ROLE_HELP_KEY = "werewolf.showRoleHelp";
+
+/**
+ * Whether to spell out what the role does.
+ *
+ * Kept per device rather than per game: someone who knows how the Witch works knows it every
+ * night, and someone learning still has it in front of them until they say otherwise. Storage
+ * can throw outright in a private window, so a failure just means the explanation stays.
+ */
+function readShowRoleHelp() {
+  try {
+    return localStorage.getItem(ROLE_HELP_KEY) !== "0";
+  } catch {
+    return true;
+  }
+}
+
+function rememberShowRoleHelp(show: boolean) {
+  try {
+    localStorage.setItem(ROLE_HELP_KEY, show ? "1" : "0");
+  } catch {
+    // A preference that cannot be saved is not worth failing a game over.
+  }
+}
 
 /**
  * The player's own card, dealt face down and turned over.
@@ -18,6 +44,7 @@ import { useTranslation } from "react-i18next";
 export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
   const { t } = useTranslation();
   const [isRevealed, setRevealed] = useState(false);
+  const [showHelp, setShowHelp] = useState(readShowRoleHelp);
 
   const face = (
     <VStack
@@ -92,15 +119,53 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
         </Box>
       )}
 
-      <Text
+      <VStack
         className={isRevealed ? undefined : "deal-card-detail"}
-        lineHeight="1.2em"
-        textAlign="center"
-        textStyle="accent"
-        fontSize="lg"
+        gap={0}
+        w="100%"
       >
-        {roleInfo?.description}
-      </Text>
+        <Button
+          variant="ghost"
+          size="sm"
+          color="fg.muted"
+          aria-expanded={showHelp}
+          aria-controls="role-help"
+          onClick={() => {
+            const next = !showHelp;
+            setShowHelp(next);
+            rememberShowRoleHelp(next);
+          }}
+        >
+          {showHelp ? t("game.role.hideHowItWorks") : t("game.role.howItWorks")}
+          <Box
+            as="span"
+            display="inline-flex"
+            className={`role-help-chevron ${showHelp ? "is-open" : ""}`}
+          >
+            <IconChevronDown size={14} />
+          </Box>
+        </Button>
+
+        {/* Kept mounted whether open or not: a row that is removed has no height to animate. */}
+        <Box
+          className={`role-help ${showHelp ? "is-open" : ""}`}
+          aria-hidden={!showHelp}
+          w="100%"
+        >
+          <Box>
+            <Text
+              id="role-help"
+              pt={3}
+              lineHeight="1.2em"
+              textAlign="center"
+              textStyle="accent"
+              fontSize="lg"
+            >
+              {roleInfo?.description}
+            </Text>
+          </Box>
+        </Box>
+      </VStack>
     </VStack>
   );
 };

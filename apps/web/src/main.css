@@ -315,3 +315,47 @@
     display: none;
   }
 }
+
+/*
+ * Showing and hiding what the role does.
+ *
+ * The row collapses rather than the text fading on the spot, so the card above it does not
+ * jump — the space closes at the same rate the words go. Grid rows are what make that
+ * possible: 0fr to 1fr animates to the content's own height, with nothing measured in script
+ * and no guessed maximum to clip a long role description.
+ *
+ * The content stays in the DOM either way, or there would be nothing to animate out.
+ */
+.role-help {
+  display: grid;
+  grid-template-rows: 0fr;
+  opacity: 0;
+  transition:
+    grid-template-rows 260ms ease,
+    opacity 180ms ease;
+}
+
+.role-help.is-open {
+  grid-template-rows: 1fr;
+  opacity: 1;
+}
+
+.role-help > * {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.role-help-chevron {
+  transition: transform 260ms ease;
+}
+
+.role-help-chevron.is-open {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .role-help,
+  .role-help-chevron {
+    transition: none;
+  }
+}
