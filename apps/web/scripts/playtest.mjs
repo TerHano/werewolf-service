@@ -42,6 +42,7 @@ const WATCH_ME = flag("watch-me", false);
 // matters for a step whose role is dead and has to run out the clock.
 const STEP_SECONDS = Math.min(300, Math.max(10, Number(flag("step-seconds", 10))));
 const DAY_SECONDS = Number(flag("day-seconds", 6));
+const DEAL_SECONDS = Number(flag("deal-seconds", 9));
 const QUIET = flag("quiet", false);
 
 const NAMES = [
@@ -225,8 +226,9 @@ async function runGame(bots, roomId) {
         });
         log(`  Day ${night.currentNight + 1}: ${lynched ? `lynched ${lynched.nickname}` : "abstained"}`);
       } else if (!night.isNightCallRunning) {
-        // A beat before the night starts, so the deal and the role card can be looked at.
-        await sleep(4000);
+        // Long enough to actually watch the deal: the card takes about a second and a half to
+        // arrive and turn over, and the point of looking is what happens after that.
+        await sleep(DEAL_SECONDS * 1000);
         await api(runner.token, "POST", "game/start-night", { roomId });
         log(`  Night ${night.currentNight + 1}`);
       } else {
