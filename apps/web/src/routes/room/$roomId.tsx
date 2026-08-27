@@ -1,4 +1,5 @@
 import { GameRoom } from "@/components/GameRoom/GameRoom";
+import { PhaseTransition } from "@/components/ui-addons/PhaseTransition";
 import { AddEditPlayerModal } from "@/components/Lobby/AddEditPlayerModal";
 import { Lobby } from "@/components/Lobby/Lobby";
 import { Skeleton } from "@/components/ui-addons/skeleton";
@@ -149,9 +150,10 @@ const Room = ({ roomId }: { roomId: string }) => {
     return <Skeleton loading height={100} />;
   }
 
-  if (currentGameState === GameState.Lobby) {
-    return <Lobby />;
-  } else {
-    return <GameRoom />;
-  }
+  return (
+    <PhaseTransition
+      phase={currentGameState}
+      render={(phase) => (phase === GameState.Lobby ? <Lobby /> : <GameRoom />)}
+    />
+  );
 };

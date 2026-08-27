@@ -380,3 +380,40 @@
     transition: none;
   }
 }
+
+/*
+ * Swapping one whole screen for another — the lobby for the game, and back again when the
+ * game is ended.
+ *
+ * The outgoing screen leaves slightly upwards and the incoming one arrives from slightly
+ * below, so the swap reads as a handover in one direction rather than as two unrelated fades.
+ * Kept short: this sits in front of the card being dealt, which is the part worth watching.
+ */
+@keyframes phase-out {
+  to {
+    opacity: 0;
+    transform: translateY(-6px) scale(0.99);
+  }
+}
+
+@keyframes phase-in {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+.phase-leaving {
+  animation: phase-out 240ms ease forwards;
+}
+
+.phase-entering {
+  animation: phase-in 320ms ease both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .phase-leaving,
+  .phase-entering {
+    animation: none;
+  }
+}
