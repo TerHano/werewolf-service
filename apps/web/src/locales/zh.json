@@ -174,7 +174,7 @@
         "helper": "所有玩家现在应该讨论谁是狼人。一旦达成共识，玩家们将投票处决该玩家。如果玩家无法达成共识，可以选择弃权。",
         "button": {
           "lynch": "处决玩家",
-        "lynchNamed": "处决 {{name}}",
+          "lynchNamed": "处决 {{name}}",
           "abstain": "弃权"
         }
       }
@@ -261,6 +261,15 @@
       "stillAlive": "Still in ({{count}})",
       "out": "Out ({{count}})"
     }
+  },
+  "install": {
+    "title": "Add Werewolf to your Home Screen",
+    "why": "On iPhone, Safari can only buzz you when it is your turn if the game is on your Home Screen. It also opens full screen, without the browser bars.",
+    "step1": "Tap the Share button at the bottom of Safari.",
+    "step2": "Scroll down and tap \"Add to Home Screen\".",
+    "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
+    "afterwards": "Once installed, turn on notifications from the game screen.",
+    "dismiss": "Not now"
   },
   "mainMenu": {
     "title": "狼人派对",

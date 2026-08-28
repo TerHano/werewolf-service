@@ -174,7 +174,7 @@
         "helper": "All the players should now be discussing who they think is the werewolf. Once an agreement is reached, the players will vote to lynch the player. If the players are unable to reach an agreement, the players can abstain from voting for the night.",
         "button": {
           "lynch": "Lynch Player",
-        "lynchNamed": "Lynch {{name}}",
+          "lynchNamed": "Lynch {{name}}",
           "abstain": "Abstain Vote"
         }
       }
@@ -261,6 +261,15 @@
       "stillAlive": "Still in ({{count}})",
       "out": "Out ({{count}})"
     }
+  },
+  "install": {
+    "title": "Add Werewolf to your Home Screen",
+    "why": "On iPhone, Safari can only buzz you when it is your turn if the game is on your Home Screen. It also opens full screen, without the browser bars.",
+    "step1": "Tap the Share button at the bottom of Safari.",
+    "step2": "Scroll down and tap \"Add to Home Screen\".",
+    "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
+    "afterwards": "Once installed, turn on notifications from the game screen.",
+    "dismiss": "Not now"
   },
   "mainMenu": {
     "title": "Werewolf Party",

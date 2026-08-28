@@ -174,7 +174,7 @@
         "helper": "Todos los jugadores deben discutir ahora quién creen que es el hombre lobo. Una vez que se llegue a un acuerdo, los jugadores votarán para linchar al jugador. Si los jugadores no pueden llegar a un acuerdo, pueden abstenerse de votar por la noche.",
         "button": {
           "lynch": "Linchar Jugador",
-        "lynchNamed": "Linchar a {{name}}",
+          "lynchNamed": "Linchar a {{name}}",
           "abstain": "Abstenerse"
         }
       }
@@ -261,6 +261,15 @@
       "stillAlive": "Still in ({{count}})",
       "out": "Out ({{count}})"
     }
+  },
+  "install": {
+    "title": "Add Werewolf to your Home Screen",
+    "why": "On iPhone, Safari can only buzz you when it is your turn if the game is on your Home Screen. It also opens full screen, without the browser bars.",
+    "step1": "Tap the Share button at the bottom of Safari.",
+    "step2": "Scroll down and tap \"Add to Home Screen\".",
+    "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
+    "afterwards": "Once installed, turn on notifications from the game screen.",
+    "dismiss": "Not now"
   },
   "mainMenu": {
     "title": "Fiesta de Hombres Lobo",
