@@ -7,9 +7,6 @@ on:
   pull_request:
     branches: [ "main" ]
 
-env:
-  BUILD_CONFIGURATION: ${{ vars.BUILD_CONFIGURATION }}
-
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -35,32 +32,45 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Build image
-        run: |
-          docker build \
-            --build-arg BUILD_CONFIGURATION=${BUILD_CONFIGURATION:-Release} \
-            -f ${{ matrix.dockerfile }} \
-            --tag ${{ matrix.image }} \
-            ${{ matrix.context }}
+      # The free Oracle ARM shapes cannot run an amd64 image, and the deploy only pulls — it
+      # never builds — so an image published for one architecture is an image that cannot be
+      # deployed to the other. QEMU lets this x86 runner emit both, under one tag.
+      - uses: docker/setup-qemu-action@v3
+      - uses: docker/setup-buildx-action@v3
 
       - name: Log in to registry
         if: github.event_name != 'pull_request'
-        run: docker login ghcr.io -u ${{ github.actor }} -p ${{ secrets.GITHUB_TOKEN }}
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Push image
-        if: github.event_name != 'pull_request'
+      - name: Work out the tag
+        id: tag
         run: |
-          IMAGE_ID=ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
-          IMAGE_ID=$(echo $IMAGE_ID | tr '[A-Z]' '[a-z]')
+          IMAGE_ID=$(echo "ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}" | tr '[:upper:]' '[:lower:]')
 
           VERSION=$(echo "${{ github.ref }}" | sed -e 's,.*/\(.*\),\1,')
           [[ "${{ github.ref }}" == "refs/tags/"* ]] && VERSION=$(echo $VERSION | sed -e 's/^v//')
           [ "$VERSION" == "main" ] && VERSION=latest
 
-          echo IMAGE_ID=$IMAGE_ID
-          echo VERSION=$VERSION
-          docker tag ${{ matrix.image }} $IMAGE_ID:$VERSION
-          docker push $IMAGE_ID:$VERSION
+          echo "tags=$IMAGE_ID:$VERSION" >> "$GITHUB_OUTPUT"
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: ${{ matrix.context }}
+          file: ${{ matrix.dockerfile }}
+          platforms: linux/amd64,linux/arm64
+          # A pull request builds both architectures as a check and publishes nothing.
+          push: ${{ github.event_name != 'pull_request' }}
+          tags: ${{ steps.tag.outputs.tags }}
+          build-args: |
+            BUILD_CONFIGURATION=${{ vars.BUILD_CONFIGURATION || 'Release' }}
+          # Emulated arm64 is slow enough that an uncached build is painful every time.
+          cache-from: type=gha
+          cache-to: type=gha,mode=max
 
   deploy:
     needs: build
