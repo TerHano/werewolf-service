@@ -74,7 +74,22 @@ jobs:
           username: ${{ secrets.ORACLE_USERNAME }}
           key: ${{ secrets.ORACLE_KEY }}
           port: ${{ secrets.ORACLE_PORT }}
+          # Without this the script runs on regardless of what fails, and the job reports a
+          # green deploy having changed nothing.
+          script_stop: true
           script: |
             cd /home/ubuntu/docker_projects/werewolf-party
-            docker compose pull
-            docker compose up -d
+
+            # The compose files live in the repo, so they only reach the server if the server
+            # pulls them. Pulling images alone leaves the box running whatever compose file was
+            # last copied here by hand, and nothing would say so.
+            #
+            # --ff-only on purpose: if someone has edited a file on the box this stops the
+            # deploy rather than quietly merging or discarding their change.
+            git pull --ff-only
+
+            # Both files, every time. A bare `docker compose` in a checkout of this repo picks
+            # up compose.override.yaml — the development stack, Vite and all — and never
+            # applies the production overlay.
+            docker compose -f compose.yaml -f compose.prod.yaml pull
+            docker compose -f compose.yaml -f compose.prod.yaml up -d
