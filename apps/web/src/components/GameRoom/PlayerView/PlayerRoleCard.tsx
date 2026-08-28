@@ -4,31 +4,14 @@ import { Button } from "@/components/ui/button";
 import { IconChevronDown, IconMoon } from "@tabler/icons-react";
 import { useState } from "react";
 import { useTranslation } from "react-i18next";
-
-const ROLE_HELP_KEY = "werewolf.showRoleHelp";
+import { readFlag, writeFlag } from "@/util/preference";
 
 /**
- * Whether to spell out what the role does.
- *
- * Kept per device rather than per game: someone who knows how the Witch works knows it every
- * night, and someone learning still has it in front of them until they say otherwise. Storage
- * can throw outright in a private window, so a failure just means the explanation stays.
+ * Whether to spell out what the role does. Kept per device rather than per game: someone who
+ * knows how the Witch works knows it every night, and someone learning still has it in front
+ * of them until they say otherwise.
  */
-function readShowRoleHelp() {
-  try {
-    return localStorage.getItem(ROLE_HELP_KEY) !== "0";
-  } catch {
-    return true;
-  }
-}
-
-function rememberShowRoleHelp(show: boolean) {
-  try {
-    localStorage.setItem(ROLE_HELP_KEY, show ? "1" : "0");
-  } catch {
-    // A preference that cannot be saved is not worth failing a game over.
-  }
-}
+const ROLE_HELP_KEY = "werewolf.showRoleHelp";
 
 /**
  * The player's own card, dealt face down and turned over.
@@ -44,7 +27,7 @@ function rememberShowRoleHelp(show: boolean) {
 export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
   const { t } = useTranslation();
   const [isRevealed, setRevealed] = useState(false);
-  const [showHelp, setShowHelp] = useState(readShowRoleHelp);
+  const [showHelp, setShowHelp] = useState(() => readFlag(ROLE_HELP_KEY, true));
 
   // Roles with no side of their own answer "lightgray", which is not a palette Chakra knows —
   // a tint from it is no tint at all. Those get a plain lift off the card instead.
@@ -55,14 +38,16 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
     <VStack
       className="deal-card-shape"
       justify="center"
-      gap={2}
-      px={4}
+      gap={1}
+      px={3}
+      py={4}
       borderWidth="1px"
       borderColor="border.emphasized"
       bg="bg.panel"
       boxShadow="lg"
     >
-      <Image height="7rem" width="7rem" src={roleInfo?.imgSrc} />
+      {/* Sized to fill the card rather than float in the middle of it — the art is the card. */}
+      <Image height="9.5rem" width="9.5rem" src={roleInfo?.imgSrc} />
 
       <Badge
         variant="subtle"
@@ -145,7 +130,7 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
           onClick={() => {
             const next = !showHelp;
             setShowHelp(next);
-            rememberShowRoleHelp(next);
+            writeFlag(ROLE_HELP_KEY, next);
           }}
         >
           {showHelp ? t("game.role.hideHowItWorks") : t("game.role.howItWorks")}
@@ -160,17 +145,17 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
 
         {/* Kept mounted whether open or not: a row that is removed has no height to animate. */}
         <Box
-          className={`role-sheet ${showHelp ? "is-open" : ""}`}
+          className={`collapse-row role-sheet ${showHelp ? "is-open" : ""}`}
           aria-hidden={!showHelp}
         >
-          <Box className="role-sheet-clip">
+          <Box className="collapse-clip">
             {/*
               * Coloured by the role rather than left grey: it gives the slip an edge against
               * the card it slides out of, and the tint is the same one the role's name badge
               * already wears, so the two read as belonging to each other.
               */}
             <Box
-              className="role-sheet-panel"
+              className="collapse-panel"
               colorPalette={hasRoleTint ? rolePalette : undefined}
               borderWidth="1px"
               borderTopWidth="0"

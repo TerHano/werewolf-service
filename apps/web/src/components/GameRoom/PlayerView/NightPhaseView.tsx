@@ -1,10 +1,11 @@
-import { Card, Progress, Stack, Text } from "@chakra-ui/react";
+import { Card, Stack, Text } from "@chakra-ui/react";
 import { useTranslation } from "react-i18next";
 import { lazy, Suspense } from "react";
 import { MyRoleDto } from "@/dto/MyRoleDto";
 import { GamePlayerDto } from "@/dto/GamePlayerDto";
 import { NightStateDto } from "@/dto/NightStateDto";
 import { useStepCountdown } from "./useStepCountdown";
+import { TurnTimerRing } from "./TurnTimerRing";
 import { Skeleton } from "@/components/ui-addons/skeleton";
 import { NightInProgress } from "./NightInProgress";
 
@@ -36,20 +37,18 @@ export const NightPhaseView = ({
   const { t } = useTranslation();
   const secondsLeft = useStepCountdown(nightState.stepDeadline);
 
+  // Deliberately not a card. It used to be one, which made "look at your card" the second
+  // largest thing on a screen whose whole point is the card directly above it.
   if (!nightState.isNightCallRunning) {
     return (
-      <Card.Root className="animate-fade-in-from-bottom">
-        <Card.Body>
-          <Stack align="center" gap={3} py={6}>
-            <Text textStyle="accent" fontSize="xl">
-              {t("game.night.waitingToBegin.title")}
-            </Text>
-            <Text color="dimmed" textAlign="center">
-              {t("game.night.waitingToBegin.description")}
-            </Text>
-          </Stack>
-        </Card.Body>
-      </Card.Root>
+      <Text
+        className="animate-fade-in"
+        color="dimmed"
+        fontSize="sm"
+        textAlign="center"
+      >
+        {t("game.night.waitingToBegin.title")}
+      </Text>
     );
   }
 
@@ -81,14 +80,7 @@ export const NightPhaseView = ({
                 ? t("game.night.lockedIn.title")
                 : t("game.night.yourTurn.title")}
             </Text>
-            {secondsLeft !== null && (
-              <>
-                <Progress.Root size="sm" borderRadius="xl" value={null} />
-                <Text color="dimmed" fontSize="sm" textAlign="center">
-                  {t("game.night.secondsLeft", { seconds: secondsLeft })}
-                </Text>
-              </>
-            )}
+            {secondsLeft !== null && <TurnTimerRing secondsLeft={secondsLeft} />}
           </Stack>
         </Card.Body>
       </Card.Root>

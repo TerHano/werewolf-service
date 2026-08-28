@@ -22,6 +22,7 @@ import { playNightOverCue, primeNightCue } from "@/util/nightCue";
 import { EnableNotificationsCard } from "./EnableNotificationsCard";
 import { ModeratorBadgeCard } from "./ModeratorBadgeCard";
 import { SpectatorCard } from "./SpectatorCard";
+import { GameStatusBar } from "./GameStatusBar";
 
 /**
  * The whole game for a room the server moderates: everybody plays, including the host.
@@ -120,6 +121,12 @@ export const SelfModeratedView = () => {
   if (nightState.isDay) {
     return (
       <Stack gap={4}>
+        <GameStatusBar
+          currentNight={nightState.currentNight}
+          isDay
+          players={players ?? []}
+          myRole={myRole ?? null}
+        />
         {/* Offered during the day on purpose: asking for notification permission mid-night
             would put a system dialog over the one screen a player needs. */}
         <EnableNotificationsCard />
@@ -141,6 +148,14 @@ export const SelfModeratedView = () => {
 
   return (
     <Stack gap={4}>
+      {isNightCallRunning && (
+        <GameStatusBar
+          currentNight={nightState.currentNight}
+          isDay={false}
+          players={players ?? []}
+          myRole={myRole ?? null}
+        />
+      )}
       {/* Also shown while players are still looking at their cards, before the first step. */}
       {!isNightCallRunning && <EnableNotificationsCard />}
       {hasBadge && (

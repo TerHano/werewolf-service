@@ -11,6 +11,7 @@
  *   npm run playtest -- --watch-me   waits for you to join before it starts
  *   npm run playtest -- --join ABC12 adds bots to a room you already made
  *   npm run playtest -- --watch       serves two dev pages: every phone, and every card
+ *   npm run playtest -- --dawdle      bots act but never lock in, so turns last their full clock
  *
  * The bots read the same endpoints the app does and never look at anything a player could
  * not see. They ask the server what they are allowed to do this step and pick from that, so
@@ -46,6 +47,10 @@ const STEP_SECONDS = Math.min(300, Math.max(10, Number(flag("step-seconds", 10))
 const DAY_SECONDS = Number(flag("day-seconds", 6));
 const DEAL_SECONDS = Number(flag("deal-seconds", 9));
 const QUIET = flag("quiet", false);
+// Bots normally lock in the moment they act, which is realistic but makes a turn last a few
+// hundred milliseconds — no use at all if the thing you are trying to look at is the turn
+// screen. Dawdling leaves the step to run its clock out.
+const DAWDLE = flag("dawdle", false);
 const WATCH = flag("watch", false);
 const WATCH_PORT = Number(flag("watch-port", 7777));
 
@@ -182,7 +187,7 @@ async function takeTurn(bot, roomId) {
     log(`    ${bot.nickname}: nothing to do`);
   }
 
-  await api(bot.token, "POST", "game/lock-in", { roomId });
+  if (!DAWDLE) await api(bot.token, "POST", "game/lock-in", { roomId });
 }
 
 /** Watches for its own turn and takes it. Nobody is told whose turn it is but the actor. */

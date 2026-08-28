@@ -237,6 +237,10 @@
       "howItWorks": "How this works",
       "hideHowItWorks": "Hide"
     },
+    "status": {
+      "alive": "{{count}} still in",
+      "peek": "Your role"
+    },
     "badge": {
       "endGame": {
         "button": "End the game",
