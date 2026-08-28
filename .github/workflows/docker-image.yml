@@ -67,6 +67,22 @@ jobs:
     if: github.event_name != 'pull_request'
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+
+      # The server runs published images and builds nothing, so it has no use for the source —
+      # only for the two files that describe the stack. Sending just those keeps
+      # compose.override.yaml, which is the development stack and would be picked up by any
+      # bare `docker compose` typed on the box, off the machine entirely.
+      - name: Send compose files
+        uses: appleboy/scp-action@v1.0.0
+        with:
+          host: ${{ secrets.ORACLE_HOST }}
+          username: ${{ secrets.ORACLE_USERNAME }}
+          key: ${{ secrets.ORACLE_KEY }}
+          port: ${{ secrets.ORACLE_PORT }}
+          source: compose.yaml,compose.prod.yaml
+          target: /srv/werewolf-party
+
       - name: Update server
         uses: appleboy/ssh-action@v1.2.0
         with:
@@ -78,18 +94,10 @@ jobs:
           # green deploy having changed nothing.
           script_stop: true
           script: |
-            cd /home/ubuntu/docker_projects/werewolf-party
+            cd /srv/werewolf-party
 
-            # The compose files live in the repo, so they only reach the server if the server
-            # pulls them. Pulling images alone leaves the box running whatever compose file was
-            # last copied here by hand, and nothing would say so.
-            #
-            # --ff-only on purpose: if someone has edited a file on the box this stops the
-            # deploy rather than quietly merging or discarding their change.
-            git pull --ff-only
-
-            # Both files, every time. A bare `docker compose` in a checkout of this repo picks
-            # up compose.override.yaml — the development stack, Vite and all — and never
-            # applies the production overlay.
+            # Both files, every time. compose.prod.yaml is an overlay — it carries only the
+            # published images and drops the build sections — so on its own it has no database
+            # and no configuration at all.
             docker compose -f compose.yaml -f compose.prod.yaml pull
             docker compose -f compose.yaml -f compose.prod.yaml up -d
