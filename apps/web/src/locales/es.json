@@ -174,6 +174,7 @@
         "helper": "Todos los jugadores deben discutir ahora quién creen que es el hombre lobo. Una vez que se llegue a un acuerdo, los jugadores votarán para linchar al jugador. Si los jugadores no pueden llegar a un acuerdo, pueden abstenerse de votar por la noche.",
         "button": {
           "lynch": "Linchar Jugador",
+        "lynchNamed": "Linchar a {{name}}",
           "abstain": "Abstenerse"
         }
       }

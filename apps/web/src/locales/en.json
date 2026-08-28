@@ -174,6 +174,7 @@
         "helper": "All the players should now be discussing who they think is the werewolf. Once an agreement is reached, the players will vote to lynch the player. If the players are unable to reach an agreement, the players can abstain from voting for the night.",
         "button": {
           "lynch": "Lynch Player",
+        "lynchNamed": "Lynch {{name}}",
           "abstain": "Abstain Vote"
         }
       }

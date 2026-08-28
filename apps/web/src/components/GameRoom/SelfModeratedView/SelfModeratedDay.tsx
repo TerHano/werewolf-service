@@ -59,6 +59,7 @@ export const SelfModeratedDay = ({
   });
 
   const alivePlayers = players.filter((player) => player.isAlive);
+  const chosen = alivePlayers.find((player) => player.id === selectedPlayer);
 
   return (
     <Stack gap={6}>
@@ -91,7 +92,13 @@ export const SelfModeratedDay = ({
                       votePlayerOut({ roomId, playerRoleId: selectedPlayer })
                     }
                   >
-                    {t("game.choppingBlock.vote.button.lynch")}
+                    {/* Naming the target turns an irreversible tap into one you can check
+                        before you make it — the vote lands the instant this is pressed. */}
+                    {chosen
+                      ? t("game.choppingBlock.vote.button.lynchNamed", {
+                          name: chosen.nickname,
+                        })
+                      : t("game.choppingBlock.vote.button.lynch")}
                   </Button>
                   <Button
                     flex="1"

@@ -165,10 +165,13 @@ export const PlayerRoleCard = ({ roleInfo }: { roleInfo: RoleInfo }) => {
               px={4}
               py={4}
             >
+              {/* Ragged right rather than centred: this runs to eight lines in a column
+                  narrower than the card, and centred prose that long is read a line at a
+                  time. The card's own label and tagline stay centred — they are labels. */}
               <Text
                 id="role-help"
                 lineHeight="1.35em"
-                textAlign="center"
+                textAlign="start"
                 textStyle="accent"
                 fontSize="md"
               >
