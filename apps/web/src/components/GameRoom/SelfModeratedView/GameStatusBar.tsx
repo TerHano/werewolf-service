@@ -74,7 +74,6 @@ export const GameStatusBar = ({
       {roleInfo && (
         <Badge
           as="button"
-          type="button"
           size="sm"
           variant={isRoleShowing ? "subtle" : "outline"}
           colorPalette={
