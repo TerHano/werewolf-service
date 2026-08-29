@@ -114,6 +114,17 @@
       "button": {
         "kick": "Kick Player",
         "makeModerator": "Make Moderator"
+      },
+      "confirm": {
+        "kick": {
+          "title": "Kick {{nickname}}?",
+          "description": "They will be removed from the room. They can join again with the room code."
+        },
+        "makeModerator": {
+          "title": "Make {{nickname}} moderator?",
+          "description": "They take over the role settings and starting the game. You cannot take it back yourself — only the new moderator can hand it over."
+        },
+        "cancel": "Cancel"
       }
     },
     "button": {

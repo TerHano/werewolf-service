@@ -114,6 +114,17 @@
       "button": {
         "kick": "Expulsar Jugador",
         "makeModerator": "Hacer Moderador"
+      },
+      "confirm": {
+        "kick": {
+          "title": "¿Expulsar a {{nickname}}?",
+          "description": "Será eliminado de la sala. Podrá unirse de nuevo con el código de sala."
+        },
+        "makeModerator": {
+          "title": "¿Hacer moderador a {{nickname}}?",
+          "description": "Se hará cargo de la configuración de roles y de comenzar el juego. No podrás recuperarlo tú mismo — solo el nuevo moderador puede cederlo."
+        },
+        "cancel": "Cancelar"
       }
     },
     "button": {

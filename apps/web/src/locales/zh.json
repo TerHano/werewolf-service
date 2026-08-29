@@ -114,6 +114,17 @@
       "button": {
         "kick": "踢出玩家",
         "makeModerator": "设为主持人"
+      },
+      "confirm": {
+        "kick": {
+          "title": "踢出{{nickname}}？",
+          "description": "该玩家将被移出房间。他们可以用房间代码重新加入。"
+        },
+        "makeModerator": {
+          "title": "让{{nickname}}当主持人？",
+          "description": "他们将接管角色设置和开始游戏。你无法自己收回——只有新主持人才能转交。"
+        },
+        "cancel": "取消"
       }
     },
     "button": {
