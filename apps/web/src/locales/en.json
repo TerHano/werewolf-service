@@ -86,6 +86,12 @@
       "description": "You have been kicked from the room by the moderator."
     },
     "playersWaiting": "{{count}} Player(s) Waiting",
+    "seats": {
+      "count": "{{players}} / {{cards}}",
+      "readyToStart": "Everyone's seated — ready to start!",
+      "morePlayersNeeded": "Waiting on {{count}} more player(s)",
+      "extraVillagers": "{{count}} extra player(s) will be dealt Villager"
+    },
     "leaveRoomModal": {
       "title": "Leave Room?",
       "description": "You will not be able to participate if you join the room again while a game is in progress.",

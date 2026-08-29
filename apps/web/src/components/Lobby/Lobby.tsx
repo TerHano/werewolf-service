@@ -1,4 +1,4 @@
-import { HStack, Stack, Text, SimpleGrid, Card } from "@chakra-ui/react";
+import { HStack, Stack, Text, Card } from "@chakra-ui/react";
 import { useCurrentPlayer } from "@/hooks/useCurrentPlayer";
 import { useTranslation } from "react-i18next";
 import { useRoomId } from "@/hooks/useRoomId";
@@ -11,6 +11,8 @@ import { LeaveRoomButton } from "./LeaveRoomButton";
 import { IconCopyCheck } from "@tabler/icons-react";
 import { useToaster } from "@/hooks/ui/useToaster";
 import { Skeleton, SkeletonCircle } from "../ui-addons/skeleton";
+import { useLobbySeats } from "@/hooks/useLobbySeats";
+import { SeatCounter } from "./SeatCounter";
 import { InstallOnIosDialog } from "./InstallOnIosDialog";
 
 const RoomRoleSettingsCard = lazy(
@@ -27,6 +29,7 @@ export const Lobby = () => {
   const { t } = useTranslation();
   const { data: isModerator } = useIsModerator(roomId);
   const { data: currentPlayer } = useCurrentPlayer(roomId);
+  const { canStartGame } = useLobbySeats(roomId);
 
   const { mutate: startGameMutate, isPending: isStartGamePending } =
     useStartGame({
@@ -99,17 +102,17 @@ export const Lobby = () => {
         >
           <RoomRoleSettingsCard />
         </Suspense>
+        <SeatCounter />
         {isModerator ? (
-          <SimpleGrid gap={2} columns={1}>
-            <Button
-              size="sm"
-              width="100%"
-              loading={isStartGamePending}
-              onClick={onStartGame}
-            >
-              <Text fontSize="sm"> {t("lobby.button.startGame")}</Text>
-            </Button>
-          </SimpleGrid>
+          <Button
+            size="sm"
+            width="100%"
+            disabled={!canStartGame}
+            loading={isStartGamePending}
+            onClick={onStartGame}
+          >
+            <Text fontSize="sm"> {t("lobby.button.startGame")}</Text>
+          </Button>
         ) : null}
         <Suspense
           fallback={

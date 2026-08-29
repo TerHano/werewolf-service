@@ -86,6 +86,12 @@
       "description": "Has sido expulsado de la sala por el moderador."
     },
     "playersWaiting": "{{count}} Jugador(es) Esperando",
+    "seats": {
+      "count": "{{players}} / {{cards}}",
+      "readyToStart": "¡Todos sentados — listos para comenzar!",
+      "morePlayersNeeded": "Faltan {{count}} jugador(es)",
+      "extraVillagers": "{{count}} jugador(es) de más recibirán Aldeano"
+    },
     "leaveRoomModal": {
       "title": "¿Abandonar Sala?",
       "description": "No podrás participar si te unes de nuevo mientras hay un juego en curso.",
