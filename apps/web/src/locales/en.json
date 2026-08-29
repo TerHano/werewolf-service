@@ -248,7 +248,8 @@
       },
       "install": {
         "title": "Add to your home screen",
-        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+        "description": "On iPhone, notifications only work once the game is on your Home Screen. Until then, keep this page open.",
+        "button": "Show me how"
       },
       "denied": {
         "title": "Notifications are blocked",
@@ -290,7 +291,7 @@
     "step2": "Scroll down and tap \"Add to Home Screen\".",
     "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
     "afterwards": "Once installed, turn on notifications from the game screen.",
-    "dismiss": "Not now"
+    "done": "Got it"
   },
   "mainMenu": {
     "title": "Werewolf Party",

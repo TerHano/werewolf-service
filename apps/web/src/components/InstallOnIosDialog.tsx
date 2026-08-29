@@ -6,7 +6,7 @@ import {
   IconShare2,
   IconSquarePlus,
 } from "@tabler/icons-react";
-import { ReactNode, useEffect, useState } from "react";
+import { ReactNode } from "react";
 import { useTranslation } from "react-i18next";
 import { Button } from "@/components/ui/button";
 import {
@@ -17,7 +17,6 @@ import {
   DialogRoot,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { useIosInstall } from "@/hooks/useIosInstall";
 
 const Step = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
   <Stack direction="row" align="center" gap={3}>
@@ -29,39 +28,31 @@ const Step = ({ icon, children }: { icon: ReactNode; children: ReactNode }) => (
 );
 
 /**
- * Explains adding the game to the home screen, on the one platform where it is worth
- * interrupting someone to say so.
+ * The Safari steps for adding the game to the home screen.
  *
  * iOS is a special case rather than a preference: Safari delivers Web Push only to a site
  * launched from the home screen, so an iPhone player who just follows the link cannot be told
- * it is their turn at all. That is the reason this exists, and the reason the dialog leads
- * with notifications rather than with tidiness.
+ * it is their turn at all.
  *
- * Shown once, in the lobby, where people are already waiting. Not during a game — a modal over
- * somebody's night turn would be worse than no notifications at all — and never again once
- * dismissed.
+ * Opened on request from EnableNotificationsCard, never on its own. Someone who has just
+ * arrived in a room has no reason yet to want this, and a modal that opens itself asks them to
+ * do a chore before it has said what the chore buys. The card makes the offer; this explains
+ * how to take it.
  */
-export const InstallOnIosDialog = () => {
+export const InstallOnIosDialog = ({
+  open,
+  onClose,
+}: {
+  open: boolean;
+  onClose: () => void;
+}) => {
   const { t } = useTranslation();
-  const { canInstall, dismiss } = useIosInstall();
-  const [isOpen, setOpen] = useState(false);
-
-  useEffect(() => {
-    if (canInstall) setOpen(true);
-  }, [canInstall]);
-
-  if (!canInstall) return null;
-
-  const close = () => {
-    setOpen(false);
-    dismiss();
-  };
 
   return (
     <DialogRoot
-      open={isOpen}
+      open={open}
       onOpenChange={(event) => {
-        if (!event.open) close();
+        if (!event.open) onClose();
       }}
     >
       <DialogContent>
@@ -98,8 +89,8 @@ export const InstallOnIosDialog = () => {
         </DialogBody>
 
         <DialogFooter>
-          <Button variant="subtle" onClick={close}>
-            {t("install.dismiss")}
+          <Button variant="subtle" onClick={onClose}>
+            {t("install.done")}
           </Button>
         </DialogFooter>
       </DialogContent>

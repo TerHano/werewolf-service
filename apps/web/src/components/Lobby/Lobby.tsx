@@ -13,7 +13,7 @@ import { useToaster } from "@/hooks/ui/useToaster";
 import { Skeleton, SkeletonCircle } from "../ui-addons/skeleton";
 import { useLobbySeats } from "@/hooks/useLobbySeats";
 import { SeatCounter } from "./SeatCounter";
-import { InstallOnIosDialog } from "./InstallOnIosDialog";
+import { EnableNotificationsCard } from "@/components/EnableNotificationsCard";
 
 const RoomRoleSettingsCard = lazy(
   () => import("@/components/Lobby/RoomRoleSettings/RoomRoleSettingsCard")
@@ -50,9 +50,6 @@ export const Lobby = () => {
 
   return (
     <Card.Root w="full" p={3} variant="outline">
-      {/* Lobby only: people are waiting here anyway, and a modal over somebody's night turn
-          would cost them the turn. Shows itself on iOS Safari alone, once. */}
-      <InstallOnIosDialog />
       <Stack w="full" gap={2}>
         <HStack justify="space-between">
           <HStack justifyContent="center">
@@ -128,6 +125,10 @@ export const Lobby = () => {
         >
           <PlayersSection currentPlayer={currentPlayer} />
         </Suspense>
+        {/* Last, and only when there is something to offer: the lobby is where people are
+            already waiting, so it is the one place a nudge about notifications costs nobody
+            their turn. */}
+        <EnableNotificationsCard />
       </Stack>
     </Card.Root>
   );

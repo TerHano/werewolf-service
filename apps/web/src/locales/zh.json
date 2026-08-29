@@ -248,7 +248,8 @@
       },
       "install": {
         "title": "Add to your home screen",
-        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+        "description": "在 iPhone 上，只有将游戏添加到主屏幕后通知才能生效。在此之前，请保持此页面打开。",
+        "button": "查看方法"
       },
       "denied": {
         "title": "Notifications are blocked",
@@ -290,7 +291,7 @@
     "step2": "Scroll down and tap \"Add to Home Screen\".",
     "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
     "afterwards": "Once installed, turn on notifications from the game screen.",
-    "dismiss": "Not now"
+    "done": "知道了"
   },
   "mainMenu": {
     "title": "狼人派对",
