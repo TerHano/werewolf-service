@@ -92,6 +92,10 @@
       "morePlayersNeeded": "还需要{{count}}个玩家",
       "extraVillagers": "多出的{{count}}个玩家将获得村民牌"
     },
+    "moderatorBadge": {
+      "playing": "参与游戏",
+      "sittingOut": "不参与"
+    },
     "leaveRoomModal": {
       "title": "离开房间？",
       "description": "如果游戏正在进行中，你将无法再次加入房间参与游戏。",

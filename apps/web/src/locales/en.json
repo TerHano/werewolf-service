@@ -92,6 +92,10 @@
       "morePlayersNeeded": "Waiting on {{count}} more player(s)",
       "extraVillagers": "{{count}} extra player(s) will be dealt Villager"
     },
+    "moderatorBadge": {
+      "playing": "Playing",
+      "sittingOut": "Sitting Out"
+    },
     "leaveRoomModal": {
       "title": "Leave Room?",
       "description": "You will not be able to participate if you join the room again while a game is in progress.",

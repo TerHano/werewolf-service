@@ -92,6 +92,10 @@
       "morePlayersNeeded": "Faltan {{count}} jugador(es)",
       "extraVillagers": "{{count}} jugador(es) de más recibirán Aldeano"
     },
+    "moderatorBadge": {
+      "playing": "Jugando",
+      "sittingOut": "Sin Jugar"
+    },
     "leaveRoomModal": {
       "title": "¿Abandonar Sala?",
       "description": "No podrás participar si te unes de nuevo mientras hay un juego en curso.",
