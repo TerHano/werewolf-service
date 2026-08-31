@@ -86,6 +86,16 @@
       "description": "Has sido expulsado de la sala por el moderador."
     },
     "playersWaiting": "{{count}} Jugador(es) Esperando",
+    "seats": {
+      "count": "{{players}} / {{cards}}",
+      "readyToStart": "¡Todos sentados — listos para comenzar!",
+      "morePlayersNeeded": "Faltan {{count}} jugador(es)",
+      "extraVillagers": "{{count}} jugador(es) de más recibirán Aldeano"
+    },
+    "moderatorBadge": {
+      "playing": "Jugando",
+      "sittingOut": "Sin Jugar"
+    },
     "leaveRoomModal": {
       "title": "¿Abandonar Sala?",
       "description": "No podrás participar si te unes de nuevo mientras hay un juego en curso.",
@@ -104,6 +114,17 @@
       "button": {
         "kick": "Expulsar Jugador",
         "makeModerator": "Hacer Moderador"
+      },
+      "confirm": {
+        "kick": {
+          "title": "¿Expulsar a {{nickname}}?",
+          "description": "Será eliminado de la sala. Podrá unirse de nuevo con el código de sala."
+        },
+        "makeModerator": {
+          "title": "¿Hacer moderador a {{nickname}}?",
+          "description": "Se hará cargo de la configuración de roles y de comenzar el juego. No podrás recuperarlo tú mismo — solo el nuevo moderador puede cederlo."
+        },
+        "cancel": "Cancelar"
       }
     },
     "button": {
@@ -227,7 +248,8 @@
       },
       "install": {
         "title": "Add to your home screen",
-        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+        "description": "En iPhone, las notificaciones solo funcionan cuando el juego está en tu pantalla de inicio. Mientras tanto, mantén esta página abierta.",
+        "button": "Ver cómo"
       },
       "denied": {
         "title": "Notifications are blocked",
@@ -269,7 +291,7 @@
     "step2": "Scroll down and tap \"Add to Home Screen\".",
     "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
     "afterwards": "Once installed, turn on notifications from the game screen.",
-    "dismiss": "Not now"
+    "done": "Entendido"
   },
   "mainMenu": {
     "title": "Fiesta de Hombres Lobo",

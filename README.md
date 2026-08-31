@@ -109,10 +109,32 @@ to a human moderator if you prefer the classic flow.
 
 ## Deployment
 
-CI builds both images and pushes them to GHCR on every push to `main`, then updates the host
-over SSH. Production runs the published images via the overlay:
+CI builds both images for **linux/arm64** on an ARM runner and pushes them to GHCR on every
+push to `main`, then updates the host over SSH. The host is an Ampere machine, so amd64 is not
+built at all. Production runs the published images via the overlay:
 
 ```bash
 docker compose -f compose.yaml -f compose.prod.yaml pull
 docker compose -f compose.yaml -f compose.prod.yaml up -d
 ```
+
+### Behind Caddy
+
+TLS and the public hostname belong to a **separate Caddy container** that owns :80/:443 on the
+host. This stack publishes no ports; Caddy reaches the web container over the shared external
+network `caddy_net`, where it answers to `werewolf-party-web`. In Caddy's Caddyfile:
+
+```caddyfile
+werewolf.example.com {
+	# nginx inside the container serves the app and proxies /api and /Events on to the API,
+	# so this is the only route Caddy needs. WebSocket upgrades pass through untouched.
+	reverse_proxy werewolf-party-web:80
+}
+```
+
+The Caddy container must be on `caddy_net` too, or the name will not resolve. The deploy job
+creates the network if it does not exist yet, so the two stacks can come up in either order.
+
+The host's `.env` needs `PUBLIC_ORIGIN` (for example `https://werewolf.example.com`) alongside
+the secrets — that is the origin the API accepts requests from, and it is now the real one
+rather than `localhost:8080`.

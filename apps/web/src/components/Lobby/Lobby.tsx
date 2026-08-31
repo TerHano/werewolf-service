@@ -1,4 +1,4 @@
-import { HStack, Stack, Text, SimpleGrid, Card } from "@chakra-ui/react";
+import { HStack, Stack, Text, Card } from "@chakra-ui/react";
 import { useCurrentPlayer } from "@/hooks/useCurrentPlayer";
 import { useTranslation } from "react-i18next";
 import { useRoomId } from "@/hooks/useRoomId";
@@ -11,7 +11,9 @@ import { LeaveRoomButton } from "./LeaveRoomButton";
 import { IconCopyCheck } from "@tabler/icons-react";
 import { useToaster } from "@/hooks/ui/useToaster";
 import { Skeleton, SkeletonCircle } from "../ui-addons/skeleton";
-import { InstallOnIosDialog } from "./InstallOnIosDialog";
+import { useLobbySeats } from "@/hooks/useLobbySeats";
+import { SeatCounter } from "./SeatCounter";
+import { EnableNotificationsCard } from "@/components/EnableNotificationsCard";
 
 const RoomRoleSettingsCard = lazy(
   () => import("@/components/Lobby/RoomRoleSettings/RoomRoleSettingsCard")
@@ -27,6 +29,7 @@ export const Lobby = () => {
   const { t } = useTranslation();
   const { data: isModerator } = useIsModerator(roomId);
   const { data: currentPlayer } = useCurrentPlayer(roomId);
+  const { canStartGame } = useLobbySeats(roomId);
 
   const { mutate: startGameMutate, isPending: isStartGamePending } =
     useStartGame({
@@ -47,9 +50,6 @@ export const Lobby = () => {
 
   return (
     <Card.Root w="full" p={3} variant="outline">
-      {/* Lobby only: people are waiting here anyway, and a modal over somebody's night turn
-          would cost them the turn. Shows itself on iOS Safari alone, once. */}
-      <InstallOnIosDialog />
       <Stack w="full" gap={2}>
         <HStack justify="space-between">
           <HStack justifyContent="center">
@@ -99,17 +99,17 @@ export const Lobby = () => {
         >
           <RoomRoleSettingsCard />
         </Suspense>
+        <SeatCounter />
         {isModerator ? (
-          <SimpleGrid gap={2} columns={1}>
-            <Button
-              size="sm"
-              width="100%"
-              loading={isStartGamePending}
-              onClick={onStartGame}
-            >
-              <Text fontSize="sm"> {t("lobby.button.startGame")}</Text>
-            </Button>
-          </SimpleGrid>
+          <Button
+            size="sm"
+            width="100%"
+            disabled={!canStartGame}
+            loading={isStartGamePending}
+            onClick={onStartGame}
+          >
+            <Text fontSize="sm"> {t("lobby.button.startGame")}</Text>
+          </Button>
         ) : null}
         <Suspense
           fallback={
@@ -125,6 +125,10 @@ export const Lobby = () => {
         >
           <PlayersSection currentPlayer={currentPlayer} />
         </Suspense>
+        {/* Last, and only when there is something to offer: the lobby is where people are
+            already waiting, so it is the one place a nudge about notifications costs nobody
+            their turn. */}
+        <EnableNotificationsCard />
       </Stack>
     </Card.Root>
   );

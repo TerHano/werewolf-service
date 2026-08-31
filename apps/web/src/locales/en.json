@@ -86,6 +86,16 @@
       "description": "You have been kicked from the room by the moderator."
     },
     "playersWaiting": "{{count}} Player(s) Waiting",
+    "seats": {
+      "count": "{{players}} / {{cards}}",
+      "readyToStart": "Everyone's seated — ready to start!",
+      "morePlayersNeeded": "Waiting on {{count}} more player(s)",
+      "extraVillagers": "{{count}} extra player(s) will be dealt Villager"
+    },
+    "moderatorBadge": {
+      "playing": "Playing",
+      "sittingOut": "Sitting Out"
+    },
     "leaveRoomModal": {
       "title": "Leave Room?",
       "description": "You will not be able to participate if you join the room again while a game is in progress.",
@@ -104,6 +114,17 @@
       "button": {
         "kick": "Kick Player",
         "makeModerator": "Make Moderator"
+      },
+      "confirm": {
+        "kick": {
+          "title": "Kick {{nickname}}?",
+          "description": "They will be removed from the room. They can join again with the room code."
+        },
+        "makeModerator": {
+          "title": "Make {{nickname}} moderator?",
+          "description": "They take over the role settings and starting the game. You cannot take it back yourself — only the new moderator can hand it over."
+        },
+        "cancel": "Cancel"
       }
     },
     "button": {
@@ -227,7 +248,8 @@
       },
       "install": {
         "title": "Add to your home screen",
-        "description": "On iPhone, tap Share then \"Add to Home Screen\" to get a buzz on your turn. Until then, keep this page open."
+        "description": "On iPhone, notifications only work once the game is on your Home Screen. Until then, keep this page open.",
+        "button": "Show me how"
       },
       "denied": {
         "title": "Notifications are blocked",
@@ -269,7 +291,7 @@
     "step2": "Scroll down and tap \"Add to Home Screen\".",
     "step3": "Tap \"Add\", then open Werewolf from your Home Screen.",
     "afterwards": "Once installed, turn on notifications from the game screen.",
-    "dismiss": "Not now"
+    "done": "Got it"
   },
   "mainMenu": {
     "title": "Werewolf Party",

@@ -19,6 +19,7 @@ import { PlayerDto } from "@/dto/PlayerDto";
 import { Skeleton, SkeletonCircle } from "../ui-addons/skeleton";
 import { IconCrown } from "@tabler/icons-react";
 import { useToaster } from "@/hooks/ui/useToaster";
+import { useRoomRoleSettings } from "@/hooks/useRoomRoleSettings";
 
 export interface ModeratorCardProps {
   currentPlayer?: PlayerDto;
@@ -38,6 +39,10 @@ export const ModeratorCard = ({ currentPlayer }: ModeratorCardProps) => {
   const { mutateAsync: updatePlayerDetailsMutateAsync } =
     useUpdateCurrentPlayerDetails();
   const { getAvatarImageSrcForIndex } = usePlayerAvatar();
+  const { data: roomRoleSettings } = useRoomRoleSettings(roomId);
+  // Undefined until the settings land — better no badge than one that claims the wrong thing
+  // for a frame and then flips.
+  const isModeratorDealtIn = roomRoleSettings?.selfModerated;
 
   const onModeratorUpdated = useCallback(
     (newModerator: PlayerDto) => {
@@ -98,7 +103,7 @@ export const ModeratorCard = ({ currentPlayer }: ModeratorCardProps) => {
               />
             </SkeletonCircle>
             <Stack direction="column" align="start" gap={0}>
-              <Group>
+              <Group wrap="wrap" gapY={1}>
                 <Badge colorPalette="yellow" size="sm">
                   <Text fontSize="sm">{t("common.moderator")}</Text>
                 </Badge>
@@ -107,6 +112,21 @@ export const ModeratorCard = ({ currentPlayer }: ModeratorCardProps) => {
                     <Text fontSize="sm">{t("common.you")}</Text>
                   </Badge>
                 ) : null}
+                {isModeratorDealtIn === undefined ? null : (
+                  // Says whether the moderator is one of the players counted below, which is
+                  // the difference between a self-moderated room and a hosted one.
+                  <Badge
+                    colorPalette={isModeratorDealtIn ? "green" : "gray"}
+                    variant="surface"
+                    size="sm"
+                  >
+                    <Text fontSize="sm">
+                      {isModeratorDealtIn
+                        ? t("lobby.moderatorBadge.playing")
+                        : t("lobby.moderatorBadge.sittingOut")}
+                    </Text>
+                  </Badge>
+                )}
               </Group>
               <Skeleton w="full" height={8} loading={isModeratorLoading}>
                 <Text fontSize="lg" textStyle="accent">

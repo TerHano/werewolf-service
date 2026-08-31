@@ -25,6 +25,7 @@ import {
 } from "@/components/ui-addons/skeleton";
 import { IconCopyCheck } from "@tabler/icons-react";
 import { useToaster } from "@/hooks/ui/useToaster";
+import { useLobbySeats } from "@/hooks/useLobbySeats";
 
 export const PlayersSection = ({
   currentPlayer,
@@ -41,6 +42,10 @@ export const PlayersSection = ({
     isLoading: isPlayersLoading,
     refetch: refetchPlayers,
   } = usePlayers(roomId);
+
+  // The players endpoint leaves the moderator out, but a self-moderated host is dealt in and
+  // has to be counted, so the heading follows the seats rather than the length of the list.
+  const { playersToDealTo, isLoading: isSeatsLoading } = useLobbySeats(roomId);
 
   const onPlayerKicked = useCallback(
     (kickedPlayerId: number) => {
@@ -73,11 +78,18 @@ export const PlayersSection = ({
     <>
       <HStack my={1}>
         <Separator flex="1" />
-        <Text fontSize="xl" textStyle="accent" flexShrink="0">
-          {noPlayersInLobby
-            ? t("lobby.inviteFriends")
-            : t(`lobby.playersWaiting`, { count: players?.length ?? 0 })}
-        </Text>
+        <Skeleton
+          flexShrink="0"
+          height={7}
+          w="12rem"
+          loading={isSeatsLoading || isPlayersLoading}
+        >
+          <Text fontSize="xl" textStyle="accent" flexShrink="0">
+            {noPlayersInLobby
+              ? t("lobby.inviteFriends")
+              : t(`lobby.playersWaiting`, { count: playersToDealTo })}
+          </Text>
+        </Skeleton>
         <Separator flex="1" />
       </HStack>
       <React.Fragment>

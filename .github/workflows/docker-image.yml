@@ -9,7 +9,10 @@ on:
 
 jobs:
   build:
-    runs-on: ubuntu-latest
+    # The host is an Ampere (arm64) machine, so the images only ever need to be arm64 — and an
+    # ARM runner builds them natively. This used to be an x86 runner emulating arm64 through
+    # QEMU, which took the best part of an hour for the .NET image alone.
+    runs-on: ubuntu-24.04-arm
     permissions:
       contents: read
       packages: write
@@ -32,10 +35,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      # The free Oracle ARM shapes cannot run an amd64 image, and the deploy only pulls — it
-      # never builds — so an image published for one architecture is an image that cannot be
-      # deployed to the other. QEMU lets this x86 runner emit both, under one tag.
-      - uses: docker/setup-qemu-action@v3
       - uses: docker/setup-buildx-action@v3
 
       - name: Log in to registry
@@ -62,13 +61,15 @@ jobs:
         with:
           context: ${{ matrix.context }}
           file: ${{ matrix.dockerfile }}
-          platforms: linux/amd64,linux/arm64
-          # A pull request builds both architectures as a check and publishes nothing.
+          # arm64 only: the deploy pulls and never builds, so an image is only useful to this
+          # project if the Ampere host can run it. Add linux/amd64 back here (and QEMU above)
+          # if these images ever have to run on an x86 box.
+          platforms: linux/arm64
+          # A pull request builds as a check and publishes nothing.
           push: ${{ github.event_name != 'pull_request' }}
           tags: ${{ steps.tag.outputs.tags }}
           build-args: |
             BUILD_CONFIGURATION=${{ vars.BUILD_CONFIGURATION || 'Release' }}
-          # Emulated arm64 is slow enough that an uncached build is painful every time.
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
@@ -106,8 +107,17 @@ jobs:
           script: |
             cd /srv/werewolf-party
 
+            # caddy_net belongs to the Caddy stack, not this one, so compose treats it as
+            # external and refuses to start if it is missing. Creating it here means the order
+            # the two stacks first come up in does not matter.
+            docker network inspect caddy_net >/dev/null 2>&1 || docker network create caddy_net
+
             # Both files, every time. compose.prod.yaml is an overlay — it carries only the
             # published images and drops the build sections — so on its own it has no database
             # and no configuration at all.
             docker compose -f compose.yaml -f compose.prod.yaml pull
-            docker compose -f compose.yaml -f compose.prod.yaml up -d
+            docker compose -f compose.yaml -f compose.prod.yaml up -d --remove-orphans
+
+            # The previous release's images are still on disk after an update, and the boot
+            # volume on these shapes is small enough to notice.
+            docker image prune -f

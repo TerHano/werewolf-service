@@ -19,7 +19,7 @@ import { NightPhaseView } from "@/components/GameRoom/PlayerView/NightPhaseView"
 import { PlayerRoleCard } from "@/components/GameRoom/PlayerView/PlayerRoleCard";
 import { SelfModeratedDay } from "./SelfModeratedDay";
 import { playNightOverCue, primeNightCue } from "@/util/nightCue";
-import { EnableNotificationsCard } from "./EnableNotificationsCard";
+import { EnableNotificationsCard } from "@/components/EnableNotificationsCard";
 import { ModeratorBadgeCard } from "./ModeratorBadgeCard";
 import { SpectatorCard } from "./SpectatorCard";
 import { GameStatusBar } from "./GameStatusBar";
