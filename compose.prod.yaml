@@ -4,6 +4,10 @@
 #   docker compose -f compose.yaml -f compose.prod.yaml up -d
 #
 # Set every secret in the host's .env — the committed one holds development values only.
+#
+# TLS and the public hostname are not this stack's job. A separate Caddy container owns
+# :80/:443 on the host and reaches the web container over the shared `caddy_net` network, so
+# nothing here publishes a port. See the Caddyfile snippet in README's Deployment section.
 
 services:
   api:
@@ -11,7 +15,26 @@ services:
     build: !reset null
     environment:
       ASPNETCORE_ENVIRONMENT: Production
+      # Requests arrive through Caddy on the public name, so that — not localhost:8080 — is
+      # the origin the API has to accept.
+      AllowedOrigins: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in .env, e.g. https://werewolf.example.com}
 
   web:
     image: ghcr.io/terhano/werewolfparty-web:latest
     build: !reset null
+    # Caddy is the only thing that should be able to reach this. Publishing 8080 as well would
+    # leave a plaintext copy of the whole app open on the host's public IP.
+    ports: !reset []
+    networks:
+      # Naming any network drops the implicit default, and the default is how nginx here
+      # resolves `api`. Both, then.
+      default:
+      caddy_net:
+        # Compose would otherwise alias this container as plain `web` on a network shared with
+        # every other site on the box. The alias is the name Caddy proxies to.
+        aliases:
+          - werewolf-party-web
+
+networks:
+  caddy_net:
+    external: true
