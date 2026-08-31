@@ -125,7 +125,7 @@ host. This stack publishes no ports; Caddy reaches the web container over the sh
 network `caddy_net`, where it answers to `werewolf-party-web`. In Caddy's Caddyfile:
 
 ```caddyfile
-werewolf.example.com {
+werewolfparty.terhano.com {
 	# nginx inside the container serves the app and proxies /api and /Events on to the API,
 	# so this is the only route Caddy needs. WebSocket upgrades pass through untouched.
 	reverse_proxy werewolf-party-web:80
@@ -135,6 +135,8 @@ werewolf.example.com {
 The Caddy container must be on `caddy_net` too, or the name will not resolve. The deploy job
 creates the network if it does not exist yet, so the two stacks can come up in either order.
 
-The host's `.env` needs `PUBLIC_ORIGIN` (for example `https://werewolf.example.com`) alongside
-the secrets — that is the origin the API accepts requests from, and it is now the real one
-rather than `localhost:8080`.
+`PUBLIC_ORIGIN` defaults to the production domain and only needs setting in the host's `.env`
+if that ever changes. It feeds the API's CORS policy, which nothing currently exercises —
+Caddy and nginx serve the app and the API from one origin, so the browser makes no
+cross-origin request at all. It would start to matter only if the bundle were served from a
+different hostname than `/api`.

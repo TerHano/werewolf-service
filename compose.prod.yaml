@@ -15,9 +15,12 @@ services:
     build: !reset null
     environment:
       ASPNETCORE_ENVIRONMENT: Production
-      # Requests arrive through Caddy on the public name, so that — not localhost:8080 — is
-      # the origin the API has to accept.
-      AllowedOrigins: ${PUBLIC_ORIGIN:?set PUBLIC_ORIGIN in .env, e.g. https://werewolf.example.com}
+      # Only ever consulted if the app is served from a different host than the API. It is not
+      # today — Caddy and nginx put the bundle and /api on one origin, so the browser makes no
+      # cross-origin request and this policy is never reached. Kept correct rather than
+      # required: a stale value here would mislead whoever does split the hosts, but a missing
+      # one must not fail a deploy over a setting nothing reads.
+      AllowedOrigins: ${PUBLIC_ORIGIN:-https://werewolfparty.terhano.com}
 
   web:
     image: ghcr.io/terhano/werewolfparty-web:latest
